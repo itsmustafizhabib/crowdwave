@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>CrowdWave</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(FLUTTER_BUILD_NAME)</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true />
+    </dict>
+    
+    <!-- Facebook Configuration -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>facebook-login</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>fbYOUR_FACEBOOK_APP_ID</string>
+            </array>
+        </dict>
+    </array>
+    
+    <key>FacebookAppID</key>
+    <string>YOUR_FACEBOOK_APP_ID</string>
+    
+    <key>FacebookClientToken</key>
+    <string>YOUR_FACEBOOK_CLIENT_TOKEN</string>
+    
+    <key>FacebookDisplayName</key>
+    <string>CrowdWave</string>
+    
+    <!-- Permissions required by ZegoExpressEngine SDK for voice calling -->
+    <key>NSCameraUsageDescription</key>
+    <string>CrowdWave needs camera access to enable video calls with travelers and senders for secure package delivery verification.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>CrowdWave needs microphone access to enable voice calls with travelers and senders for real-time communication during delivery coordination.</string>
+    
+    <!-- Location permissions for delivery tracking -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>CrowdWave needs location access to help you find nearby delivery opportunities and track package deliveries for safety and coordination.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>CrowdWave needs location access to provide real-time delivery tracking and ensure safe, reliable package delivery services.</string>
+    
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>fbapi</string>
+        <string>fb-messenger-share-api</string>
+        <string>fbauth2</string>
+        <string>fbshareextension</string>
+    </array>
+</dict>
+</plist>

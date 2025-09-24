@@ -1,0 +1,369 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users collection - users can read/write their own data
+    match /users/{userId} {
+      // Allow anyone signed in to read user public profile; writes only by owner
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Usernames collection - for username uniqueness and lookup
+    match /usernames/{username} {
+      // Allow creating/updating username only if it's for the authenticated user
+      allow create: if request.auth != null 
+        && request.auth.uid == request.resource.data.userId
+        && isValidUsernameData(request.resource.data);
+      
+      // Allow reading username data for login purposes
+      allow read: if request.auth != null;
+      
+      // Only allow user to update their own username reservation
+      allow update: if request.auth != null 
+        && request.auth.uid == resource.data.userId;
+      
+      // Only allow user to delete their own username reservation  
+      allow delete: if request.auth != null 
+        && request.auth.uid == resource.data.userId;
+    }
+
+    // KYC Applications collection - strict access control
+    match /kyc_applications/{userId} {
+      // Only authenticated users can create/update their own KYC application
+      allow create, update: if request.auth != null 
+        && request.auth.uid == userId
+        && isValidKycData(request.resource.data);
+      
+      // Users can read their own KYC application
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // Only admins can approve/reject KYC applications
+      allow update: if request.auth != null && hasAdminRole(request.auth.uid)
+        && onlyStatusChanged(resource.data, request.resource.data);
+    }
+
+    // Conversations collection (temporarily relaxed for offer submission)
+    match /conversations/{conversationId} {
+      // Temporarily allow all operations for authenticated users
+      allow read, write: if request.auth != null;
+    }
+    
+    // Messages subcollection within conversations
+    match /conversations/{conversationId}/messages/{messageId} {
+      allow read: if request.auth != null && 
+        request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
+      allow create: if request.auth != null && 
+        request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds &&
+        request.auth.uid == request.resource.data.senderId;
+      allow update: if request.auth != null && 
+        request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds &&
+        (request.auth.uid == resource.data.senderId || 
+         request.auth.uid == resource.data.receiverId);
+      allow delete: if request.auth != null && 
+        request.auth.uid == resource.data.senderId;
+    }
+
+    // Presence collection - online/offline heartbeats
+    match /presence/{userId} {
+      // Anyone signed-in can read presence (to show online status)
+      allow read: if request.auth != null;
+      // Only the owner can create/update/delete their presence doc
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update, delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // System logs collection - for admin and system monitoring
+    match /systemLogs/{logId} {
+      // Allow authenticated users to create system logs
+      allow create: if request.auth != null;
+      // Only admins can read system logs (adjust as needed)
+      allow read: if request.auth != null;
+    }
+
+    // Notifications collection (optional client writes)
+    match /notifications/{notificationId} {
+      // Allow read for owner; adjust if notifications are per-user
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      // Allow owner to create/update/delete their notification documents
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    
+    // Package requests collection (legacy underscore)
+    match /package_requests/{requestId} {
+      allow read, write: if request.auth != null;
+    }
+
+  // PackageRequests collection (temporarily relaxed for offer submission)
+    match /packageRequests/{requestId} {
+      // Temporarily allow all operations for authenticated users
+      allow read, write: if request.auth != null;
+    }
+
+    // Bookings collection (temporarily relaxed for offer submission)
+    match /bookings/{bookingId} {
+      // Temporarily allow all operations for authenticated users
+      allow read, write: if request.auth != null;
+    }
+
+    // Delivery tracking collection (orders view)
+    match /deliveryTracking/{trackingId} {
+      // Allow read when the user is either the traveler or the sender associated with this tracking
+      allow read: if request.auth != null && (
+        // Traveler on the tracking can read
+        request.auth.uid == resource.data.travelerId ||
+        // Sender can read by validating ownership of the referenced packageRequest
+        (
+          resource.data.packageRequestId is string &&
+          exists(/databases/$(database)/documents/packageRequests/$(resource.data.packageRequestId)) &&
+          get(/databases/$(database)/documents/packageRequests/$(resource.data.packageRequestId)).data.senderId == request.auth.uid
+        )
+      );
+
+      // Writes should be from server or authorized actors; restrict broadly for now
+      allow create, update, delete: if request.auth != null && (
+        // Allow traveler to update limited mutable fields (e.g., status updates)
+        request.auth.uid == resource.data.travelerId ||
+        // Allow sender to add notes if needed
+        request.auth.uid == resource.data.senderId
+      );
+    }
+
+    // Deals collection (price offers/counters/acceptance)
+    match /deals/{dealId} {
+      // Allow read if the authenticated user is involved in the deal OR is a participant in the conversation
+      // This allows chat participants to see deal offers referenced in messages
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.senderId ||
+        request.auth.uid == resource.data.travelerId ||
+        request.auth.uid in get(/databases/$(database)/documents/conversations/$(resource.data.conversationId)).data.participantIds
+      );
+
+      // Creation allowed only by the sender (current user)
+      allow create: if request.auth != null && (
+        request.auth.uid == request.resource.data.senderId
+      );
+
+      // Updates allowed by involved users only
+      // e.g., accept/reject by the receiver (package owner), or cancelling by sender
+      allow update, delete: if request.auth != null && (
+        request.auth.uid == resource.data.senderId ||
+        request.auth.uid == resource.data.travelerId ||
+        // Allow package owner to accept deals for their packages
+        request.auth.uid == get(/databases/$(database)/documents/packageRequests/$(resource.data.packageId)).data.senderId
+      );
+    }
+
+    // Travel trips (used for home feed and user trips)
+    match /travelTrips/{tripId} {
+      // Allow read:
+      //  - to the owner traveler, OR
+      //  - to any authenticated user when status is active (for discovery/feed)
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.travelerId ||
+        resource.data.status == 'active'
+      );
+      // Owner can create/update/delete their own trips (adjust as needed)
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.travelerId;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.travelerId;
+    }
+
+    // Trips collection (alternative/legacy name)
+    match /trips/{tripId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null;
+    }
+
+    // Escrow transactions collection
+    match /escrow_transactions/{transactionId} {
+      allow read, write: if request.auth != null && (
+        request.auth.uid == resource.data.senderId ||
+        request.auth.uid == resource.data.travelerId
+      );
+      allow create: if request.auth != null;
+    }
+
+    // Disputes collection
+    match /disputes/{disputeId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Suspensions collection
+    match /suspensions/{suspensionId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null;
+    }
+
+    // Matches collection
+    match /matches/{matchId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Reviews collection - comprehensive review and rating system
+    match /reviews/{reviewId} {
+      // Allow read for all authenticated users if review is approved
+      allow read: if request.auth != null && 
+                     resource.data.moderationStatus == 'approved';
+      
+      // Allow create for authenticated users on their own reviews
+      allow create: if request.auth != null && 
+                       request.auth.uid == request.resource.data.reviewerId &&
+                       isValidReview(request.resource.data) &&
+                       !hasExistingReview(request.auth.uid, request.resource.data.targetId) &&
+                       !isReviewingOwnContent(request.auth.uid, request.resource.data.targetId, request.resource.data.type);
+      
+      // Allow update only for the review owner (for adding comments/helpful marks)  
+      allow update: if request.auth != null && 
+                       (request.auth.uid == resource.data.reviewerId ||
+                        isOnlyUpdatingInteractions(request.resource.data, resource.data));
+      
+      // Allow delete only for review owner or admin
+      allow delete: if request.auth != null && 
+                       (request.auth.uid == resource.data.reviewerId || 
+                        hasAdminRole(request.auth.uid));
+    }
+
+    // Review summaries collection - aggregated review statistics
+    match /review_summaries/{targetId} {
+      // Allow read for all authenticated users
+      allow read: if request.auth != null;
+      
+      // Only allow system/admin updates to review summaries (updated via Cloud Functions)
+      allow write: if false;
+    }
+
+    // Reports collection - for reporting inappropriate reviews
+    match /reports/{reportId} {
+      // Allow read only for admins
+      allow read: if hasAdminRole(request.auth.uid);
+      
+      // Allow create for authenticated users
+      allow create: if request.auth != null && 
+                       request.auth.uid == request.resource.data.reporterId &&
+                       isValidReport(request.resource.data);
+      
+      // Allow update only for admins (to change status)
+      allow update: if hasAdminRole(request.auth.uid);
+      
+      // No delete allowed
+      allow delete: if false;
+    }
+
+    // User review limits collection - for rate limiting
+    match /user_review_limits/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Call notifications collection - for voice/video call signaling (temporarily relaxed)
+    match /call_notifications/{notificationId} {
+      // Temporarily allow all operations for authenticated users
+      allow read, write: if request.auth != null;
+    }
+    
+    // Helper functions
+    
+    // Helper function to check if user has admin role
+    function hasAdminRole(uid) {
+      return exists(/databases/$(database)/documents/users/$(uid))
+        && get(/databases/$(database)/documents/users/$(uid)).data.role == 'admin';
+    }
+
+    // Helper function to validate conversation data structure
+    function isValidConversationData(data) {
+      return data.keys().hasAll(['participantIds', 'lastMessage', 'lastMessageTimestamp'])
+        && data.participantIds is list
+        && data.participantIds.size() == 2
+        && data.lastMessage is string
+        && data.lastMessageTimestamp != null;
+    }
+
+    // Helper function to validate review data structure
+    function isValidReview(reviewData) {
+      return reviewData.keys().hasAll(['reviewerId', 'reviewerName', 'targetId', 'type', 'rating', 'createdAt', 'moderationStatus'])
+        && reviewData.rating is number
+        && reviewData.rating >= 1
+        && reviewData.rating <= 5
+        && reviewData.type in ['trip', 'package', 'traveler', 'sender']
+        && reviewData.moderationStatus in ['pending', 'approved', 'rejected', 'flagged']
+        && reviewData.createdAt is timestamp
+        && (reviewData.comment == null || reviewData.comment is string)
+        && (reviewData.photoUrls == null || reviewData.photoUrls is list)
+        && reviewData.reviewerId is string
+        && reviewData.targetId is string;
+    }
+    
+    // Helper function to check if only interaction fields are being updated (helpful, comments)
+    function isOnlyUpdatingInteractions(newData, oldData) {
+      return newData.diff(oldData).affectedKeys().hasOnly(['helpfulUserIds', 'helpfulCount', 'comments', 'updatedAt']);
+    }
+
+    // Helper function to check if user already has a review for this target
+    function hasExistingReview(userId, targetId) {
+      return exists(/databases/$(database)/documents/reviews/$(userId + '_' + targetId));
+    }
+    
+    // Helper function to prevent users from reviewing their own trips/packages
+    function isReviewingOwnContent(userId, targetId, type) {
+      return (type == 'trip' && 
+              exists(/databases/$(database)/documents/trips/$(targetId)) &&
+              get(/databases/$(database)/documents/trips/$(targetId)).data.travelerId == userId) ||
+             (type == 'package' && 
+              exists(/databases/$(database)/documents/packageRequests/$(targetId)) &&
+              get(/databases/$(database)/documents/packageRequests/$(targetId)).data.senderId == userId);
+    }
+
+    // Helper function to validate report data structure
+    function isValidReport(reportData) {
+      return reportData.keys().hasAll(['reviewId', 'reporterId', 'reason', 'reportedAt', 'status'])
+        && reportData.reviewId is string
+        && reportData.reporterId is string
+        && reportData.reason is string
+        && reportData.reportedAt is timestamp
+        && reportData.status in ['pending', 'resolved', 'dismissed']
+        && (reportData.commentId == null || reportData.commentId is string);
+    }
+
+    // Helper function to validate username data structure
+    function isValidUsernameData(data) {
+      return data.keys().hasAll(['userId', 'originalUsername'])
+        && data.userId is string
+        && data.originalUsername is string;
+    }
+
+    // Helper function to validate KYC data structure
+    function isValidKycData(data) {
+      return data.keys().hasAll(['userId', 'status', 'personalInfo', 'document', 'audit'])
+        && data.userId is string
+        && data.status is string
+        && data.status in ['submitted', 'under_review', 'approved', 'rejected']
+        && isValidPersonalInfo(data.personalInfo)
+        && isValidDocumentInfo(data.document)
+        && isValidAuditInfo(data.audit);
+    }
+
+    // Helper function to validate personal info structure
+    function isValidPersonalInfo(personalInfo) {
+      return personalInfo.keys().hasAll(['fullName', 'dateOfBirth', 'address'])
+        && personalInfo.fullName is string
+        && personalInfo.dateOfBirth is string;
+    }
+
+    // Helper function to validate document info structure  
+    function isValidDocumentInfo(document) {
+      return document.keys().hasAll(['type', 'frontImageUrl'])
+        && document.type is string
+        && document.frontImageUrl is string;
+    }
+
+    // Helper function to validate audit info structure
+    function isValidAuditInfo(audit) {
+      return audit.keys().hasAll(['submittedAt'])
+        && audit.submittedAt is string;
+    }
+
+    // Helper function to check if only status field changed (for admin updates)
+    function onlyStatusChanged(oldData, newData) {
+      return newData.diff(oldData).affectedKeys().hasOnly(['status', 'audit']);
+    }
+  }
+}

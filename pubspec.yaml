@@ -1,0 +1,130 @@
+name: crowdwave
+description: "CrowdWave - Peer-to-peer delivery marketplace connecting travelers with people who need packages delivered. Safe, convenient, and cost-effective worldwide delivery service."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+  flutter: ">=3.16.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2  # ADD THIS
+
+  # UI & State Management
+  sizer: ^2.0.15
+  google_fonts: ^6.1.0
+  flutter_svg: ^2.0.9
+  lottie: ^3.3.1
+
+  # Networking & Storage
+  dio: ^5.7.0
+  connectivity_plus: ^6.1.0
+  shared_preferences: ^2.2.2
+
+  # Charts & Visualization
+  fl_chart: ^0.65.0
+
+  # UI Enhancement
+  fluttertoast: ^8.2.4
+  shimmer: ^3.0.0
+  pull_to_refresh: ^2.0.0
+  flutter_rating_bar: ^4.0.1
+  matrix4_transform: ^2.0.1
+
+  # State Management (consider choosing one)
+  provider: ^6.1.2
+  get: ^4.6.5
+
+  # Firebase dependencies - Updated to latest stable
+  firebase_core: ^3.15.2
+  firebase_auth: ^5.7.0
+  cloud_firestore: ^5.6.12
+  cloud_functions: ^5.0.5
+  google_sign_in: ^6.3.0
+  firebase_analytics: ^11.6.0
+  firebase_messaging: ^15.2.10
+  flutter_local_notifications: ^19.4.2
+
+  # Social Login
+  flutter_facebook_auth: ^7.1.1
+  sign_in_with_apple: ^6.1.2
+
+  # Maps & Location
+  google_maps_flutter: ^2.5.0
+  geolocator: ^10.1.1
+  geocoding: ^2.2.2
+
+  # Payments
+  flutter_stripe: ^10.1.1
+
+  # File & Image Handling
+  file_picker: ^10.1.2
+  image_picker: ^1.1.2
+  camera: ^0.10.5+5
+  image: ^4.1.7
+
+  # Voice Calling - ZegoExpressEngine (Core SDK for custom implementation)
+  zego_express_engine: ^3.14.5
+  permission_handler: ^12.0.1
+  
+  # Chat Enhancement
+  emoji_picker_flutter: ^2.0.0
+  flutter_linkify: ^6.0.0
+  image_cropper: ^8.0.2
+  cached_network_image: ^3.3.1
+
+  # Utilities
+  intl: ^0.19.0
+  uuid: ^4.3.3
+  url_launcher: ^6.2.2
+  share_plus: ^10.1.1
+  
+  # Web compatibility
+  universal_html: ^2.2.4
+  google_places_flutter: ^2.1.1
+  http: ^1.5.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.3.3
+  mockito: ^5.4.4
+  build_runner: ^2.4.9
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/images/
+    - assets/animations/
+    - assets/icons8-google-color/
+    - assets/icons8-apple-ios-17-outlined/
+    - assets/images/logo.svg
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo.png"
+  background_color: "#ffffff"
+  theme_color: "#ffffff"
+  remove_alpha_ios: true
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "assets/images/logo.png"
+
+flutter_native_splash:
+  color: "#ffffff"
+  image: "assets/images/logo.png"
+  android: true
+  ios: true
+  web: true
+  android_12:
+    color: "#ffffff"
+    image: "assets/images/logo.png"
+    dark:
+      color: "#121212"
+      image: "assets/images/logo.png"

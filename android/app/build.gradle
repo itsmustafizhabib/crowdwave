@@ -1,0 +1,98 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.gms.google-services"
+}
+
+// Load keystore properties for release signing
+def keystorePropertiesFile = rootProject.file("key.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+android {
+    namespace = "com.crowdwave.courier"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        coreLibraryDesugaringEnabled true
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    signingConfigs {
+        release {
+            keyAlias System.getenv("ANDROID_KEY_ALIAS") ?: keystoreProperties['keyAlias']
+            keyPassword System.getenv("ANDROID_KEY_PASSWORD") ?: keystoreProperties['keyPassword']
+            storeFile System.getenv("ANDROID_KEYSTORE_PATH") ? file(System.getenv("ANDROID_KEYSTORE_PATH")) : (keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null)
+            storePassword System.getenv("ANDROID_STORE_PASSWORD") ?: keystoreProperties['storePassword']
+        }
+    }
+
+    defaultConfig {
+        // ✅ PRODUCTION: Using professional package name for Google Play Store
+        applicationId = "com.crowdwave.courier"
+        // You can update the following values to match your application needs.
+        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+        multiDexEnabled true
+        minSdkVersion flutter.minSdkVersion
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // Use release signing if keystore is configured, otherwise fall back to debug
+            signingConfig = keystoreProperties['storeFile'] ? signingConfigs.release : signingConfigs.debug
+            
+            // ⚡ Performance optimizations
+            zipAlignEnabled true
+            crunchPngs true
+            
+            // Native library optimization
+            ndk {
+                debugSymbolLevel 'SYMBOL_TABLE'
+                // abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64'  // Commented out to avoid conflict with --split-per-abi
+            }
+            
+            // Build optimization
+            manifestPlaceholders = [
+                enableCrashReporting: true,
+                performanceMonitoring: true
+            ]
+        }
+        debug {
+            signingConfig = signingConfigs.debug
+            // applicationIdSuffix '.debug'  // Commented out to match Firebase config
+            versionNameSuffix '-debug'
+            debuggable true
+            
+            // Debug optimizations
+            crunchPngs false  // Faster debug builds
+            zipAlignEnabled false
+        }
+    }
+}
+
+flutter {
+    source '../..'
+}
+
+dependencies {
+    implementation "androidx.multidex:multidex:2.0.1"
+    implementation 'com.google.android.material:material:1.9.0'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
+}

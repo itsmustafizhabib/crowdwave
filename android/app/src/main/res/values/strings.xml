@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">crowdwave</string>
+    <string name="facebook_app_id">779082754705132</string>
+    <string name="facebook_client_token">ef5b41ba31d7a2d4cd16ca4ca0248b14</string>
+    <string name="facebook_login_protocol_scheme">fb779082754705132</string>
+</resources>

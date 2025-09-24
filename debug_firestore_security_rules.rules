@@ -1,0 +1,72 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 🚨 TEMPORARY DEBUG RULES - REMOVE BEFORE PRODUCTION! 🚨
+    // These rules allow testing to identify permission issues
+    
+    // Users collection - allow authenticated users
+    match /users/{userId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Usernames collection
+    match /usernames/{username} {
+      allow read, write: if request.auth != null;
+    }
+
+    // KYC Applications collection
+    match /kyc_applications/{userId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Conversations collection - TEMPORARILY VERY PERMISSIVE
+    match /conversations/{conversationId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Messages subcollection within conversations - TEMPORARILY VERY PERMISSIVE
+    match /conversations/{conversationId}/messages/{messageId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Presence collection - TEMPORARILY VERY PERMISSIVE FOR DEBUGGING
+    match /presence/{userId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Notifications collection
+    match /notifications/{notificationId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Package requests collection (legacy underscore)
+    match /package_requests/{requestId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // PackageRequests collection (camelCase used in app)
+    match /packageRequests/{requestId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Bookings collection
+    match /bookings/{bookingId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Delivery tracking collection
+    match /deliveryTracking/{trackingId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Deals collection
+    match /deals/{dealId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Travel trips
+    match /travelTrips/{tripId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

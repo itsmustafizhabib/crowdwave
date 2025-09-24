@@ -1,0 +1,15 @@
+# Android Signing Configuration
+# Copy this file to 'key.properties' and update with your actual keystore details
+# NEVER commit the actual key.properties file to version control
+
+storePassword=your_store_password_here
+keyPassword=your_key_password_here
+keyAlias=your_key_alias_here
+storeFile=../path/to/your/keystore.jks
+
+# Instructions:
+# 1. Generate a keystore: keytool -genkey -v -keystore crowdwave-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias crowdwave
+# 2. Copy this file to 'key.properties' in the android/ directory
+# 3. Update the values above with your keystore details
+# 4. Add 'key.properties' to your .gitignore file
+# 5. For CI/CD, use environment variables instead

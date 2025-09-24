@@ -1,0 +1,118 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users collection - users can read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // KYC Applications collection - strict access control
+    match /kyc_applications/{userId} {
+      // Only authenticated users can create/update their own KYC application
+      allow create, update: if request.auth != null 
+        && request.auth.uid == userId
+        && isValidKycData(request.resource.data);
+      
+      // Users can read their own KYC application
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // Only admins can approve/reject KYC applications
+      allow update: if request.auth != null && hasAdminRole(request.auth.uid)
+        && onlyStatusChanged(resource.data, request.resource.data);
+    }
+
+    // Helper function to check if user has admin role
+    function hasAdminRole(uid) {
+      return exists(/databases/$(database)/documents/users/$(uid))
+        && get(/databases/$(database)/documents/users/$(uid)).data.role == 'admin';
+    }
+
+    // Helper function to validate KYC data structure
+    function isValidKycData(data) {
+      return data.keys().hasAll(['userId', 'status', 'personalInfo', 'document', 'audit'])
+        && data.userId is string
+        && data.status is string
+        && data.status in ['submitted', 'under_review', 'approved', 'rejected']
+        && isValidPersonalInfo(data.personalInfo)
+        && isValidDocumentInfo(data.document)
+        && isValidAuditInfo(data.audit);
+    }
+
+    // Helper function to validate personal info structure
+    function isValidPersonalInfo(personalInfo) {
+      return personalInfo.keys().hasAll(['fullName', 'dateOfBirth', 'address'])
+        && personalInfo.fullName is string
+        && personalInfo.dateOfBirth is string
+        && isValidAddress(personalInfo.address);
+    }
+
+    // Helper function to validate address structure
+    function isValidAddress(address) {
+      return address.keys().hasAll(['line1', 'city', 'postalCode', 'country'])
+        && address.line1 is string
+        && address.city is string
+        && address.postalCode is string
+        && address.country is string;
+    }
+
+    // Helper function to validate document info structure
+    function isValidDocumentInfo(document) {
+      return document.keys().hasAll(['type', 'images'])
+        && document.type is string
+        && document.type in ['Passport', 'National ID', 'Driver\'s License']
+        && isValidDocumentImages(document.images);
+    }
+
+    // Helper function to validate document images structure
+    function isValidDocumentImages(images) {
+      return images.keys().hasAll(['front', 'selfie'])
+        && images.front is string
+        && images.selfie is string
+        && images.front.matches('https://firebasestorage.*')
+        && images.selfie.matches('https://firebasestorage.*');
+    }
+
+    // Helper function to validate audit info structure
+    function isValidAuditInfo(audit) {
+      return audit.keys().hasAll(['submittedAt', 'updatedAt'])
+        && audit.submittedAt is string
+        && audit.updatedAt is string;
+    }
+
+    // Helper function to check if only status and review fields are being updated
+    function onlyStatusChanged(oldData, newData) {
+      return newData.diff(oldData).affectedKeys().hasOnly(['status', 'review', 'audit']);
+    }
+
+    // Default: deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // KYC file uploads - only allow authenticated users to upload their own files
+    match /kyc/{userId}/{allPaths=**} {
+      allow write: if request.auth != null 
+        && request.auth.uid == userId
+        && resource == null; // Only allow new uploads, not updates
+      
+      allow read: if request.auth != null
+        && (request.auth.uid == userId || hasAdminRole(request.auth.uid));
+    }
+
+    // Helper function to check admin role (requires Firestore lookup)
+    function hasAdminRole(uid) {
+      return exists(/databases/(default)/documents/users/$(uid))
+        && get(/databases/(default)/documents/users/$(uid)).data.role == 'admin';
+    }
+
+    // Default: deny all other access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
