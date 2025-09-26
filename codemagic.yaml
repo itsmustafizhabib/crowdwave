@@ -1,9 +1,7 @@
 workflows:
   ios-workflow:
-    name: iOS Workflow
+    name: iOS App Store Build
     max_build_duration: 120
-    integrations:
-      app_store_connect: codemagic # Use your App Store Connect integration name
     environment:
       flutter: stable
       xcode: latest
@@ -11,36 +9,25 @@ workflows:
     cache:
       cache_paths:
         - $FLUTTER_ROOT/.pub-cache
-        - $HOME/.gradle/caches
         - $HOME/Library/Caches/CocoaPods
     scripts:
-      - name: Set up code signing settings on Xcode project
-        script: |
-          xcode-project use-profiles
       - name: Get Flutter dependencies
         script: |
           flutter packages pub get
       - name: Install CocoaPods dependencies
         script: |
           find . -name "Podfile" -execdir pod install \;
-      - name: Flutter build
+      - name: Set up code signing
+        script: |
+          xcode-project use-profiles
+      - name: Build Flutter iOS
         script: |
           flutter build ios --release --no-codesign
-      - name: Xcode build
+      - name: Build IPA
         script: |
           xcode-project build-ipa \
             --workspace ios/Runner.xcworkspace \
-            --scheme Runner \
-            --archive-flags="-destination 'generic/platform=iOS'"
+            --scheme Runner
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
-      - flutter_drive.log
-    publishing:
-      # Automatically distribute to App Store Connect
-      app_store_connect:
-        auth: integration # Use App Store Connect integration
-        
-        # Submit to App Store Connect but don't auto-submit for review
-        submit_to_testflight: true
-        submit_to_app_store: false
