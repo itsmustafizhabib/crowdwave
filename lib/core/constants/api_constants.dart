@@ -181,9 +181,12 @@ class EnvironmentConfig {
   static String get stripeSecretKey {
     switch (currentEnvironment) {
       case Environment.development:
-        return String.fromEnvironment('STRIPE_TEST_SECRET_KEY', defaultValue: 'sk_test_your_test_key_here'); // Use environment variable
+        return String.fromEnvironment('STRIPE_TEST_SECRET_KEY',
+            defaultValue:
+                'sk_test_your_test_key_here'); // Use environment variable
       case Environment.staging:
-        return String.fromEnvironment('STRIPE_TEST_SECRET_KEY', defaultValue: 'sk_test_your_test_key_here');
+        return String.fromEnvironment('STRIPE_TEST_SECRET_KEY',
+            defaultValue: 'sk_test_your_test_key_here');
       case Environment.production:
         return String.fromEnvironment(
             'STRIPE_SECRET_KEY'); // Use environment variable for production
