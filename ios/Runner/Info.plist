@@ -83,6 +83,10 @@
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>CrowdWave needs location access to provide real-time delivery tracking and ensure safe, reliable package delivery services.</string>
     
+    <!-- Google Maps API Key for iOS -->
+    <key>GoogleMapsAPIKey</key>
+    <string>AIzaSyC8gJgw5v3LQ2Y7IeTTfWP3ikey-P9xtqI</string>
+    
     <key>LSApplicationQueriesSchemes</key>
     <array>
         <string>fbapi</string>
