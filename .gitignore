@@ -13,6 +13,14 @@
 migrate_working_dir/
 pubspec.lock
 
+# Environment variables - NEVER commit API keys!
+.env
+.env.local
+.env.production
+.env.staging
+functions/.env
+*.env
+
 # IntelliJ related
 *.iml
 *.ipr

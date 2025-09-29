@@ -166,14 +166,15 @@ class EnvironmentConfig {
   static String get stripePublishableKey {
     switch (currentEnvironment) {
       case Environment.development:
-        // For development, use proper test keys from Stripe dashboard
-        // Go to: https://dashboard.stripe.com/test/apikeys
-        // Replace with your actual test publishable key
-        return 'pk_test_51S64oML7IY4cP40SDnoFhLy05kukbObqCA0yeEwYldDqYzOAVdwr11GAz2bGcow54EGQ61TFyxhpuINdymaKDTyP00tkU4U3Kj'; // ✅ CONFIGURED: Your actual test key
+        // Use environment variable with fallback to test key
+        return String.fromEnvironment('STRIPE_TEST_PUBLISHABLE_KEY',
+            defaultValue: 'pk_test_PLACEHOLDER'); // ✅ Safe placeholder
       case Environment.staging:
-        return 'pk_test_51S64oML7IY4cP40SDnoFhLy05kukbObqCA0yeEwYldDqYzOAVdwr11GAz2bGcow54EGQ61TFyxhpuINdymaKDTyP00tkU4U3Kj'; // Same test keys for staging
+        return String.fromEnvironment('STRIPE_TEST_PUBLISHABLE_KEY',
+            defaultValue: 'pk_test_PLACEHOLDER');
       case Environment.production:
-        return 'pk_live_51S64nyQ2GpVkQ4xbMXoTvprGUbCCY5yZ3x1Q9nsFIgvP2jvxca0nsMab5VSepBe1P0yM1stF5N6jpazC5dVRrs9M00vgQUcdJh'; // Your live key
+        return String.fromEnvironment('STRIPE_LIVE_PUBLISHABLE_KEY',
+            defaultValue: 'pk_live_PLACEHOLDER'); // Use live key from env
     }
   }
 
@@ -182,14 +183,13 @@ class EnvironmentConfig {
     switch (currentEnvironment) {
       case Environment.development:
         return String.fromEnvironment('STRIPE_TEST_SECRET_KEY',
-            defaultValue:
-                'sk_test_your_test_key_here'); // Use environment variable
+            defaultValue: 'sk_test_PLACEHOLDER'); // ✅ Safe placeholder
       case Environment.staging:
         return String.fromEnvironment('STRIPE_TEST_SECRET_KEY',
-            defaultValue: 'sk_test_your_test_key_here');
+            defaultValue: 'sk_test_PLACEHOLDER');
       case Environment.production:
-        return String.fromEnvironment(
-            'STRIPE_SECRET_KEY'); // Use environment variable for production
+        return String.fromEnvironment('STRIPE_LIVE_SECRET_KEY',
+            defaultValue: 'sk_live_PLACEHOLDER'); // Use live key from env
     }
   }
 
