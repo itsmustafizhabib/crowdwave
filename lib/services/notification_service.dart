@@ -140,7 +140,8 @@ class NotificationService extends GetxController {
 
   Future<void> _initializeNotifications() async {
     await _initializeLocalNotifications();
-    await _requestNotificationPermissions();
+    // Don't automatically request permissions here - let PermissionManagerService handle it
+    // await _requestNotificationPermissions();
     await _updateFCMToken();
     _listenToNotifications();
     _setupForegroundMessageHandler();

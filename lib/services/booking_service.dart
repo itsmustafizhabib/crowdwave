@@ -448,6 +448,74 @@ class BookingService {
     }
   }
 
+  /// 💳 Get user's bookings with pending payments
+  Stream<List<Booking>> getUserPendingPaymentBookings() {
+    if (currentUserId == null) {
+      return Stream.value([]);
+    }
+
+    return _firestore
+        .collection(_bookingsCollection)
+        .where('senderId', isEqualTo: currentUserId)
+        .where('status', whereIn: [
+          BookingStatus.paymentPending.name,
+          BookingStatus.pending.name
+        ])
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => Booking.fromFirestore(doc)).toList());
+  }
+
+  /// 💳 Get all pending payment bookings for current user (as sender or traveler)
+  Future<List<Booking>> getAllPendingPaymentBookings() async {
+    if (currentUserId == null) {
+      return [];
+    }
+
+    try {
+      // Get bookings where user is sender with pending payments
+      final senderBookings = await _firestore
+          .collection(_bookingsCollection)
+          .where('senderId', isEqualTo: currentUserId)
+          .where('status', whereIn: [
+        BookingStatus.paymentPending.name,
+        BookingStatus.pending.name
+      ]).get();
+
+      // Get bookings where user is traveler with pending payments
+      final travelerBookings = await _firestore
+          .collection(_bookingsCollection)
+          .where('travelerId', isEqualTo: currentUserId)
+          .where('status', whereIn: [
+        BookingStatus.paymentPending.name,
+        BookingStatus.pending.name
+      ]).get();
+
+      // Combine and deduplicate
+      final allDocs = <QueryDocumentSnapshot>[];
+      allDocs.addAll(senderBookings.docs);
+      allDocs.addAll(travelerBookings.docs);
+
+      // Remove duplicates and sort by creation date
+      final uniqueDocs = allDocs.toSet().toList();
+      uniqueDocs.sort((a, b) {
+        final aTime =
+            (a.data() as Map<String, dynamic>)['createdAt'] as Timestamp;
+        final bTime =
+            (b.data() as Map<String, dynamic>)['createdAt'] as Timestamp;
+        return bTime.compareTo(aTime); // Descending order (newest first)
+      });
+
+      return uniqueDocs.map((doc) => Booking.fromFirestore(doc)).toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Failed to get pending payment bookings: $e');
+      }
+      return [];
+    }
+  }
+
   /// �📊 Get booking statistics for user
   Future<BookingStats> getUserBookingStats() async {
     if (currentUserId == null) {

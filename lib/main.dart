@@ -15,6 +15,7 @@ import '../core/app_export.dart';
 import '../core/utils/status_bar_utils.dart';
 import '../widgets/custom_error_widget.dart';
 import '../widgets/auth_wrapper.dart';
+import '../widgets/permission_initializer.dart';
 import '../services/auth_state_service.dart';
 import '../services/app_initialization_service.dart';
 import '../services/notification_service.dart';
@@ -23,6 +24,7 @@ import '../services/location_service.dart';
 import '../services/tracking_service.dart';
 import '../services/memory_management_service.dart';
 import '../services/zego_call_service.dart';
+import '../services/permission_manager_service.dart';
 import '../controllers/app_lifecycle_controller.dart';
 import '../core/config/performance_config.dart';
 import '../utils/black_screen_fix.dart';
@@ -142,7 +144,12 @@ void main() async {
   // Initialize performance optimizations
   await PerformanceConfig.initialize();
 
-  // Initialize notification service
+  // 🔐 Initialize permission manager FIRST to coordinate all permissions
+  final permissionManager = PermissionManagerService();
+  await permissionManager.initialize();
+  Get.put(permissionManager);
+
+  // Initialize notification service (without automatic permission request)
   Get.put(NotificationService());
 
   // Initialize location service for smart caching
@@ -153,9 +160,9 @@ void main() async {
   // Initialize tracking service (depends on location and notification services)
   Get.put(TrackingService());
 
-  // 🎤 Initialize voice calling service
+  // 🎤 Initialize voice calling service (without automatic permission request)
   final zegoCallService = ZegoCallService();
-  await zegoCallService.initializeZego();
+  // Don't call initializeZego() here - we'll do it after permissions
   Get.put(zegoCallService);
 
   // 🧹 INITIALIZE MEMORY MANAGEMENT - Prevent memory leaks and black screens
@@ -234,7 +241,9 @@ class MyApp extends StatelessWidget {
           },
           // 🚨 END CRITICAL SECTION
           debugShowCheckedModeBanner: false,
-          home: AuthWrapper(),
+          home: PermissionInitializer(
+            child: AuthWrapper(),
+          ),
           routes: AppRoutes.routes,
         );
       }),

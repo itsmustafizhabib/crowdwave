@@ -98,6 +98,15 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
         _progress = 0.1;
       });
 
+      // ✅ IMPORTANT: Update booking status to paymentPending before starting payment
+      await _bookingService.updateBookingStatus(
+        bookingId: widget.booking.id,
+        status: BookingStatus.paymentPending,
+      );
+
+      print(
+          '💳 Updated booking status to paymentPending: ${widget.booking.id}');
+
       // Step 1: Create payment intent
       final paymentIntentData = await _paymentService.createPaymentIntent(
         amount: widget.booking.totalAmount,

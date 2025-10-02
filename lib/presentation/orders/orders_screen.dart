@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../core/models/delivery_tracking.dart';
+import '../../core/models/booking.dart';
 import '../../services/tracking_service.dart';
+import '../../services/booking_service.dart';
 import '../../widgets/liquid_refresh_indicator.dart';
 import '../../widgets/liquid_loading_indicator.dart';
+import '../../presentation/booking/payment_method_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({Key? key}) : super(key: key);
@@ -17,19 +20,22 @@ class _OrdersScreenState extends State<OrdersScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TrackingService _trackingService = TrackingService();
+  final BookingService _bookingService = BookingService();
 
   List<DeliveryTracking> _allTrackings = [];
+  List<Booking> _pendingPaymentBookings = [];
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController =
+        TabController(length: 5, vsync: this); // Increased from 4 to 5
     _loadTrackings();
   }
 
   void _loadTrackings() async {
-    print('📱 OrdersScreen: Loading trackings...');
+    print('📱 OrdersScreen: Loading trackings and pending payments...');
     if (!mounted) return; // ✅ MOUNTED CHECK
 
     setState(() {
@@ -37,23 +43,29 @@ class _OrdersScreenState extends State<OrdersScreen>
     });
 
     try {
-      // Simple direct call instead of complex streams
-      final trackings = await _trackingService.getUserTrackingsComplete();
+      // Load both trackings and pending payment bookings
+      final results = await Future.wait([
+        _trackingService.getUserTrackingsComplete(),
+        _bookingService.getAllPendingPaymentBookings(),
+      ]);
 
       if (!mounted) return; // ✅ MOUNTED CHECK AFTER ASYNC OPERATION
 
       setState(() {
-        _allTrackings = trackings;
+        _allTrackings = results[0] as List<DeliveryTracking>;
+        _pendingPaymentBookings = results[1] as List<Booking>;
         _isLoading = false;
       });
-      print('✅ Loaded ${trackings.length} trackings successfully');
+      print(
+          '✅ Loaded ${_allTrackings.length} trackings and ${_pendingPaymentBookings.length} pending payment bookings successfully');
     } catch (e) {
-      print('❌ Error loading trackings: $e');
+      print('❌ Error loading data: $e');
 
       if (!mounted) return; // ✅ MOUNTED CHECK AFTER ASYNC OPERATION
 
       setState(() {
         _allTrackings = [];
+        _pendingPaymentBookings = [];
         _isLoading = false;
       });
     }
@@ -62,17 +74,6 @@ class _OrdersScreenState extends State<OrdersScreen>
   Future<void> _handleRefresh() async {
     print('🔄 OrdersScreen: Manual refresh triggered');
     _loadTrackings();
-  }
-
-  Future<void> _createTestData() async {
-    print('🧪 OrdersScreen: Creating test data...');
-    try {
-      await _trackingService.createTestTrackingData();
-      print('✅ Test data created, refreshing...');
-      await _handleRefresh();
-    } catch (e) {
-      print('❌ Error creating test data: $e');
-    }
   }
 
   @override
@@ -115,6 +116,7 @@ class _OrdersScreenState extends State<OrdersScreen>
             Tab(text: 'Active'),
             Tab(text: 'Delivered'),
             Tab(text: 'Pending'),
+            Tab(text: 'Payment Due'),
             Tab(text: 'All'),
           ],
         ),
@@ -125,6 +127,7 @@ class _OrdersScreenState extends State<OrdersScreen>
           _buildActiveTrackings(),
           _buildDeliveredTrackings(),
           _buildPendingTrackings(),
+          _buildPendingPayments(),
           _buildAllTrackings(),
         ],
       ),
@@ -153,6 +156,10 @@ class _OrdersScreenState extends State<OrdersScreen>
       emptyTitle: 'No pending orders',
       emptyMessage: 'Your pending orders will appear here',
     );
+  }
+
+  Widget _buildPendingPayments() {
+    return _buildPendingPaymentsList();
   }
 
   Widget _buildAllTrackings() {
@@ -393,17 +400,17 @@ class _OrdersScreenState extends State<OrdersScreen>
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
-                    onPressed: _createTestData,
-                    icon: const Icon(Icons.science, size: 18),
+                    onPressed: _handleRefresh,
+                    icon: const Icon(Icons.refresh, size: 18),
                     label: const Text(
-                      'Create Test Data',
+                      'Refresh Orders',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
+                      backgroundColor: const Color(0xFF0046FF),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -417,6 +424,180 @@ class _OrdersScreenState extends State<OrdersScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildPendingPaymentsList() {
+    return LiquidRefreshIndicator(
+      onRefresh: _handleRefresh,
+      child: Builder(
+        builder: (context) {
+          // Show loading state
+          if (_isLoading) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  LiquidLoadingIndicator(),
+                  SizedBox(height: 16),
+                  Text(
+                    'Loading pending payments...',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          final pendingBookings = _pendingPaymentBookings;
+          print(
+              '📱 UI using ${pendingBookings.length} pending payment bookings');
+
+          // Show empty state
+          if (pendingBookings.isEmpty) {
+            return _buildEmptyState(
+              'No pending payments',
+              'Bookings that need payment completion will appear here',
+            );
+          }
+
+          // Show list of pending payment bookings
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: pendingBookings.length,
+            itemBuilder: (context, index) {
+              final booking = pendingBookings[index];
+              return _buildPendingPaymentCard(booking);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPendingPaymentCard(Booking booking) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.orange.withOpacity(0.3),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Booking #${booking.id.substring(0, 8).toUpperCase()}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'Payment Due',
+                    style: TextStyle(
+                      color: Colors.orange[700],
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Icon(
+                  Icons.payment,
+                  color: Colors.orange,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Amount: \$${booking.totalAmount.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(
+                  Icons.calendar_today,
+                  color: Colors.grey,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Created: ${_formatDate(booking.createdAt)}',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _completePendingPayment(booking),
+                icon: const Icon(Icons.payment, size: 16),
+                label: const Text(
+                  'Complete Payment',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _completePendingPayment(Booking booking) {
+    // Navigate to payment method screen to complete the payment
+    Get.to(() => PaymentMethodScreen(booking: booking));
   }
 
   Color _getStatusColor(DeliveryStatus status) {

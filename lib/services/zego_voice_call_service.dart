@@ -61,8 +61,8 @@ class ZegoVoiceCallService {
     try {
       WidgetsFlutterBinding.ensureInitialized();
 
-      // Request permissions first
-      await _requestPermissions();
+      // Don't request permissions here - let PermissionManagerService handle it
+      // await _requestPermissions();
 
       // ✅ FIX: Destroy any existing engine before creating new one
       try {

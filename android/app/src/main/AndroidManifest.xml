@@ -41,13 +41,16 @@
         <activity
                 android:name="com.crowdwave.courier.MainActivity"
                 android:exported="true"
-                android:launchMode="singleTop"
+                android:launchMode="singleTask"
                 android:taskAffinity=""
                 android:theme="@style/LaunchTheme"
                 android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
                 android:hardwareAccelerated="true"
                 android:usesCleartextTraffic="true"
-                android:windowSoftInputMode="adjustResize">
+                android:windowSoftInputMode="adjustResize"
+                android:stateNotNeeded="true"
+                android:excludeFromRecents="false"
+                android:clearTaskOnLaunch="false">
             <!-- Specifies an Android theme to apply to this Activity as soon as
                  the Android process has started. This theme is visible to the user
                  while the Flutter UI initializes. After that, this theme continues
