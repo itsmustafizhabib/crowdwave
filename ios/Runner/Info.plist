@@ -77,6 +77,10 @@
     <key>NSMicrophoneUsageDescription</key>
     <string>CrowdWave needs microphone access to enable voice calls with travelers and senders for real-time communication during delivery coordination.</string>
     
+    <!-- Photo library access for profile pictures and delivery verification -->
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>CrowdWave needs access to your photo library to allow you to upload profile pictures and delivery verification photos for secure package handling.</string>
+    
     <!-- Location permissions for delivery tracking -->
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>CrowdWave needs location access to help you find nearby delivery opportunities and track package deliveries for safety and coordination.</string>
