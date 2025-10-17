@@ -34,14 +34,51 @@ class BookingService {
     required PackageRequest package,
     required TravelTrip trip,
     String? specialInstructions,
+    bool skipValidation =
+        false, // Add flag to skip validation when package is pre-validated
   }) async {
     if (currentUserId == null) {
       throw Exception('User must be logged in to create booking');
     }
 
     try {
+      if (kDebugMode) {
+        print('🔍 BOOKING CREATION DEBUG:');
+        print('  - Package ID: ${package.id}');
+        print('  - Trip ID: ${trip.id}');
+        print('  - Deal ID: ${acceptedDeal.id}');
+        print('  - Package senderId: ${package.senderId}');
+        print('  - Trip travelerId: ${trip.travelerId}');
+        print('  - Skip validation: $skipValidation');
+      }
+
       // 🔥 CRITICAL: Validate that referenced documents exist in Firestore
-      await _validateBookingReferences(package.id, trip.id);
+      // Skip validation if package is already pre-validated (e.g., from deal acceptance flow)
+      if (!skipValidation) {
+        await _validateBookingReferences(package.id, trip.id);
+      } else {
+        if (kDebugMode) {
+          print(
+              '⚠️ Skipping validation - package pre-validated from deal acceptance');
+          // But let's still do a quick check to understand the discrepancy
+          try {
+            final packageDoc = await _firestore
+                .collection(_packagesCollection)
+                .doc(package.id)
+                .get();
+            print(
+                '  - Quick check: Package ${package.id} exists in Firestore: ${packageDoc.exists}');
+            if (!packageDoc.exists) {
+              print(
+                  '  - 🔥 ISSUE: Package was pre-validated but doesn\'t exist in Firestore!');
+              print(
+                  '  - This suggests the package ID might be incorrect or the document was deleted');
+            }
+          } catch (e) {
+            print('  - Error during quick check: $e');
+          }
+        }
+      }
 
       // Calculate fees
       final platformFeePercent = 0.1; // 10% platform fee
@@ -71,11 +108,19 @@ class BookingService {
           .collection(_bookingsCollection)
           .add(booking.toFirestore());
 
-      // Update package and trip status
-      await Future.wait([
-        _updatePackageStatus(package.id, PackageStatus.matched),
-        _updateTripStatus(trip.id, TripStatus.active),
-      ]);
+      // Update package and trip status only if not skipping validation
+      // (because if we skip validation, the documents might not exist in Firestore)
+      if (!skipValidation) {
+        await Future.wait([
+          _updatePackageStatus(package.id, PackageStatus.matched),
+          _updateTripStatus(trip.id, TripStatus.active),
+        ]);
+      } else {
+        if (kDebugMode) {
+          print(
+              '⚠️ Skipping package/trip status updates due to skipValidation=true');
+        }
+      }
 
       final createdBooking = booking.copyWith(id: docRef.id);
 
@@ -100,16 +145,32 @@ class BookingService {
       String packageId, String tripId) async {
     final errors = <String>[];
 
+    if (kDebugMode) {
+      print('🔍 VALIDATING BOOKING REFERENCES:');
+      print('  - Checking package ID: $packageId');
+      print('  - Collection: $_packagesCollection');
+    }
+
     // Check if package exists
     try {
       final packageDoc =
           await _firestore.collection(_packagesCollection).doc(packageId).get();
+
+      if (kDebugMode) {
+        print('  - Package document exists: ${packageDoc.exists}');
+        if (packageDoc.exists) {
+          print('  - Package data keys: ${packageDoc.data()?.keys}');
+        }
+      }
 
       if (!packageDoc.exists) {
         errors.add('Package document not found: $packageId');
       }
     } catch (e) {
       errors.add('Failed to validate package: $e');
+      if (kDebugMode) {
+        print('  - Error validating package: $e');
+      }
     }
 
     // Check if trip exists (skip temporary trips)

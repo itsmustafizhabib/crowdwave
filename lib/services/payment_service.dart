@@ -24,12 +24,22 @@ class PaymentService {
       // Get the publishable key based on environment
       String publishableKey = EnvironmentConfig.stripePublishableKey;
 
+      // If we get a placeholder, use the actual test key from ApiConstants
+      if (publishableKey == 'pk_test_PLACEHOLDER' ||
+          publishableKey == 'pk_live_PLACEHOLDER') {
+        publishableKey = ApiConstants.stripePublishableKey;
+      }
+
       // Debug logging
       if (kDebugMode) {
         print('🔧 Initializing Stripe...');
         print(
             '📍 Current environment: ${EnvironmentConfig.currentEnvironment}');
-        print('🔑 Publishable key: ${publishableKey.substring(0, 20)}...');
+        // Safe substring - only show first part if key is long enough
+        final keyPreview = publishableKey.length > 20
+            ? '${publishableKey.substring(0, 20)}...'
+            : publishableKey;
+        print('🔑 Publishable key: $keyPreview');
       }
 
       // Initialize Stripe
@@ -112,91 +122,35 @@ class PaymentService {
     await initializeStripe();
 
     try {
-      // Check authentication first
+      // Check authentication
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
         throw Exception('User not authenticated');
       }
 
-      print('🔐 Current user: ${currentUser.uid}');
-      print('🔐 User email: ${currentUser.email}');
-
-      // Get fresh ID token to ensure authentication
-      final idToken = await currentUser.getIdToken(true);
-      print('🔐 ID token obtained: ${idToken?.substring(0, 20)}...');
-
       log('Creating payment intent for booking: $bookingId');
 
-      // DEBUG: Test authentication first
-      print('🧪 Testing authentication...');
-      try {
-        final testFunctions = FirebaseFunctions.instance;
-        final testCallable = testFunctions.httpsCallable('testAuth');
-        final testResult = await testCallable.call({});
-        print('✅ Auth test successful: ${testResult.data}');
-      } catch (testError) {
-        print('❌ Auth test failed: $testError');
+      // Call us-central1 region function
+      final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
+      final callable = functions.httpsCallable('createPaymentIntent');
+
+      final result = await callable.call({
+        'amount': amount,
+        'currency': currency,
+        'bookingId': bookingId,
+        'metadata': metadata ?? {},
+      });
+
+      final data = result.data;
+      if (data == null) {
+        throw Exception('No data returned from payment intent creation');
       }
 
-      // STEP 1: Try default region first
-      print('🚀 Trying default region first...');
-
-      try {
-        final defaultFunctions = FirebaseFunctions.instance;
-        final defaultCallable =
-            defaultFunctions.httpsCallable('createPaymentIntent');
-
-        final result = await defaultCallable.call({
-          'amount': amount,
-          'currency': currency,
-          'bookingId': bookingId,
-          'metadata': metadata ?? {},
-        });
-
-        print('✅ Default region function call successful');
-        final data = result.data;
-
-        return {
-          'clientSecret': data['clientSecret'],
-          'paymentIntentId': data['paymentIntentId'],
-        };
-      } catch (defaultError) {
-        print('❌ Default region failed: $defaultError');
-        print('🔄 Trying us-central1 region...');
-
-        // STEP 2: Try us-central1 region as fallback
-        final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
-        final callable = functions.httpsCallable('createPaymentIntent');
-
-        print('🚀 Calling createPaymentIntent function (us-central1)...');
-        print('💰 Amount: $amount $currency');
-        print('📦 Booking ID: $bookingId');
-
-        final result = await callable.call({
-          'amount': amount,
-          'currency': currency,
-          'bookingId': bookingId,
-          'metadata': metadata ?? {},
-        });
-
-        print('✅ us-central1 function call successful');
-        final data = result.data;
-
-        if (data == null) {
-          throw Exception('No data returned from payment intent creation');
-        }
-
-        print('📋 Response data keys: ${data.keys.toList()}');
-        print(
-            '🔑 Client secret received: ${data['clientSecret']?.substring(0, 20)}...');
-
-        return {
-          'clientSecret': data['clientSecret'],
-          'paymentIntentId': data['paymentIntentId'],
-        };
-      }
+      return {
+        'clientSecret': data['clientSecret'],
+        'paymentIntentId': data['paymentIntentId'],
+      };
     } catch (e) {
-      print('❌ Payment intent creation failed: $e');
       log('Failed to create payment intent: $e');
       rethrow;
     }
@@ -211,25 +165,7 @@ class PaymentService {
     try {
       log('Processing payment with intent: $paymentIntentId');
 
-      // 🧪 TESTING: Check if this is a test payment intent
-      if (kDebugMode && paymentIntentId.startsWith('pi_test_')) {
-        print('🧪 TESTING MODE: Simulating payment success (bypassing Stripe)');
-        print('💳 Simulating payment processing...');
-
-        // Simulate processing time
-        await Future.delayed(const Duration(seconds: 2));
-
-        print('✅ Test payment completed successfully');
-        print('🎉 Payment simulation: SUCCEEDED');
-
-        return PaymentResult(
-          status: PaymentStatus.succeeded,
-          paymentIntentId: paymentIntentId,
-        );
-      }
-
-      // For real payments, present payment sheet
-      print('💳 Presenting Stripe payment sheet...');
+      // Present payment sheet
       await stripe.Stripe.instance.presentPaymentSheet();
 
       // If we reach here, payment was successful
@@ -244,34 +180,12 @@ class PaymentService {
       );
     } on stripe.StripeException catch (e) {
       log('Stripe error during payment: ${e.error}');
-
-      // If this is a test payment and Stripe rejects it, still simulate success
-      if (kDebugMode && paymentIntentId.startsWith('pi_test_')) {
-        print(
-            '🧪 TESTING: Stripe rejected test payment, but simulating success anyway');
-        return PaymentResult(
-          status: PaymentStatus.succeeded,
-          paymentIntentId: paymentIntentId,
-        );
-      }
-
       return PaymentResult(
         status: PaymentStatus.failed,
         error: e.error.localizedMessage ?? 'Payment failed',
       );
     } catch (e) {
       log('Unexpected error during payment: $e');
-
-      // If this is a test payment, still simulate success
-      if (kDebugMode && paymentIntentId.startsWith('pi_test_')) {
-        print(
-            '🧪 TESTING: Error occurred but simulating success for test payment');
-        return PaymentResult(
-          status: PaymentStatus.succeeded,
-          paymentIntentId: paymentIntentId,
-        );
-      }
-
       return PaymentResult(
         status: PaymentStatus.failed,
         error: 'An unexpected error occurred',
@@ -282,8 +196,8 @@ class PaymentService {
   /// Confirm payment with Firebase Cloud Functions
   Future<void> _confirmPaymentWithBackend(String paymentIntentId) async {
     try {
-      final callable =
-          FirebaseFunctions.instance.httpsCallable('confirmPayment');
+      final callable = FirebaseFunctions.instanceFor(region: 'us-central1')
+          .httpsCallable('confirmPayment');
       await callable.call({
         'paymentIntentId': paymentIntentId,
       });
@@ -297,37 +211,75 @@ class PaymentService {
   Future<void> _callBackendConfirmPayment(
       String paymentIntentId, String bookingId) async {
     try {
-      // ✅ CRITICAL: Verify user is authenticated before calling Cloud Function
+      // Check authentication and refresh token if needed
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
-        throw Exception('User must be authenticated to confirm payment');
+        throw Exception('User not authenticated');
       }
 
-      // Ensure the user token is fresh
+      // Force refresh the ID token to ensure it's fresh after payment
+      log('Refreshing authentication token after payment...');
       await currentUser.getIdToken(true);
 
-      log('🔐 User authenticated for payment confirmation: ${currentUser.uid}');
+      // Wait for token propagation
+      await Future.delayed(Duration(milliseconds: 1000));
 
-      // Call the backend confirm-payment endpoint (updated to use correct function name)
-      final callable = FirebaseFunctions.instance
-          .httpsCallable('confirmPayment'); // ✅ Fixed function name
-      final result = await callable.call({
-        'paymentIntentId': paymentIntentId,
-        'bookingId': bookingId,
-      });
+      log('Confirming payment for booking: $bookingId');
 
-      final success = result.data['success'] as bool? ?? false;
-      if (!success) {
-        throw Exception(
-            'Backend payment confirmation failed: ${result.data['error'] ?? 'Unknown error'}');
-      }
+      // Try the call with retry logic for auth errors
+      await _makeBackendCallWithRetry(paymentIntentId, bookingId);
 
-      log('✅ Payment confirmed and tracking automatically created for booking: $bookingId');
-
-      log('Backend payment confirmation successful for booking: $bookingId');
+      log('Payment confirmed for booking: $bookingId');
     } catch (e) {
-      log('Backend payment confirmation failed: $e');
-      throw Exception('Failed to confirm payment with backend: $e');
+      log('Payment confirmation failed: $e');
+      throw Exception('Failed to confirm payment: $e');
+    }
+  }
+
+  /// Make backend call with retry logic for authentication errors
+  Future<void> _makeBackendCallWithRetry(
+      String paymentIntentId, String bookingId) async {
+    int maxRetries = 2;
+
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        final callable = FirebaseFunctions.instanceFor(region: 'us-central1')
+            .httpsCallable('confirmPayment');
+
+        final result = await callable.call({
+          'paymentIntentId': paymentIntentId,
+          'bookingId': bookingId,
+        });
+
+        final success = result.data['success'] as bool? ?? false;
+        if (!success) {
+          throw Exception(
+              'Payment confirmation failed: ${result.data['error'] ?? 'Unknown error'}');
+        }
+
+        // Success - exit the retry loop
+        return;
+      } on FirebaseFunctionsException catch (e) {
+        if (e.code == 'unauthenticated' && attempt < maxRetries) {
+          log('Unauthenticated error on attempt $attempt, retrying with fresh token...');
+
+          // Force sign out and back in to get a completely fresh session
+          final currentUser = FirebaseAuth.instance.currentUser;
+          if (currentUser != null) {
+            await currentUser.reload();
+            await currentUser.getIdToken(true);
+            await Future.delayed(Duration(milliseconds: 1500));
+            continue; // Retry
+          }
+        }
+
+        // If it's the last attempt or not an auth error, throw the exception
+        if (e.code == 'unauthenticated') {
+          throw Exception(
+              'Your session has expired during payment processing. Please sign in again and retry payment. The payment may have succeeded - check your orders first.');
+        }
+        throw Exception('Payment confirmation failed: ${e.message}');
+      }
     }
   }
 
@@ -410,23 +362,21 @@ class PaymentService {
     required String bookingId,
   }) async {
     try {
-      log('🔄 Handling payment success for booking: $bookingId');
+      log('Handling payment success for booking: $bookingId');
 
-      // ✅ Additional authentication check before calling backend
+      // Simple authentication check
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
-        throw Exception('❌ User authentication lost during payment process');
+        throw Exception('User not authenticated');
       }
 
-      log('✅ User still authenticated: ${currentUser.uid}');
-
-      // Call backend to confirm payment and update booking status
+      // Call backend to confirm payment
       await _callBackendConfirmPayment(paymentIntentId, bookingId);
 
-      log('✅ Payment success handled for booking: $bookingId');
+      log('Payment success handled for booking: $bookingId');
     } catch (e) {
-      log('❌ Failed to handle payment success: $e');
-      rethrow;
+      log('Failed to handle payment success: $e');
+      throw Exception('Payment confirmation failed: $e');
     }
   }
 
@@ -554,79 +504,32 @@ class PaymentService {
   Future<PaymentResult> processPaymentWithErrorHandling({
     required stripe.PaymentIntent paymentIntent,
     required BuildContext context,
-    int maxRetries = 3,
-    Duration retryDelay = const Duration(seconds: 2),
+    int maxRetries = 1, // Reduced from 3 to 1
+    Duration retryDelay = const Duration(seconds: 1), // Reduced from 2 to 1
   }) async {
-    int attempts = 0;
+    try {
+      log('Processing payment for intent: ${paymentIntent.id}');
 
-    while (attempts < maxRetries) {
-      attempts++;
+      // Present payment sheet
+      await stripe.Stripe.instance.presentPaymentSheet();
 
-      try {
-        log('Payment attempt $attempts/$maxRetries for intent: ${paymentIntent.id}');
+      // If we reach here, payment was successful
+      log('Payment completed successfully');
 
-        // Present payment sheet
-        await stripe.Stripe.instance.presentPaymentSheet();
-
-        // If we reach here, payment was successful
-        log('Payment completed successfully on attempt $attempts');
-
-        return PaymentResult(
-          status: PaymentStatus.succeeded,
-          paymentIntentId: paymentIntent.id,
-          metadata: {
-            'attempts': attempts,
-            'completion_time': DateTime.now().toIso8601String(),
-          },
-        );
-      } on stripe.StripeException catch (e) {
-        log('Stripe error on attempt $attempts: ${e.error.code}');
-
-        // Don't retry for certain errors
-        if (_shouldNotRetry(e.error.code.toString())) {
-          return _handleStripeError(e);
-        }
-
-        // If this was the last attempt, return the error
-        if (attempts >= maxRetries) {
-          return _handleStripeError(e);
-        }
-
-        // Wait before retrying
-        await Future.delayed(retryDelay);
-      } catch (e) {
-        log('Unexpected error on attempt $attempts: $e');
-
-        // If this was the last attempt, return the error
-        if (attempts >= maxRetries) {
-          return _handleNetworkError(e);
-        }
-
-        // Wait before retrying
-        await Future.delayed(retryDelay);
-      }
+      return PaymentResult(
+        status: PaymentStatus.succeeded,
+        paymentIntentId: paymentIntent.id,
+        metadata: {
+          'completion_time': DateTime.now().toIso8601String(),
+        },
+      );
+    } on stripe.StripeException catch (e) {
+      log('Stripe error during payment: ${e.error}');
+      return _handleStripeError(e);
+    } catch (e) {
+      log('Unexpected error during payment: $e');
+      return _handleNetworkError(e);
     }
-
-    // This shouldn't be reached, but just in case
-    return PaymentResult(
-      status: PaymentStatus.failed,
-      error: 'Payment failed after $maxRetries attempts',
-      errorType: PaymentErrorType.unknown,
-    );
-  }
-
-  /// Determine if we should retry based on error code
-  bool _shouldNotRetry(String? errorCode) {
-    const nonRetriableErrors = [
-      'card_declined',
-      'insufficient_funds',
-      'expired_card',
-      'incorrect_cvc',
-      'incorrect_number',
-      'invalid_request',
-    ];
-
-    return errorCode != null && nonRetriableErrors.contains(errorCode);
   }
 
   /// Get user-friendly error message with suggestions

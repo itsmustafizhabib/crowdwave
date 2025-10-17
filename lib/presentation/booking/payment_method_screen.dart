@@ -292,6 +292,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
     final isButtonEnabled = _selectedPaymentMethod != null && !_isLoading;
     print(
         '🔘 Button state: enabled=$isButtonEnabled, selected=${_selectedPaymentMethod?.name}, loading=$_isLoading');
+    print('🔘 Button onPressed: ${isButtonEnabled ? "NOT NULL" : "NULL"}');
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -310,7 +311,12 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
         children: [
           AnimatedButton(
             text: 'Proceed to Payment',
-            onPressed: isButtonEnabled ? _proceedToPayment : null,
+            onPressed: isButtonEnabled
+                ? () {
+                    print('🔥 Button tap detected in _buildBottomSection!');
+                    _proceedToPayment();
+                  }
+                : null,
             backgroundColor: AppColors.primary,
             textColor: Colors.white,
             isLoading: _isLoading,
@@ -330,6 +336,8 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   }
 
   Future<void> _proceedToPayment() async {
+    print('🔥 _proceedToPayment called!');
+
     if (_selectedPaymentMethod == null) {
       print('❌ No payment method selected');
       return;

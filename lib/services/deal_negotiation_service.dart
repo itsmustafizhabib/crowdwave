@@ -230,21 +230,47 @@ class DealNegotiationService {
       // Accept the deal first
       await acceptDeal(dealOfferId);
 
+      if (kDebugMode) {
+        print('🔍 PACKAGE LOOKUP DEBUG:');
+        print('  - Deal package ID: ${dealOffer.packageId}');
+        print('  - Collection: $_packageRequestsCollection');
+      }
+
       // Get package data
       final packageDoc = await _firestore
           .collection(_packageRequestsCollection)
           .doc(dealOffer.packageId)
           .get();
 
+      if (kDebugMode) {
+        print('  - Package document exists: ${packageDoc.exists}');
+        if (packageDoc.exists) {
+          print('  - Package document ID: ${packageDoc.id}');
+          print('  - Package data senderId: ${packageDoc.data()?['senderId']}');
+        }
+      }
+
       if (!packageDoc.exists) {
         throw Exception('Package not found');
       }
 
       final packageData = packageDoc.data()!;
+
+      if (kDebugMode) {
+        print('  - Package data preview:');
+        print('    - senderId: ${packageData['senderId']}');
+        print('    - status: ${packageData['status']}');
+        print('    - createdAt: ${packageData['createdAt']}');
+      }
+
       final package = PackageRequest.fromJson({
         'id': packageDoc.id,
         ...packageData,
       });
+
+      if (kDebugMode) {
+        print('  - Created PackageRequest object with ID: ${package.id}');
+      }
 
       // Enhanced trip linking - get actual trip data
       TravelTrip? actualTrip;

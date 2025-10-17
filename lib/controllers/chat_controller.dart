@@ -31,6 +31,9 @@ class ChatController extends GetxController {
   // ✅ NEW: Completer to track when first data arrives
   Completer<void>? _firstDataCompleter;
 
+  // ✅ NEW: Flag to prevent UI updates during logout/login transitions
+  bool _isTransitioning = false;
+
   // ✅ ALTERNATIVE: Create a reactive computed property for filtered conversations
   late final RxList<ChatConversation> _filteredConversations =
       <ChatConversation>[].obs;
@@ -40,34 +43,51 @@ class ChatController extends GetxController {
 
   // Method to update filtered conversations (called when conversations or search changes)
   void _updateFilteredConversations() {
+    // ✅ CRITICAL FIX: Skip updates during transitions to prevent UI errors
+    if (_isTransitioning) {
+      if (kDebugMode) {
+        print('⏸️ Skipping filtered conversation update during transition');
+      }
+      return;
+    }
+
     if (kDebugMode) {
       print('🔍 Updating filtered conversations:');
       print('  - Total conversations: ${conversations.length}');
       print('  - Search query: "${searchQuery.value}"');
     }
 
-    List<ChatConversation> filtered;
-    if (searchQuery.value.isEmpty) {
-      filtered = List.from(conversations);
-      if (kDebugMode) {
-        print('  - No search query, returning all: ${filtered.length}');
-      }
-    } else {
-      filtered = conversations.where((conversation) {
-        final otherUserName = conversation
-            .getOtherParticipantName(_chatService.currentUserId ?? '');
-        return otherUserName
-                ?.toLowerCase()
-                .contains(searchQuery.value.toLowerCase()) ??
-            false;
-      }).toList();
+    try {
+      List<ChatConversation> filtered;
+      if (searchQuery.value.isEmpty) {
+        filtered = List.from(conversations);
+        if (kDebugMode) {
+          print('  - No search query, returning all: ${filtered.length}');
+        }
+      } else {
+        filtered = conversations.where((conversation) {
+          final otherUserName = conversation
+              .getOtherParticipantName(_chatService.currentUserId ?? '');
+          return otherUserName
+                  ?.toLowerCase()
+                  .contains(searchQuery.value.toLowerCase()) ??
+              false;
+        }).toList();
 
+        if (kDebugMode) {
+          print('  - Filtered conversations: ${filtered.length}');
+        }
+      }
+
+      // ✅ ATOMIC UPDATE: Only update if not transitioning
+      if (!_isTransitioning) {
+        _filteredConversations.assignAll(filtered);
+      }
+    } catch (e) {
       if (kDebugMode) {
-        print('  - Filtered conversations: ${filtered.length}');
+        print('❌ Error updating filtered conversations: $e');
       }
     }
-
-    _filteredConversations.assignAll(filtered);
   }
 
   // Stream subscriptions
@@ -136,6 +156,8 @@ class ChatController extends GetxController {
         print('🚀 STARTING CHAT INITIALIZATION...');
       }
 
+      // ✅ Set transitioning flag during initialization
+      _isTransitioning = true;
       isLoading.value = true;
       error.value = '';
 
@@ -161,6 +183,12 @@ class ChatController extends GetxController {
       // ✅ NEW: Create completer to wait for first data
       _firstDataCompleter = Completer<void>();
 
+      // ✅ NEW: Immediately force refresh to get cached/fresh data
+      if (kDebugMode) {
+        print('🔄 Triggering immediate force refresh...');
+      }
+      _chatService.forceRefreshConversations();
+
       _startListeningToConversations();
 
       // ✅ FIX: Wait for first data or timeout
@@ -182,14 +210,19 @@ class ChatController extends GetxController {
       // Set loading to false after first data or timeout
       isLoading.value = false;
 
+      // ✅ Clear transitioning flag after initialization completes
+      _isTransitioning = false;
+
       if (kDebugMode) {
         print('✅ Chat initialization completed successfully!');
         print('  - Final conversations count: ${conversations.length}');
         print('  - Final loading state: ${isLoading.value}');
+        print('  - Transitioning flag cleared');
       }
     } catch (e) {
       error.value = e.toString();
       isLoading.value = false; // ✅ Always set false on error
+      _isTransitioning = false; // ✅ Clear transitioning flag on error
 
       // ✅ NEW: Complete completer on initialization error
       if (_firstDataCompleter != null && !_firstDataCompleter!.isCompleted) {
@@ -199,6 +232,7 @@ class ChatController extends GetxController {
       if (kDebugMode) {
         print('❌ Chat initialization error: $e');
         print('💡 Error details: ${e.toString()}');
+        print('  - Transitioning flag cleared due to error');
       }
     }
   }
@@ -289,13 +323,21 @@ class ChatController extends GetxController {
             return;
           }
 
-          // Update conversations immediately
-          conversations.assignAll(conversationsList);
+          // ✅ ATOMIC UPDATE: Only update conversations if not transitioning
+          if (!_isTransitioning) {
+            conversations.assignAll(conversationsList);
 
-          // ✅ FIX: Schedule filtered conversations update for next frame to avoid setState during build
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _updateFilteredConversations();
-          });
+            // ✅ FIX: Schedule filtered conversations update for next frame to avoid setState during build
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!_isTransitioning) {
+                _updateFilteredConversations();
+              }
+            });
+          } else {
+            if (kDebugMode) {
+              print('⏸️ Skipping conversation update during transition');
+            }
+          }
 
           // ✅ CRITICAL FIX: Always set loading to false when we receive ANY data (even empty)
           isLoading.value = false;
@@ -1055,11 +1097,33 @@ class ChatController extends GetxController {
     }
   }
 
+  // ✅ NEW: Debug method to diagnose stream issues
+  void debugControllerState() {
+    if (kDebugMode) {
+      print('🩺 CHAT CONTROLLER STATE CHECK:');
+      print('  - Controller hash: $hashCode');
+      print('  - Conversations count: ${conversations.length}');
+      print('  - Filtered conversations: ${_filteredConversations.length}');
+      print('  - Is loading: ${isLoading.value}');
+      print('  - Error: ${error.value}');
+      print('  - Search query: "${searchQuery.value}"');
+      print('  - Subscription active: ${_conversationsSubscription != null}');
+      print('  - Message subscriptions: ${_messageSubscriptions.length}');
+      print('  - Controller closed: $isClosed');
+
+      // Check ChatService health
+      _chatService.debugStreamHealth();
+    }
+  }
+
   // ✅ PROPER CLEANUP ON LOGOUT - Called from AuthStateService
   void cleanupOnLogout() {
     if (kDebugMode) {
       print('🔄 ChatController: Cleaning up on user logout...');
     }
+
+    // ✅ Set transitioning flag to prevent UI updates during cleanup
+    _isTransitioning = true;
 
     // Set user offline before cleanup
     setOnlineStatus(false);
@@ -1068,8 +1132,17 @@ class ChatController extends GetxController {
     conversations.clear();
     messagesMap.clear();
     onlineStatus.clear();
+    _filteredConversations.clear();
     error.value = '';
     searchQuery.value = '';
+
+    // Reset state flags
+    _conversationListenerStarted = false;
+
+    // ✅ Reset transitioning flag after a delay to allow cleanup to complete
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _isTransitioning = false;
+    });
 
     if (kDebugMode) {
       print('✅ ChatController: User data cleared on logout');

@@ -18,6 +18,7 @@ import '../widgets/auth_wrapper.dart';
 import '../widgets/permission_initializer.dart';
 import '../services/auth_state_service.dart';
 import '../services/app_initialization_service.dart';
+import '../services/onboarding_service.dart';
 import '../services/notification_service.dart';
 import '../services/presence_service.dart';
 import '../services/location_service.dart';
@@ -140,6 +141,10 @@ void main() async {
   // Initialize app resources (animations, etc.)
   final appInitService = AppInitializationService();
   await appInitService.initialize();
+
+  // Initialize onboarding service
+  final onboardingService = OnboardingService();
+  await onboardingService.initialize();
 
   // Initialize performance optimizations
   await PerformanceConfig.initialize();

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
+import '../../../services/onboarding_service.dart';
 
 class NavigationControlsWidget extends StatelessWidget {
   final int currentPage;
@@ -51,13 +52,17 @@ class NavigationControlsWidget extends StatelessWidget {
                 width: 15.w), // Maintain spacing when skip button is hidden
           ],
 
-          // Next/Get Started button - MODIFIED TO GO TO LOGIN
+          // Next/Get Started button - MODIFIED TO MARK ONBOARDING COMPLETE
           Container(
             height: 6.h,
             child: ElevatedButton(
               onPressed: isLastPage
-                  ? () => Navigator.pushReplacementNamed(
-                      context, '/login-screen') // Direct to login
+                  ? () async {
+                      // Mark onboarding as completed
+                      await OnboardingService().markOnboardingCompleted();
+                      // Navigate to login
+                      Navigator.pushReplacementNamed(context, '/login-screen');
+                    }
                   : onNext,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.lightTheme.colorScheme.primary,

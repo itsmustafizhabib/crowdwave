@@ -53,6 +53,10 @@ class ChatService {
   // ✅ CRITICAL FIX: Prevent duplicate conversation listeners
   bool _conversationListenerStarted = false;
 
+  // ✅ NEW: Cache conversations for immediate emission
+  List<ChatConversation> _cachedConversations = [];
+  bool _isStreamInitialized = false;
+
   // Current user info
   String? get _currentUserId => _auth.currentUser?.uid;
   String? get currentUserId => _currentUserId;
@@ -786,6 +790,8 @@ class ChatService {
           '  - Stream controller closed: ${_conversationsStreamController.isClosed}');
       print(
           '  - Stream controller hash: ${_conversationsStreamController.hashCode}');
+      print('  - Cached conversations: ${_cachedConversations.length}');
+      print('  - Stream initialized: $_isStreamInitialized');
     }
 
     // ✅ FIX: If stream controller is closed, recreate it
@@ -795,7 +801,32 @@ class ChatService {
       }
       _conversationsStreamController =
           StreamController<List<ChatConversation>>.broadcast();
+      _isStreamInitialized = false;
       // Restart the listener with the new stream controller
+      _startConversationsListener();
+    }
+
+    // ✅ NEW: Emit cached data immediately if available
+    if (_cachedConversations.isNotEmpty &&
+        !_conversationsStreamController.isClosed) {
+      if (kDebugMode) {
+        print(
+            '💨 IMMEDIATE EMIT: Sending ${_cachedConversations.length} cached conversations to stream');
+      }
+      // Use Future.microtask to emit on next event loop iteration
+      Future.microtask(() {
+        if (!_conversationsStreamController.isClosed) {
+          _conversationsStreamController.add(_cachedConversations);
+        }
+      });
+    }
+
+    // ✅ NEW: Initialize stream listener if not done yet
+    if (!_isStreamInitialized) {
+      _isStreamInitialized = true;
+      if (kDebugMode) {
+        print('🎬 Initializing stream listener for the first time');
+      }
       _startConversationsListener();
     }
 
@@ -853,24 +884,8 @@ class ChatService {
             print('  - Metadata: from cache: ${snapshot.metadata.isFromCache}');
           }
 
-          final conversations = snapshot.docs
-              .map((doc) {
-                try {
-                  if (kDebugMode) {
-                    print('  - Processing conversation doc: ${doc.id}');
-                    print('    Data: ${doc.data()}');
-                  }
-                  return ChatConversation.fromMap(doc.data());
-                } catch (e) {
-                  if (kDebugMode) {
-                    print('❌ Error parsing conversation doc ${doc.id}: $e');
-                  }
-                  return null;
-                }
-              })
-              .where((conv) => conv != null && conv.isActive)
-              .cast<ChatConversation>()
-              .toList();
+          // ✅ NEW: Use helper method to process snapshot
+          final conversations = _processConversationsSnapshot(snapshot);
 
           if (kDebugMode) {
             print(
@@ -884,12 +899,22 @@ class ChatService {
             }
           }
 
+          // ✅ NEW: Cache the conversations for immediate emission
+          _cachedConversations = conversations;
+
           if (!_conversationsStreamController.isClosed) {
             if (kDebugMode) {
               print(
                   '🟢 STREAM DEBUG: Adding ${conversations.length} conversations from Firestore listener to stream controller');
+              print(
+                  '🔄 STREAM: Sent ${conversations.length} conversations to stream');
             }
             _conversationsStreamController.add(conversations);
+          } else {
+            if (kDebugMode) {
+              print(
+                  '❌ STREAM CONTROLLER CLOSED: Cannot add conversations to closed stream!');
+            }
           }
         } catch (e) {
           if (kDebugMode) {
@@ -1130,6 +1155,41 @@ class ChatService {
     _startConversationsListener();
   }
 
+  // ✅ NEW: Process conversations snapshot (DRY helper method)
+  List<ChatConversation> _processConversationsSnapshot(QuerySnapshot snapshot) {
+    if (kDebugMode) {
+      print('📊 RAW SNAPSHOT: ${snapshot.docs.length} documents');
+    }
+
+    final conversations = snapshot.docs
+        .map((doc) {
+          try {
+            if (kDebugMode) {
+              print('  - Processing conversation doc: ${doc.id}');
+              // Uncomment below for detailed debugging:
+              // print('    Data: ${doc.data()}');
+            }
+            final data = doc.data();
+            if (data == null) return null;
+            return ChatConversation.fromMap(data as Map<String, dynamic>);
+          } catch (e) {
+            if (kDebugMode) {
+              print('❌ Error parsing conversation doc ${doc.id}: $e');
+            }
+            return null;
+          }
+        })
+        .where((conv) => conv != null && conv.isActive)
+        .cast<ChatConversation>()
+        .toList();
+
+    if (kDebugMode) {
+      print('✅ Processed ${conversations.length} active conversations');
+    }
+
+    return conversations;
+  }
+
   // ✅ NEW: Force refresh from server to ensure latest conversations
   Future<void> forceRefreshConversations() async {
     if (_currentUserId == null) return;
@@ -1146,25 +1206,16 @@ class ChatService {
           .orderBy('lastActivity', descending: true)
           .get(const GetOptions(source: Source.server)); // Force server fetch
 
-      final conversations = snapshot.docs
-          .map((doc) {
-            try {
-              return ChatConversation.fromMap(doc.data());
-            } catch (e) {
-              if (kDebugMode) {
-                print('❌ Error parsing conversation doc ${doc.id}: $e');
-              }
-              return null;
-            }
-          })
-          .where((conv) => conv != null && conv.isActive)
-          .cast<ChatConversation>()
-          .toList();
+      // ✅ NEW: Use helper method to process snapshot
+      final conversations = _processConversationsSnapshot(snapshot);
 
       if (kDebugMode) {
         print(
             '✅ Force refreshed ${conversations.length} conversations from server');
       }
+
+      // ✅ NEW: Cache the conversations
+      _cachedConversations = conversations;
 
       // Emit the fresh data
       if (!_conversationsStreamController.isClosed) {
@@ -1173,10 +1224,38 @@ class ChatService {
               '🔵 STREAM DEBUG: Adding ${conversations.length} conversations from force refresh to stream controller');
         }
         _conversationsStreamController.add(conversations);
+      } else {
+        if (kDebugMode) {
+          print(
+              '❌ STREAM CONTROLLER CLOSED: Cannot add force refreshed conversations!');
+        }
       }
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error force refreshing conversations: $e');
+      }
+    }
+  }
+
+  // ✅ NEW: Debug method to check stream health
+  void debugStreamHealth() {
+    if (kDebugMode) {
+      print('🩺 CHAT SERVICE STREAM HEALTH CHECK:');
+      print('  - Instance hash: $hashCode');
+      print('  - Current user: $_currentUserId');
+      print(
+          '  - Stream controller closed: ${_conversationsStreamController.isClosed}');
+      print(
+          '  - Stream controller hash: ${_conversationsStreamController.hashCode}');
+      print('  - Listener started: $_conversationListenerStarted');
+      print('  - Stream initialized: $_isStreamInitialized');
+      print('  - Cached conversations: ${_cachedConversations.length}');
+      print('  - Subscription active: ${_conversationsSubscription != null}');
+      if (_cachedConversations.isNotEmpty) {
+        print('  - Cached conversation IDs:');
+        for (final conv in _cachedConversations) {
+          print('    • ${conv.id}');
+        }
       }
     }
   }

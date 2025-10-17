@@ -5,6 +5,7 @@ import 'package:lottie/lottie.dart';
 
 import '../../core/app_export.dart';
 import '../../services/animation_preload_service.dart';
+import '../../services/onboarding_service.dart';
 import './widgets/navigation_controls_widget.dart';
 import './widgets/onboarding_page_widget.dart';
 import './widgets/page_indicator_widget.dart';
@@ -188,7 +189,9 @@ class _OnboardingFlowState extends State<OnboardingFlow>
     }
   }
 
-  void _skipOnboarding() {
+  void _skipOnboarding() async {
+    // Mark onboarding as completed
+    await OnboardingService().markOnboardingCompleted();
     // Skip role selection and go directly to login screen
     Navigator.pushReplacementNamed(context, AppRoutes.login);
     _triggerHapticFeedback();

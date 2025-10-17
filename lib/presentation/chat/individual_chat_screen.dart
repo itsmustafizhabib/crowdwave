@@ -376,12 +376,18 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                   return false;
                 },
                 child: ListView.builder(
+                  // ✅ FIX: Add key to force proper rebuild when data changes
+                  key: ValueKey(messages.length),
                   controller: _scrollController,
                   padding: const EdgeInsets.all(16),
                   itemCount: messages.length,
                   // ✅ ENHANCED: Reverse the list so newest messages are at bottom
                   reverse: false,
                   itemBuilder: (context, index) {
+                    // ✅ ENHANCED: More robust bounds checking
+                    if (index < 0 || index >= messages.length) {
+                      return const SizedBox.shrink();
+                    }
                     final message = messages[index];
                     final isFromCurrentUser = message.senderId ==
                         _chatController.chatService.currentUserId;

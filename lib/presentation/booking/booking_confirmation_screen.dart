@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../core/models/deal_offer.dart';
 import '../../core/models/package_request.dart';
@@ -30,27 +31,72 @@ class BookingConfirmationScreen extends StatefulWidget {
       _BookingConfirmationScreenState();
 }
 
-class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
+class _BookingConfirmationScreenState extends State<BookingConfirmationScreen>
+    with SingleTickerProviderStateMixin {
   final BookingService _bookingService = BookingService();
   final TextEditingController _specialInstructionsController =
       TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  late AnimationController _errorAnimationController;
+  late Animation<double> _errorAnimation;
 
   bool _isTermsAgreed = false;
   bool _isLoading = false;
   String? _errorMessage;
 
   @override
+  void initState() {
+    super.initState();
+    _errorAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _errorAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _errorAnimationController,
+      curve: Curves.elasticOut,
+    ));
+  }
+
+  @override
   void dispose() {
     _specialInstructionsController.dispose();
+    _scrollController.dispose();
+    _errorAnimationController.dispose();
     super.dispose();
+  }
+
+  /// Scroll to the bottom of the screen to show terms agreement
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      });
+    }
   }
 
   /// Handle booking confirmation
   Future<void> _confirmBooking() async {
     if (!_isTermsAgreed) {
+      // Provide haptic feedback for validation error
+      HapticFeedback.mediumImpact();
+
       setState(() {
         _errorMessage = 'Please agree to the terms and conditions';
       });
+
+      // Animate the error message to draw attention
+      _errorAnimationController.forward();
+
+      // Auto-scroll to the bottom to show the terms agreement and error message
+      _scrollToBottom();
+
       return;
     }
 
@@ -68,6 +114,8 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
         specialInstructions: _specialInstructionsController.text.trim().isEmpty
             ? null
             : _specialInstructionsController.text.trim(),
+        skipValidation:
+            true, // Skip validation since package was pre-validated during deal acceptance
       );
 
       if (kDebugMode) {
@@ -120,6 +168,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
             // Main content
             Expanded(
               child: SingleChildScrollView(
+                controller: _scrollController,
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,7 +198,10 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                       onAgreementChanged: (agreed) {
                         setState(() {
                           _isTermsAgreed = agreed;
-                          _errorMessage = null;
+                          if (agreed) {
+                            _errorMessage = null;
+                            _errorAnimationController.reset();
+                          }
                         });
                       },
                     ),
@@ -157,27 +209,42 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
 
                     // Error message
                     if (_errorMessage != null)
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.error.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.error),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.error_outline,
-                                color: AppColors.error, size: 20),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                _errorMessage!,
-                                style: AppTextStyles.body2
-                                    .copyWith(color: AppColors.error),
+                      AnimatedBuilder(
+                        animation: _errorAnimation,
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale: _errorAnimation.value,
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.error.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                    color: AppColors.error, width: 2),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.warning_amber_rounded,
+                                      color: AppColors.error, size: 24),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _errorMessage!,
+                                          style: AppTextStyles.body2
+                                              .copyWith(color: AppColors.error),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
                   ],
                 ),

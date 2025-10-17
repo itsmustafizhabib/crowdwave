@@ -268,19 +268,22 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     }
                   },
                   child: ListView.builder(
+                    // ✅ FIX: Add key to force proper rebuild when data changes
+                    key: ValueKey(conversations.length),
                     padding: EdgeInsets.only(
                       bottom: MediaQuery.of(context).viewPadding.bottom + 100,
                     ),
                     itemCount: conversations.length,
                     itemBuilder: (context, index) {
-                      if (index >= conversations.length) {
-                        return const SizedBox();
+                      // ✅ ENHANCED: More robust bounds checking
+                      if (index < 0 || index >= conversations.length) {
+                        return const SizedBox.shrink();
                       }
 
                       final conversation = conversations[index];
                       // ✅ FIX: Add null check for conversation
                       if (conversation.id.isEmpty) {
-                        return const SizedBox();
+                        return const SizedBox.shrink();
                       }
 
                       return _buildConversationTile(conversation);

@@ -122,7 +122,13 @@ class _AnimatedButtonState extends State<AnimatedButton>
       width: widget.width,
       height: widget.height ?? 6.h,
       child: ElevatedButton(
-        onPressed: widget.isLoading ? null : widget.onPressed,
+        onPressed: widget.isLoading
+            ? null
+            : () {
+                print(
+                    '🔥 AnimatedButton onPressed called! isLoading: ${widget.isLoading}');
+                widget.onPressed?.call();
+              },
         style: ElevatedButton.styleFrom(
           backgroundColor: widget.backgroundColor ?? const Color(0xFF001BB7),
           foregroundColor: widget.textColor ?? Colors.white,
@@ -133,12 +139,7 @@ class _AnimatedButtonState extends State<AnimatedButton>
           ),
           padding: widget.padding ?? EdgeInsets.symmetric(horizontal: 6.w),
         ),
-        child: GestureDetector(
-          onTapDown: _onTapDown,
-          onTapUp: _onTapUp,
-          onTapCancel: _onTapCancel,
-          child: _buildButtonContent(),
-        ),
+        child: _buildButtonContent(),
       ),
     );
   }

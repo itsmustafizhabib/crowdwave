@@ -1969,10 +1969,15 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
     }
 
     // Time-based availability for non-urgent packages
-    if (daysDifference <= 0) {
+    if (daysDifference < 0) {
       return {
         'text': 'Past Due',
         'color': Color(0xFFF87171), // Light red
+      };
+    } else if (daysDifference == 0) {
+      return {
+        'text': 'Today',
+        'color': Color(0xFFFF6B35), // Orange-red (urgent but not overdue)
       };
     } else if (daysDifference <= 2) {
       return {

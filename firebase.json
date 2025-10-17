@@ -1,6 +1,6 @@
 {
   "firestore": {
-    "rules": "updated_firestore_security_rules.rules",
+    "rules": "updated_firestore_security_rules_with_superadmin.rules",
     "indexes": "firestore.indexes.json"
   },
   "functions": {

@@ -1,6 +1,21 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || functions.config().stripe.secret_key);
+
+// Initialize Stripe with better error handling
+let stripeKey;
+try {
+  stripeKey = process.env.STRIPE_SECRET_KEY || functions.config().stripe?.secret_key;
+  if (!stripeKey) {
+    console.error('❌ STRIPE_SECRET_KEY not found in environment or config');
+    throw new Error('Stripe secret key is required');
+  }
+  console.log('✅ Stripe key loaded successfully');
+} catch (error) {
+  console.error('❌ Error loading Stripe configuration:', error);
+  stripeKey = 'sk_test_placeholder'; // Fallback to prevent crash
+}
+
+const stripe = require('stripe')(stripeKey);
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -14,6 +29,10 @@ exports.testAuth = functions.https.onCall(async (data, context) => {
     hasAuth: !!context.auth,
     authUid: context.auth?.uid,
     authEmail: context.auth?.token?.email,
+    authProvider: context.auth?.token?.firebase?.sign_in_provider,
+    tokenExp: context.auth?.token?.exp,
+    tokenIat: context.auth?.token?.iat,
+    serverTime: Math.floor(Date.now() / 1000),
   });
   
   if (!context.auth) {
@@ -23,11 +42,70 @@ exports.testAuth = functions.https.onCall(async (data, context) => {
     );
   }
   
+  // Check token timing
+  const now = Math.floor(Date.now() / 1000);
+  const exp = context.auth.token?.exp;
+  const iat = context.auth.token?.iat;
+  
   return {
     message: 'Authentication successful!',
     uid: context.auth.uid,
     email: context.auth.token?.email,
+    provider: context.auth.token?.firebase?.sign_in_provider,
+    tokenInfo: {
+      issued: iat,
+      expires: exp,
+      serverTime: now,
+      timeToExpiry: exp ? exp - now : null,
+      tokenAge: iat ? now - iat : null,
+    }
   };
+});
+
+/**
+ * Debug Payment Authentication
+ * Detailed authentication diagnostics for payment issues
+ */
+exports.debugPaymentAuth = functions.https.onCall(async (data, context) => {
+  const debugInfo = {
+    timestamp: new Date().toISOString(),
+    serverTime: Math.floor(Date.now() / 1000),
+    hasAuth: !!context.auth,
+    authContext: null,
+    headers: null,
+    request: null,
+  };
+
+  // Log headers for debugging
+  if (context.rawRequest) {
+    debugInfo.headers = {
+      authorization: context.rawRequest.headers?.authorization ? 'present' : 'missing',
+      userAgent: context.rawRequest.headers?.['user-agent'],
+      origin: context.rawRequest.headers?.origin,
+    };
+  }
+
+  if (context.auth) {
+    debugInfo.authContext = {
+      uid: context.auth.uid,
+      email: context.auth.token?.email,
+      provider: context.auth.token?.firebase?.sign_in_provider,
+      emailVerified: context.auth.token?.email_verified,
+      tokenExp: context.auth.token?.exp,
+      tokenIat: context.auth.token?.iat,
+      timeToExpiry: context.auth.token?.exp ? context.auth.token.exp - debugInfo.serverTime : null,
+      tokenAge: context.auth.token?.iat ? debugInfo.serverTime - context.auth.token.iat : null,
+    };
+    
+    functions.logger.info('Debug payment auth - success', debugInfo);
+    return debugInfo;
+  } else {
+    functions.logger.error('Debug payment auth - no auth context', debugInfo);
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      'No authentication context found'
+    );
+  }
 });
 
 /**
@@ -117,23 +195,73 @@ exports.createMySpecialPaymentIntent = functions.https.onCall(createPaymentInten
  */
 exports.confirmPayment = functions.https.onCall(async (data, context) => {
   try {
-    // Verify user is authenticated
+    functions.logger.info('confirmPayment called', { 
+      hasAuth: !!context.auth, 
+      authUid: context.auth?.uid,
+      authEmail: context.auth?.token?.email,
+      rawAuth: context.rawRequest?.headers?.authorization,
+      userAgent: context.rawRequest?.headers?.['user-agent'],
+      data: data 
+    });
+
+    // Enhanced authentication verification
     if (!context.auth) {
+      functions.logger.error('Authentication failed - no context.auth');
+      functions.logger.error('Request headers:', context.rawRequest?.headers);
       throw new functions.https.HttpsError(
         'unauthenticated',
-        'User must be authenticated.'
+        'Authentication expired. Please sign in again and retry payment.'
       );
+    }
+
+    // Additional auth validation - check token expiry
+    if (context.auth.token) {
+      const now = Math.floor(Date.now() / 1000); // Current time in seconds
+      const exp = context.auth.token.exp; // Token expiry
+      const iat = context.auth.token.iat; // Token issued at
+      
+      functions.logger.info('Token timing check:', {
+        serverTime: now,
+        tokenExp: exp,
+        tokenIat: iat,
+        timeToExpiry: exp - now,
+        tokenAge: now - iat
+      });
+      
+      if (exp && exp <= now) {
+        functions.logger.error('Token expired', {
+          expiryTime: exp,
+          currentTime: now,
+          expiredBy: now - exp
+        });
+        throw new functions.https.HttpsError(
+          'unauthenticated',
+          'Authentication token has expired. Please sign in again and retry payment.'
+        );
+      }
+      
+      // Check if token is too old (more than 1 hour)
+      if (iat && (now - iat) > 3600) {
+        functions.logger.warn('Old token detected', {
+          issuedAt: iat,
+          currentTime: now,
+          ageSeconds: now - iat
+        });
+      }
     }
 
     const { paymentIntentId, bookingId } = data;
 
     // Validate required parameters
     if (!paymentIntentId) {
+      functions.logger.error('Missing paymentIntentId');
       throw new functions.https.HttpsError(
         'invalid-argument',
         'Missing required field: paymentIntentId'
       );
     }
+
+    functions.logger.info('Starting payment confirmation', { paymentIntentId, bookingId, userId: context.auth.uid });
 
     // Retrieve payment intent from Stripe to verify it's successful
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
