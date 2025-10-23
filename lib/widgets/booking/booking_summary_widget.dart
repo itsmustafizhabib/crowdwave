@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../core/models/deal_offer.dart';
 import '../../core/models/package_request.dart';
 import '../../core/models/travel_trip.dart';
@@ -36,8 +37,7 @@ class BookingSummaryWidget extends StatelessWidget {
               Icon(Icons.receipt_long_outlined,
                   color: AppColors.primary, size: 24),
               const SizedBox(width: 8),
-              Text(
-                'Booking Summary',
+              Text('booking.booking_summary'.tr(),
                 style: AppTextStyles.h3.copyWith(color: AppColors.textPrimary),
               ),
             ],
@@ -46,11 +46,11 @@ class BookingSummaryWidget extends StatelessWidget {
 
           // Deal Information
           _buildSection(
-            title: 'Deal Details',
+            title: 'booking.deal_details'.tr(),
             icon: Icons.handshake_outlined,
             children: [
               _buildDetailRow(
-                  'Offered Price', '\$${deal.offeredPrice.toStringAsFixed(2)}'),
+                  'Offered Price', '€${deal.offeredPrice.toStringAsFixed(2)}'),
               _buildDetailRow('Deal Status', deal.status.name.toUpperCase()),
               if (deal.message?.isNotEmpty ?? false)
                 _buildDetailRow('Message', deal.message!, isMultiline: true),
@@ -61,7 +61,7 @@ class BookingSummaryWidget extends StatelessWidget {
 
           // Package Information
           _buildSection(
-            title: 'Package Details',
+            title: 'detail.package_detail_title'.tr(),
             icon: Icons.inventory_2_outlined,
             children: [
               _buildDetailRow('From', package.pickupLocation.address),
@@ -82,7 +82,7 @@ class BookingSummaryWidget extends StatelessWidget {
 
           // Trip Information
           _buildSection(
-            title: 'Trip Details',
+            title: 'detail.trip_detail_title'.tr(),
             icon: Icons.flight_outlined,
             children: [
               _buildDetailRow('Route',
@@ -101,22 +101,22 @@ class BookingSummaryWidget extends StatelessWidget {
 
           // Price Breakdown
           _buildSection(
-            title: 'Price Breakdown',
+            title: 'booking.price_breakdown'.tr(),
             icon: Icons.calculate_outlined,
             children: [
               _buildDetailRow(
-                  'Service Fee', '\$${deal.offeredPrice.toStringAsFixed(2)}'),
+                  'Service Fee', '€${deal.offeredPrice.toStringAsFixed(2)}'),
               _buildDetailRow('Platform Fee (10%)',
-                  '\$${(deal.offeredPrice * 0.1).toStringAsFixed(2)}'),
+                  '€${(deal.offeredPrice * 0.1).toStringAsFixed(2)}'),
               const Divider(),
               _buildDetailRow(
                 'Total Amount',
-                '\$${(deal.offeredPrice + (deal.offeredPrice * 0.1)).toStringAsFixed(2)}',
+                '€${(deal.offeredPrice + (deal.offeredPrice * 0.1)).toStringAsFixed(2)}',
                 isTotal: true,
               ),
               _buildDetailRow(
                 'Traveler Receives',
-                '\$${(deal.offeredPrice * 0.9).toStringAsFixed(2)}',
+                '€${(deal.offeredPrice * 0.9).toStringAsFixed(2)}',
                 textColor: AppColors.success,
               ),
             ],
@@ -139,8 +139,7 @@ class BookingSummaryWidget extends StatelessWidget {
                   children: [
                     Icon(Icons.info_outline, color: AppColors.info, size: 16),
                     const SizedBox(width: 8),
-                    Text(
-                      'Important Information',
+                    Text('common.important_information'.tr(),
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.info,
                         fontWeight: FontWeight.w600,

@@ -8,13 +8,13 @@ class AppTheme {
 
   // Your Color Palette from https://colorhunt.co/palette/001bb70046ffff8040e9e9e9
   static const Color primaryLight =
-      Color(0xFF001BB7); // Dark Navy - Primary dark
+      Color(0xFF2D7A6E); // Dark Navy - Primary dark
   static const Color primaryVariantLight =
-      Color(0xFF0046FF); // Electric Blue - Primary
+      Color(0xFF215C5C); // Electric Blue - Primary
   static const Color secondaryLight =
-      Color(0xFF0046FF); // Electric Blue for interactive elements
+      Color(0xFF215C5C); // Electric Blue for interactive elements
   static const Color accentLight =
-      Color(0xFFFF8040); // Orange Accent - Accent/CTA
+      Color(0xFF2D7A6E); // Orange Accent - Accent/CTA
   static const Color backgroundLight =
       Color(0xFFE9E9E9); // Light Grey - Background
   static const Color surfaceLight = Color(0xFFFFFFFF); // Pure white - Surface
@@ -28,10 +28,10 @@ class AppTheme {
   static const Color onErrorLight = Color(0xFFFFFFFF);
 
   // Dark theme colors
-  static const Color primaryDark = Color(0xFF0046FF);
-  static const Color primaryVariantDark = Color(0xFF001BB7);
-  static const Color secondaryDark = Color(0xFFFF8040);
-  static const Color accentDark = Color(0xFFFF8040);
+  static const Color primaryDark = Color(0xFF215C5C);
+  static const Color primaryVariantDark = Color(0xFF2D7A6E);
+  static const Color secondaryDark = Color(0xFF2D7A6E);
+  static const Color accentDark = Color(0xFF2D7A6E);
   static const Color backgroundDark = Color(0xFF121212);
   static const Color surfaceDark = Color(0xFF1E1E1E);
   static const Color errorDark = Color(0xFFCF6679);

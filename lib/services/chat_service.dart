@@ -41,11 +41,16 @@ class ChatService {
   // Stream controllers for real-time updates
   final Map<String, StreamController<List<ChatMessage>>>
       _messageStreamControllers = {};
+  // Keep Firestore subscriptions per conversation so we can cancel them on logout
+  final Map<String, StreamSubscription<QuerySnapshot>> _messageSubscriptions =
+      {};
   StreamController<List<ChatConversation>> _conversationsStreamController =
       StreamController<List<ChatConversation>>.broadcast();
 
   // Subscription for conversations listener
   StreamSubscription<QuerySnapshot>? _conversationsSubscription;
+  // Listen to auth state to cleanup listeners on sign-out
+  StreamSubscription<User?>? _authStateSubscription;
 
   // ✅ FIX: Add timeout timer at class level
   Timer? _conversationsTimeoutTimer;
@@ -108,6 +113,18 @@ class ChatService {
         print('👂 Starting conversations listener...');
       }
       _startConversationsListener();
+
+      // ✅ Ensure we clean up message listeners when user signs out
+      _authStateSubscription ??= _auth.authStateChanges().listen((user) {
+        if (kDebugMode) {
+          print('🔔 Auth state changed - current user: ${user?.uid}');
+        }
+        if (user == null) {
+          // User signed out - cancel per-conversation listeners to avoid
+          // permission-denied errors from stale listeners.
+          _handleSignOutCleanup();
+        }
+      });
 
       // ✅ FIX: Update existing conversations with correct user profile data
       await _updateExistingConversationsWithUserData();
@@ -744,19 +761,62 @@ class ChatService {
 
   // Get messages stream for a conversation
   Stream<List<ChatMessage>> getMessagesStream(String conversationId) {
+    if (kDebugMode) {
+      print('📨 getMessagesStream() called for conversation: $conversationId');
+    }
+
+    // Check if we have an existing controller and subscription
     if (_messageStreamControllers.containsKey(conversationId)) {
       if (!_messageStreamControllers[conversationId]!.isClosed) {
-        return _messageStreamControllers[conversationId]!.stream;
+        // ✅ FIX: Check if subscription is still active
+        final hasActiveSubscription =
+            _messageSubscriptions.containsKey(conversationId);
+
+        if (kDebugMode) {
+          print('  ♻️ Existing stream found for: $conversationId');
+          print('  📡 Active subscription: $hasActiveSubscription');
+        }
+
+        // If subscription is active, return existing stream
+        if (hasActiveSubscription) {
+          if (kDebugMode) {
+            print('  ✅ Returning existing stream with active subscription');
+          }
+          return _messageStreamControllers[conversationId]!.stream;
+        } else {
+          // Subscription was cancelled, need to recreate it
+          if (kDebugMode) {
+            print('  ⚠️ Subscription was cancelled, recreating...');
+          }
+          // Don't return - fall through to recreate subscription
+        }
       } else {
         // Remove closed controller
+        if (kDebugMode) {
+          print('  🗑️ Removing closed controller for: $conversationId');
+        }
         _messageStreamControllers.remove(conversationId);
+        _messageSubscriptions.remove(conversationId);
       }
     }
 
-    final controller = StreamController<List<ChatMessage>>.broadcast();
+    if (kDebugMode) {
+      print('  🆕 Creating new message stream for: $conversationId');
+    }
+
+    // Reuse existing controller if it's still open, otherwise create new one
+    final controller = _messageStreamControllers[conversationId] ??
+        StreamController<List<ChatMessage>>.broadcast();
     _messageStreamControllers[conversationId] = controller;
 
-    _firestore
+    // Cancel any existing Firestore subscription for this conversation
+    _messageSubscriptions[conversationId]?.cancel();
+
+    if (kDebugMode) {
+      print('  🔌 Setting up Firestore listener for: $conversationId');
+    }
+
+    final sub = _firestore
         .collection(_conversationsCollection)
         .doc(conversationId)
         .collection(_messagesCollection)
@@ -764,21 +824,121 @@ class ChatService {
         .snapshots()
         .listen(
       (snapshot) {
+        if (kDebugMode) {
+          print(
+              '📬 FIRESTORE SNAPSHOT for $conversationId: ${snapshot.docs.length} messages');
+          print(
+              '  📊 Snapshot metadata: fromCache=${snapshot.metadata.isFromCache}, hasPendingWrites=${snapshot.metadata.hasPendingWrites}');
+          if (snapshot.docs.isNotEmpty) {
+            for (var doc in snapshot.docs) {
+              final content = doc.data()['content']?.toString() ?? '';
+              final preview =
+                  content.length > 20 ? content.substring(0, 20) : content;
+              print('  - Message ID: ${doc.id}, content: $preview...');
+            }
+          } else {
+            print(
+                '  ⚠️ Snapshot is EMPTY - no messages in Firestore for this conversation');
+          }
+        }
+
         if (!controller.isClosed) {
-          final messages = snapshot.docs
-              .map((doc) => ChatMessage.fromMap(doc.data()))
-              .toList();
-          controller.add(messages);
+          try {
+            final messages = snapshot.docs
+                .map((doc) => ChatMessage.fromMap(doc.data()))
+                .toList();
+
+            if (kDebugMode) {
+              print('✅ Parsed ${messages.length} messages for $conversationId');
+              if (messages.isNotEmpty) {
+                print(
+                    '  - First message: ${messages.first.content.substring(0, messages.first.content.length > 30 ? 30 : messages.first.content.length)}...');
+                print(
+                    '  - Last message: ${messages.last.content.substring(0, messages.last.content.length > 30 ? 30 : messages.last.content.length)}...');
+              } else {
+                print('  ℹ️ No messages to display (empty conversation)');
+              }
+            }
+
+            controller.add(messages);
+
+            if (kDebugMode) {
+              print(
+                  '📤 Added ${messages.length} messages to stream controller for $conversationId');
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('❌ Error parsing messages: $e');
+              print('   Stack trace: ${StackTrace.current}');
+            }
+            controller.addError(e);
+          }
+        } else if (kDebugMode) {
+          print(
+              '⚠️ Controller already closed for $conversationId, skipping add');
         }
       },
       onError: (error) {
+        if (kDebugMode) {
+          print('❌ Firestore stream error for $conversationId: $error');
+        }
         if (!controller.isClosed) {
           controller.addError(error);
         }
       },
     );
 
+    // Track the subscription so it can be cancelled on logout
+    _messageSubscriptions[conversationId] = sub;
+
+    if (kDebugMode) {
+      print(
+          '  ✅ Firestore subscription created and tracked for: $conversationId');
+      print('  📊 Total active subscriptions: ${_messageSubscriptions.length}');
+    }
+
     return controller.stream;
+  }
+
+  // ✅ NEW: Get messages once (non-streaming) for immediate load
+  Future<List<ChatMessage>> getMessagesOnce(String conversationId) async {
+    if (kDebugMode) {
+      print('⚡ getMessagesOnce() called for conversation: $conversationId');
+    }
+
+    try {
+      final snapshot = await _firestore
+          .collection(_conversationsCollection)
+          .doc(conversationId)
+          .collection(_messagesCollection)
+          .orderBy('timestamp', descending: false)
+          .get();
+
+      final messages = snapshot.docs
+          .map((doc) {
+            try {
+              return ChatMessage.fromMap(doc.data());
+            } catch (e) {
+              if (kDebugMode) {
+                print('⚠️ Error parsing message ${doc.id}: $e');
+              }
+              return null;
+            }
+          })
+          .whereType<ChatMessage>()
+          .toList();
+
+      if (kDebugMode) {
+        print('✅ Fetched ${messages.length} messages for $conversationId');
+      }
+
+      return messages;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error fetching messages: $e');
+      }
+      return [];
+    }
   }
 
   // Get conversations stream
@@ -1161,30 +1321,63 @@ class ChatService {
       print('📊 RAW SNAPSHOT: ${snapshot.docs.length} documents');
     }
 
-    final conversations = snapshot.docs
-        .map((doc) {
-          try {
+    // Use a map to deduplicate conversations by ID
+    final Map<String, ChatConversation> conversationMap = {};
+
+    for (var doc in snapshot.docs) {
+      if (kDebugMode) {
+        print('  - Processing conversation doc: ${doc.id}');
+      }
+
+      try {
+        final data = doc.data();
+        if (data == null) continue;
+
+        final conversation =
+            ChatConversation.fromMap(data as Map<String, dynamic>);
+
+        // Skip inactive conversations
+        if (!conversation.isActive) continue;
+
+        // Use conversation ID as key to prevent duplicates
+        final conversationId = conversation.id;
+
+        // If we already have this conversation, keep the one with more recent activity
+        if (conversationMap.containsKey(conversationId)) {
+          final existing = conversationMap[conversationId]!;
+          if (conversation.lastActivity.isAfter(existing.lastActivity)) {
+            conversationMap[conversationId] = conversation;
             if (kDebugMode) {
-              print('  - Processing conversation doc: ${doc.id}');
-              // Uncomment below for detailed debugging:
-              // print('    Data: ${doc.data()}');
+              print(
+                  '  - ✅ Updated duplicate conversation: $conversationId (newer activity)');
             }
-            final data = doc.data();
-            if (data == null) return null;
-            return ChatConversation.fromMap(data as Map<String, dynamic>);
-          } catch (e) {
+          } else {
             if (kDebugMode) {
-              print('❌ Error parsing conversation doc ${doc.id}: $e');
+              print(
+                  '  - ⏭️ Skipped duplicate conversation: $conversationId (older activity)');
             }
-            return null;
           }
-        })
-        .where((conv) => conv != null && conv.isActive)
-        .cast<ChatConversation>()
-        .toList();
+        } else {
+          conversationMap[conversationId] = conversation;
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('❌ Error parsing conversation doc ${doc.id}: $e');
+        }
+      }
+    }
+
+    final conversations = conversationMap.values.toList();
+
+    // Sort by last activity (most recent first)
+    conversations.sort((a, b) => b.lastActivity.compareTo(a.lastActivity));
 
     if (kDebugMode) {
-      print('✅ Processed ${conversations.length} active conversations');
+      print(
+          '✅ Processed ${conversations.length} active conversations (deduplicated)');
+      for (var conv in conversations) {
+        print('  - ${conv.id}: ${conv.participantNames.values.join(', ')}');
+      }
     }
 
     return conversations;
@@ -1284,6 +1477,19 @@ class ChatService {
     }
     _messageStreamControllers.clear();
 
+    // Cancel per-conversation Firestore subscriptions
+    for (final sub in _messageSubscriptions.values) {
+      try {
+        sub.cancel();
+      } catch (_) {}
+    }
+    _messageSubscriptions.clear();
+
+    // Cancel auth state subscription
+    try {
+      _authStateSubscription?.cancel();
+    } catch (_) {}
+
     // ✅ CHANGED: Only close conversations stream controller on explicit disposal
     if (!_conversationsStreamController.isClosed) {
       _conversationsStreamController.close();
@@ -1299,5 +1505,37 @@ class ChatService {
       }
       _messageStreamControllers.remove(conversationId);
     }
+    // Also cancel any Firestore subscription for this conversation
+    if (_messageSubscriptions.containsKey(conversationId)) {
+      try {
+        _messageSubscriptions[conversationId]?.cancel();
+      } catch (_) {}
+      _messageSubscriptions.remove(conversationId);
+    }
+  }
+
+  // Handle sign-out cleanup to cancel any lingering listeners/subscriptions
+  void _handleSignOutCleanup() {
+    if (kDebugMode) {
+      print('🧹 Handling sign-out cleanup: cancelling message subscriptions');
+    }
+
+    // Cancel all per-conversation Firestore subscriptions
+    for (final entry in _messageSubscriptions.entries) {
+      try {
+        entry.value.cancel();
+      } catch (_) {}
+    }
+    _messageSubscriptions.clear();
+
+    // Close all message stream controllers to avoid further adds
+    for (final controller in _messageStreamControllers.values) {
+      if (!controller.isClosed) {
+        try {
+          controller.close();
+        } catch (_) {}
+      }
+    }
+    _messageStreamControllers.clear();
   }
 }

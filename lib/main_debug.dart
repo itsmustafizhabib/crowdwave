@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 void main() {
   runApp(DebugApp());
@@ -8,11 +9,11 @@ class DebugApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Debug CrowdWave',
+      title: 'common.debug_crowdwave'.tr(),
       home: Scaffold(
         appBar: AppBar(
-          title: Text('Debug Screen'),
-          backgroundColor: Colors.blue,
+          title: Text('common.debug_screen'.tr()),
+          backgroundColor: Color(0xFF008080),
         ),
         body: Center(
           child: Column(
@@ -24,16 +25,14 @@ class DebugApp extends StatelessWidget {
                 color: Colors.green,
               ),
               SizedBox(height: 20),
-              Text(
-                'App is Working!',
+              Text('common.app_is_working'.tr(),
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               SizedBox(height: 20),
-              Text(
-                'If you see this, the Flutter app is running correctly.',
+              Text('common.if_you_see_this_the_flutter_app_is_running_correct'.tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16),
               ),
@@ -41,10 +40,10 @@ class DebugApp extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Button works!')),
+                    SnackBar(content: Text('common.button_works'.tr())),
                   );
                 },
-                child: Text('Test Button'),
+                child: Text('common.test_button'.tr()),
               ),
             ],
           ),

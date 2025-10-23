@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import '../../core/models/deal_offer.dart';
 import '../../core/models/chat_message.dart';
 import '../../services/deal_negotiation_service.dart';
@@ -135,8 +136,7 @@ class _DealOfferMessageWidgetState extends State<DealOfferMessageWidget> {
                   ),
                 ),
                 SizedBox(width: 8),
-                Text(
-                  'Loading offer...',
+                Text('common.loading_offer'.tr(),
                   style: TextStyle(
                     color: Colors.grey[600],
                     fontSize: 14,
@@ -199,8 +199,7 @@ class _DealOfferMessageWidgetState extends State<DealOfferMessageWidget> {
               color: Colors.red.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Text(
-              'EXPIRED',
+            child: Text('status.expired'.tr(),
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
@@ -224,24 +223,23 @@ class _DealOfferMessageWidgetState extends State<DealOfferMessageWidget> {
         children: [
           Icon(
             Icons.attach_money,
-            color: Color(0xFF0046FF),
+            color: Color(0xFF215C5C),
             size: 20,
           ),
           SizedBox(width: 4),
           Expanded(
             child: Text(
-              '\$${_dealOffer!.offeredPrice.toStringAsFixed(2)}',
+              '€${_dealOffer!.offeredPrice.toStringAsFixed(2)}',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF0046FF),
+                color: Color(0xFF215C5C),
               ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
           SizedBox(width: 4),
-          Text(
-            'Delivery Fee',
+          Text('tracking.delivery_fee'.tr(),
             style: TextStyle(
               fontSize: 12,
               color: Colors.grey[600],
@@ -345,8 +343,7 @@ class _DealOfferMessageWidgetState extends State<DealOfferMessageWidget> {
         color: Colors.white.withOpacity(0.5),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(
-        'Waiting for response...',
+      child: Text('common.waiting_for_response'.tr(),
         style: TextStyle(
           fontSize: 12,
           fontStyle: FontStyle.italic,
@@ -367,8 +364,7 @@ class _DealOfferMessageWidgetState extends State<DealOfferMessageWidget> {
               child: ElevatedButton.icon(
                 onPressed: _isLoading ? null : () => _acceptDeal(),
                 icon: Icon(Icons.check, size: 14),
-                label: Text(
-                  'Accept',
+                label: Text('matching.accept'.tr(),
                   style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -389,8 +385,7 @@ class _DealOfferMessageWidgetState extends State<DealOfferMessageWidget> {
               child: ElevatedButton.icon(
                 onPressed: _isLoading ? null : () => _rejectDeal(),
                 icon: Icon(Icons.close, size: 14),
-                label: Text(
-                  'Decline',
+                label: Text('common.decline'.tr(),
                   style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -419,13 +414,13 @@ class _DealOfferMessageWidgetState extends State<DealOfferMessageWidget> {
         //       overflow: TextOverflow.ellipsis,
         //     ),
         //     style: OutlinedButton.styleFrom(
-        //       foregroundColor: Color(0xFF0046FF),
+        //       foregroundColor: Color(0xFF215C5C),
         //       padding: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
         //       minimumSize: Size(0, 32),
         //       shape: RoundedRectangleBorder(
         //         borderRadius: BorderRadius.circular(8),
         //       ),
-        //       side: BorderSide(color: Color(0xFF0046FF)),
+        //       side: BorderSide(color: Color(0xFF215C5C)),
         //     ),
         //   ),
         // ),
@@ -513,9 +508,9 @@ class _DealOfferMessageWidgetState extends State<DealOfferMessageWidget> {
     showDialog(
       context: context,
       builder: (context) => PriceInputWidget(
-        title: 'Counter Offer',
+        title: 'chat.counter_offer'.tr(),
         subtitle:
-            'Their offer: \$${_dealOffer!.offeredPrice.toStringAsFixed(2)}',
+            'Their offer: €${_dealOffer!.offeredPrice.toStringAsFixed(2)}',
         initialPrice: _dealOffer!.offeredPrice,
         onSubmit: (price, message) async {
           Navigator.pop(context);
@@ -537,8 +532,8 @@ class _DealOfferMessageWidgetState extends State<DealOfferMessageWidget> {
 
       Get.snackbar(
         'Counter Offer Sent',
-        'Your counter offer of \$${price.toStringAsFixed(2)} has been sent',
-        backgroundColor: Colors.blue.withOpacity(0.8),
+        'Your counter offer of €${price.toStringAsFixed(2)} has been sent',
+        backgroundColor: Color(0xFF008080).withOpacity(0.8),
         colorText: Colors.white,
         icon: Icon(Icons.reply, color: Colors.white),
       );
@@ -561,7 +556,7 @@ class _DealOfferMessageWidgetState extends State<DealOfferMessageWidget> {
     switch (status) {
       case DealStatus.pending:
         return LinearGradient(
-          colors: [Colors.blue[100]!, Colors.blue[50]!],
+          colors: [Color(0xFF008080)!, Color(0xFF008080)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         );
@@ -590,7 +585,7 @@ class _DealOfferMessageWidgetState extends State<DealOfferMessageWidget> {
   Color _getBorderColorForStatus(DealStatus status) {
     switch (status) {
       case DealStatus.pending:
-        return Colors.blue[300]!;
+        return Color(0xFF008080);
       case DealStatus.accepted:
         return Colors.green[300]!;
       case DealStatus.rejected:
@@ -604,7 +599,7 @@ class _DealOfferMessageWidgetState extends State<DealOfferMessageWidget> {
   Color _getIconColorForStatus(DealStatus status) {
     switch (status) {
       case DealStatus.pending:
-        return Colors.blue[600]!;
+        return Color(0xFF008080)!;
       case DealStatus.accepted:
         return Colors.green[600]!;
       case DealStatus.rejected:
@@ -618,7 +613,7 @@ class _DealOfferMessageWidgetState extends State<DealOfferMessageWidget> {
   Color _getTextColorForStatus(DealStatus status) {
     switch (status) {
       case DealStatus.pending:
-        return Colors.blue[800]!;
+        return Color(0xFF008080)!;
       case DealStatus.accepted:
         return Colors.green[800]!;
       case DealStatus.rejected:

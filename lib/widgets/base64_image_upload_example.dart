@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../widgets/liquid_loading_indicator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -28,8 +29,8 @@ class _Base64ImageUploadExampleState extends State<Base64ImageUploadExample> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Base64 Image Upload Demo'),
-        backgroundColor: Colors.blue,
+        title: Text('demo.base64_upload_title'.tr()),
+        backgroundColor: Color(0xFF008080),
         foregroundColor: Colors.white,
       ),
       body: Padding(
@@ -38,8 +39,8 @@ class _Base64ImageUploadExampleState extends State<Base64ImageUploadExample> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Title and explanation
-            const Text(
-              'FREE Profile Picture Storage',
+            Text(
+              'profile.free_profile_picture_storage'.tr(),
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -76,7 +77,7 @@ class _Base64ImageUploadExampleState extends State<Base64ImageUploadExample> {
                 height: 150,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.blue, width: 3),
+                  border: Border.all(color: Color(0xFF008080), width: 3),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.grey.withOpacity(0.3),
@@ -120,7 +121,7 @@ class _Base64ImageUploadExampleState extends State<Base64ImageUploadExample> {
                   : const Icon(Icons.camera_alt),
               label: Text(_isUploading ? 'Processing...' : 'Upload Photo'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: Color(0xFF008080),
                 foregroundColor: Colors.white,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -135,9 +136,9 @@ class _Base64ImageUploadExampleState extends State<Base64ImageUploadExample> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
+                  color: Color(0xFF008080),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue.shade200),
+                  border: Border.all(color: Color(0xFF008080)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,15 +147,15 @@ class _Base64ImageUploadExampleState extends State<Base64ImageUploadExample> {
                       'Image Information:',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+                        color: Color(0xFF008080),
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                         'Dimensions: ${_lastImageInfo!['width']} x ${_lastImageInfo!['height']}'),
                     Text('Original Size: ${_lastImageInfo!['fileSizeMB']} MB'),
-                    Text('Storage: Firestore (Base64)'),
-                    Text('Cost: FREE! 🎉'),
+                    Text('demo.storage_firestore'.tr()),
+                    Text('demo.cost_free'.tr()),
                   ],
                 ),
               ),
@@ -172,49 +173,49 @@ class _Base64ImageUploadExampleState extends State<Base64ImageUploadExample> {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.grey.shade300),
                 ),
-                child: const SingleChildScrollView(
+                child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'How it works:',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
                       ),
-                      SizedBox(height: 8),
-                      Text('1. Pick an image from camera or gallery'),
-                      Text('2. Image is automatically compressed if needed'),
-                      Text('3. Converted to Base64 format'),
-                      Text('4. Stored directly in Firestore document'),
-                      Text('5. No Firebase Storage charges!'),
-                      SizedBox(height: 16),
-                      Text(
+                      const SizedBox(height: 8),
+                      Text('demo.step_1'.tr()),
+                      Text('demo.step_2'.tr()),
+                      Text('demo.step_3'.tr()),
+                      Text('demo.step_4'.tr()),
+                      Text('demo.step_5'.tr()),
+                      const SizedBox(height: 16),
+                      const Text(
                         'Benefits:',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
                       ),
-                      SizedBox(height: 8),
-                      Text('• Completely FREE storage'),
-                      Text('• No additional Firebase setup'),
-                      Text('• Automatic image optimization'),
-                      Text('• Works offline once loaded'),
-                      Text('• Simple implementation'),
-                      SizedBox(height: 16),
-                      Text(
+                      const SizedBox(height: 8),
+                      Text('demo.benefit_1'.tr()),
+                      Text('demo.benefit_2'.tr()),
+                      Text('demo.benefit_3'.tr()),
+                      Text('demo.benefit_4'.tr()),
+                      Text('demo.benefit_5'.tr()),
+                      const SizedBox(height: 16),
+                      const Text(
                         'Limitations:',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
                       ),
-                      SizedBox(height: 8),
-                      Text('• Max ~800KB per image (Firestore limit)'),
-                      Text('• Not ideal for very high-res images'),
-                      Text('• Slightly slower initial load'),
+                      const SizedBox(height: 8),
+                      Text('demo.limitation_1'.tr()),
+                      Text('demo.limitation_2'.tr()),
+                      Text('demo.limitation_3'.tr()),
                     ],
                   ),
                 ),
@@ -246,8 +247,8 @@ class _Base64ImageUploadExampleState extends State<Base64ImageUploadExample> {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Select Image Source',
+            Text(
+              'common.select_image_source'.tr(),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -259,7 +260,7 @@ class _Base64ImageUploadExampleState extends State<Base64ImageUploadExample> {
               children: [
                 _buildImageSourceOption(
                   icon: Icons.camera_alt,
-                  label: 'Camera',
+                  label: 'chat.camera'.tr(),
                   onTap: () {
                     Navigator.pop(context);
                     _pickAndUploadImage(ImageSource.camera);
@@ -267,7 +268,7 @@ class _Base64ImageUploadExampleState extends State<Base64ImageUploadExample> {
                 ),
                 _buildImageSourceOption(
                   icon: Icons.photo_library,
-                  label: 'Gallery',
+                  label: 'chat.gallery'.tr(),
                   onTap: () {
                     Navigator.pop(context);
                     _pickAndUploadImage(ImageSource.gallery);
@@ -276,7 +277,7 @@ class _Base64ImageUploadExampleState extends State<Base64ImageUploadExample> {
                 if (_currentImageBase64 != null)
                   _buildImageSourceOption(
                     icon: Icons.delete_outline,
-                    label: 'Remove',
+                    label: 'profile.remove'.tr(),
                     onTap: () {
                       Navigator.pop(context);
                       _removeImage();
@@ -301,24 +302,24 @@ class _Base64ImageUploadExampleState extends State<Base64ImageUploadExample> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: Colors.blue.withOpacity(0.1),
+          color: Color(0xFF008080).withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Colors.blue.withOpacity(0.3),
+            color: Color(0xFF008080).withOpacity(0.3),
           ),
         ),
         child: Column(
           children: [
             Icon(
               icon,
-              color: Colors.blue,
+              color: Color(0xFF008080),
               size: 28,
             ),
             const SizedBox(height: 8),
             Text(
               label,
               style: const TextStyle(
-                color: Colors.blue,
+                color: Color(0xFF008080),
                 fontWeight: FontWeight.w500,
                 fontSize: 12,
               ),
@@ -405,8 +406,8 @@ class _Base64ImageUploadExampleState extends State<Base64ImageUploadExample> {
     _userProfileService.updateUserProfile(photoUrl: '');
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Image removed'),
+      SnackBar(
+        content: Text('demo.image_removed'.tr()),
         backgroundColor: Colors.green,
       ),
     );

@@ -110,7 +110,7 @@ class _CarouselWidgetState extends State<CarouselWidget> {
 
                   return Center(
                     child: SizedBox(
-                      height: widget.enlargeCenterPage 
+                      height: widget.enlargeCenterPage
                           ? Curves.easeOut.transform(value) * widget.height
                           : widget.height,
                       child: child,
@@ -146,8 +146,8 @@ class _CarouselWidgetState extends State<CarouselWidget> {
           width: isActive ? 6.w : 2.w,
           height: 2.w,
           decoration: BoxDecoration(
-            color: isActive 
-                ? const Color(0xFF001BB7)
+            color: isActive
+                ? const Color(0xFF2D7A6E)
                 : Colors.grey.withOpacity(0.3),
             borderRadius: BorderRadius.circular(1.w),
           ),
@@ -258,7 +258,7 @@ class _SwipeableCardState extends State<SwipeableCard>
     final swipeDistance = _dragOffset.dx.abs();
     final swipeVelocity = details.velocity.pixelsPerSecond.dx.abs();
 
-    if (swipeDistance > screenWidth * widget.swipeThreshold || 
+    if (swipeDistance > screenWidth * widget.swipeThreshold ||
         swipeVelocity > 1000) {
       // Complete the swipe
       _completeSwipe(_dragOffset.dx > 0);
@@ -344,7 +344,7 @@ class _SwipeableCardState extends State<SwipeableCard>
           final offset = _isDragging && _animationController.value == 0
               ? _dragOffset
               : _slideAnimation.value;
-          
+
           final rotation = _isDragging && _animationController.value == 0
               ? _dragOffset.dx * 0.001
               : _rotationAnimation.value;
@@ -354,17 +354,18 @@ class _SwipeableCardState extends State<SwipeableCard>
             child: Transform.rotate(
               angle: rotation,
               child: Transform.scale(
-                scale: _animationController.isAnimating 
-                    ? _scaleAnimation.value 
+                scale: _animationController.isAnimating
+                    ? _scaleAnimation.value
                     : 1.0,
                 child: Opacity(
-                  opacity: _animationController.isAnimating 
-                      ? _opacityAnimation.value 
+                  opacity: _animationController.isAnimating
+                      ? _opacityAnimation.value
                       : 1.0,
                   child: Container(
                     margin: widget.margin ?? EdgeInsets.all(2.w),
                     decoration: BoxDecoration(
-                      borderRadius: widget.borderRadius ?? BorderRadius.circular(16),
+                      borderRadius:
+                          widget.borderRadius ?? BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.1),
@@ -374,7 +375,8 @@ class _SwipeableCardState extends State<SwipeableCard>
                       ],
                     ),
                     child: ClipRRect(
-                      borderRadius: widget.borderRadius ?? BorderRadius.circular(16),
+                      borderRadius:
+                          widget.borderRadius ?? BorderRadius.circular(16),
                       child: widget.child,
                     ),
                   ),
@@ -413,17 +415,18 @@ class _ParallaxWidgetState extends State<ParallaxWidget> {
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
         if (_widgetKey.currentContext != null) {
-          final RenderBox renderBox = 
+          final RenderBox renderBox =
               _widgetKey.currentContext!.findRenderObject() as RenderBox;
           final position = renderBox.localToGlobal(Offset.zero);
-          
+
           final screenHeight = MediaQuery.of(context).size.height;
           final itemPosition = position.dy;
           final itemHeight = renderBox.size.height;
-          
+
           if (itemPosition < screenHeight && itemPosition + itemHeight > 0) {
             setState(() {
-              _offset = (screenHeight / 2 - itemPosition) * widget.parallaxOffset;
+              _offset =
+                  (screenHeight / 2 - itemPosition) * widget.parallaxOffset;
             });
           }
         }
@@ -431,8 +434,8 @@ class _ParallaxWidgetState extends State<ParallaxWidget> {
       },
       child: Transform.translate(
         key: _widgetKey,
-        offset: widget.direction == Axis.vertical 
-            ? Offset(0, _offset) 
+        offset: widget.direction == Axis.vertical
+            ? Offset(0, _offset)
             : Offset(_offset, 0),
         child: widget.child,
       ),

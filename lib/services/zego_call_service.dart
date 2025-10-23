@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:easy_localization/easy_localization.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -72,17 +73,17 @@ class ZegoCallService {
       final shouldEndCurrentCall = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Call in Progress'),
-          content: const Text(
-              'You are already in a call. End current call to start a new one?'),
+          title: Text('calls.call_in_progress'.tr()),
+          content: Text(
+              'common.you_are_already_in_a_call_end_current_call_to_star'.tr()),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text('common.cancel'.tr()),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('End Current Call'),
+              child: Text('calls.end_current_call'.tr()),
             ),
           ],
         ),
@@ -147,8 +148,8 @@ class ZegoCallService {
     // For now, redirect to voice call
     // TODO: Implement video call functionality if needed
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Video calls coming soon! Starting voice call...'),
+      SnackBar(
+        content: Text('calls.video_coming_soon'.tr()),
         backgroundColor: Colors.orange,
       ),
     );
@@ -185,7 +186,7 @@ class ZegoCallService {
             receiverName: receiverName,
           ),
           icon: const Icon(Icons.phone, color: Colors.white),
-          label: const Text('Voice Call'),
+          label: Text('calls.voice_call'.tr()),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.green,
             foregroundColor: Colors.white,
@@ -201,9 +202,9 @@ class ZegoCallService {
             receiverName: receiverName,
           ),
           icon: const Icon(Icons.videocam, color: Colors.white),
-          label: const Text('Video Call'),
+          label: Text('calls.video_call'.tr()),
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
+            backgroundColor: Color(0xFF008080),
             foregroundColor: Colors.white,
           ),
         ),

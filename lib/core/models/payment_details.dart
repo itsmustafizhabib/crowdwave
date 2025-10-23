@@ -22,7 +22,7 @@ class PaymentDetails {
     required this.paymentMethod,
     required this.status,
     required this.amount,
-    this.currency = 'USD',
+    this.currency = 'EUR',
     this.processedAt,
     this.failureReason,
     this.isEscrow = true,
@@ -45,7 +45,7 @@ class PaymentDetails {
         orElse: () => PaymentStatus.pending,
       ),
       amount: (map['amount'] ?? 0.0).toDouble(),
-      currency: map['currency'] ?? 'USD',
+      currency: map['currency'] ?? 'EUR',
       processedAt: map['processedAt'] != null
           ? (map['processedAt'] as Timestamp).toDate()
           : null,

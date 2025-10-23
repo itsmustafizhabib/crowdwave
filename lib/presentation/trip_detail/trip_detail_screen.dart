@@ -2,19 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/app_export.dart';
 import '../../services/firebase_auth_service.dart';
 import '../../services/matching_service.dart';
-import '../../services/booking_service.dart';
 import '../../controllers/chat_controller.dart';
 import '../chat/individual_chat_screen.dart';
-import '../../models/review_model.dart';
-import '../../services/review_service.dart';
-import '../reviews/review_list_screen.dart';
-import '../reviews/create_review_screen.dart';
+// import '../../models/review_model.dart';
+// import '../../services/review_service.dart';
+// import '../reviews/review_list_screen.dart';
 
 class TripDetailScreen extends StatefulWidget {
   final TravelTrip trip;
@@ -121,8 +120,8 @@ class _TripDetailScreenState extends State<TripDetailScreen>
                         SizedBox(height: 24),
                         _buildNotesSection(),
                       ],
-                      SizedBox(height: 24),
-                      _buildReviewsSection(),
+                      // SizedBox(height: 24),
+                      // _buildReviewsSection(),
                       SizedBox(height: 100), // Space for FAB
                     ],
                   ),
@@ -142,7 +141,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
       expandedHeight: 120,
       floating: false,
       pinned: true,
-      backgroundColor: Color(0xFF0046FF),
+      backgroundColor: Color(0xFF215C5C),
       foregroundColor: Colors.white,
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle.light,
@@ -152,23 +151,11 @@ class _TripDetailScreenState extends State<TripDetailScreen>
       ),
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
-          'Trip Details',
+          'detail.trip_detail_title'.tr(),
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,
             fontSize: 18,
-          ),
-        ),
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF0046FF),
-                Color(0xFF0056FF),
-              ],
-            ),
           ),
         ),
       ),
@@ -197,12 +184,12 @@ class _TripDetailScreenState extends State<TripDetailScreen>
             children: [
               CircleAvatar(
                 radius: 25,
-                backgroundColor: Color(0xFF0046FF).withOpacity(0.1),
+                backgroundColor: Color(0xFF215C5C).withOpacity(0.1),
                 backgroundImage: widget.trip.travelerPhotoUrl.isNotEmpty
                     ? CachedNetworkImageProvider(widget.trip.travelerPhotoUrl)
                     : null,
                 child: widget.trip.travelerPhotoUrl.isEmpty
-                    ? Icon(Icons.person, color: Color(0xFF0046FF))
+                    ? Icon(Icons.person, color: Color(0xFF215C5C))
                     : null,
               ),
               SizedBox(width: 16),
@@ -220,7 +207,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Traveler',
+                      'detail.traveler'.tr(),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
@@ -237,7 +224,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
             children: [
               Icon(
                 _getTransportModeIcon(widget.trip.transportMode),
-                color: Color(0xFF0046FF),
+                color: Color(0xFF215C5C),
                 size: 20,
               ),
               SizedBox(width: 8),
@@ -288,7 +275,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
         statusText = 'Full';
         break;
       case TripStatus.inProgress:
-        statusColor = Colors.blue;
+        statusColor = Color(0xFF008080);
         statusText = 'In Progress';
         break;
       case TripStatus.completed:
@@ -348,10 +335,10 @@ class _TripDetailScreenState extends State<TripDetailScreen>
           SizedBox(height: 16),
           _buildLocationItem(
             icon: Icons.flight_takeoff,
-            label: 'Departure',
+            label: 'detail.departure'.tr(),
             location: widget.trip.departureLocation,
             datetime: widget.trip.departureDate,
-            color: Color(0xFF0046FF),
+            color: Color(0xFF215C5C),
           ),
           SizedBox(height: 16),
           Container(
@@ -366,7 +353,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
           SizedBox(height: 16),
           _buildLocationItem(
             icon: Icons.flight_land,
-            label: 'Arrival',
+            label: 'detail.arrival'.tr(),
             location: widget.trip.destinationLocation,
             datetime: widget.trip.arrivalDate,
             color: Colors.green,
@@ -377,20 +364,20 @@ class _TripDetailScreenState extends State<TripDetailScreen>
             Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
+                color: Color(0xFF008080).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                border: Border.all(color: Color(0xFF008080).withOpacity(0.3)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.alt_route, color: Colors.blue, size: 20),
+                  Icon(Icons.alt_route, color: Color(0xFF008080), size: 20),
                   SizedBox(width: 8),
                   Text(
                     'Flexible route up to ${widget.trip.maxDetourKm} km detour',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: Colors.blue[700],
+                      color: Color(0xFF008080),
                     ),
                   ),
                 ],
@@ -490,7 +477,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Travel Details',
+            'travel.travel_details'.tr(),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -531,7 +518,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Available Capacity',
+            'common.available_capacity'.tr(),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -544,16 +531,16 @@ class _TripDetailScreenState extends State<TripDetailScreen>
               Expanded(
                 child: _buildCapacityItem(
                   icon: Icons.scale,
-                  label: 'Weight',
+                  label: 'detail.package_weight'.tr(),
                   value: '${widget.trip.capacity.maxWeightKg} kg',
-                  color: Colors.blue,
+                  color: Color(0xFF008080),
                 ),
               ),
               SizedBox(width: 16),
               Expanded(
                 child: _buildCapacityItem(
                   icon: Icons.inventory_2,
-                  label: 'Packages',
+                  label: 'trip.packages_label'.tr(),
                   value: '${widget.trip.capacity.maxPackages}',
                   color: Colors.green,
                 ),
@@ -566,7 +553,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
           if (widget.trip.capacity.acceptedSizes.isNotEmpty) ...[
             SizedBox(height: 12),
             Text(
-              'Accepted Sizes',
+              'common.accepted_sizes'.tr(),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -581,17 +568,17 @@ class _TripDetailScreenState extends State<TripDetailScreen>
                 return Container(
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Color(0xFF0046FF).withOpacity(0.1),
+                    color: Color(0xFF215C5C).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                     border:
-                        Border.all(color: Color(0xFF0046FF).withOpacity(0.3)),
+                        Border.all(color: Color(0xFF215C5C).withOpacity(0.3)),
                   ),
                   child: Text(
                     _getPackageSizeText(size),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF0046FF),
+                      color: Color(0xFF215C5C),
                     ),
                   ),
                 );
@@ -660,7 +647,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Earnings',
+            'profile.earnings'.tr(),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -673,12 +660,12 @@ class _TripDetailScreenState extends State<TripDetailScreen>
               Container(
                 padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Color(0xFF0046FF).withOpacity(0.1),
+                  color: Color(0xFF215C5C).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   Icons.attach_money,
-                  color: Color(0xFF0046FF),
+                  color: Color(0xFF215C5C),
                   size: 24,
                 ),
               ),
@@ -687,15 +674,15 @@ class _TripDetailScreenState extends State<TripDetailScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '\$${widget.trip.suggestedReward.toStringAsFixed(2)}',
+                    '€${widget.trip.suggestedReward.toStringAsFixed(2)}',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF0046FF),
+                      color: Color(0xFF215C5C),
                     ),
                   ),
                   Text(
-                    'Suggested reward per package',
+                    'post_package.suggested_reward_per_package'.tr(),
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -754,7 +741,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Accepted Item Types',
+            'post_trip.accepted_types'.tr(),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -764,7 +751,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
           SizedBox(height: 16),
           if (widget.trip.acceptedItemTypes.isEmpty) ...[
             Text(
-              'All item types accepted',
+              'common.all_item_types_accepted'.tr(),
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[600],
@@ -818,7 +805,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Additional Notes',
+            'common.additional_notes'.tr(),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -833,6 +820,8 @@ class _TripDetailScreenState extends State<TripDetailScreen>
               color: Colors.black87,
               height: 1.4,
             ),
+            maxLines: null,
+            overflow: TextOverflow.visible,
           ),
         ],
       ),
@@ -868,241 +857,206 @@ class _TripDetailScreenState extends State<TripDetailScreen>
     );
   }
 
-  Widget _buildReviewsSection() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.star_rate,
-                color: Color(0xFF0046FF),
-                size: 24,
-              ),
-              SizedBox(width: 12),
-              Text(
-                'Reviews & Ratings',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.grey[800],
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 16),
+  // Widget _buildReviewsSection() {
+  //   return Container(
+  //     width: double.infinity,
+  //     padding: EdgeInsets.all(20),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(16),
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.black.withOpacity(0.05),
+  //           blurRadius: 10,
+  //           offset: Offset(0, 2),
+  //         ),
+  //       ],
+  //     ),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Row(
+  //           children: [
+  //             Icon(
+  //               Icons.star_rate,
+  //               color: Color(0xFF215C5C),
+  //               size: 24,
+  //             ),
+  //             SizedBox(width: 12),
+  //             Text(
+  //               'Reviews & Ratings',
+  //               style: TextStyle(
+  //                 fontSize: 18,
+  //                 fontWeight: FontWeight.w700,
+  //                 color: Colors.grey[800],
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //         SizedBox(height: 16),
+  //
+  //         // Rating Summary
+  //         FutureBuilder<ReviewSummary>(
+  //           future: ReviewService().getReviewSummary(widget.trip.id),
+  //           builder: (context, snapshot) {
+  //             if (snapshot.connectionState == ConnectionState.waiting) {
+  //               return Center(
+  //                 child: SizedBox(
+  //                   height: 40,
+  //                   child: CircularProgressIndicator(
+  //                     strokeWidth: 2,
+  //                     color: Color(0xFF215C5C),
+  //                   ),
+  //                 ),
+  //               );
+  //             }
+  //
+  //             if (snapshot.hasError || !snapshot.hasData) {
+  //               return Container(
+  //                 padding: EdgeInsets.all(16),
+  //                 decoration: BoxDecoration(
+  //                   color: Colors.grey[50],
+  //                   borderRadius: BorderRadius.circular(12),
+  //                   border: Border.all(color: Colors.grey[200]!),
+  //                 ),
+  //                 child: Row(
+  //                   children: [
+  //                     Icon(Icons.star_border, color: Colors.grey[400]),
+  //                     SizedBox(width: 8),
+  //                     Text(
+  //                       'no reviews',
+  //                       style: TextStyle(
+  //                         color: Colors.grey[600],
+  //                         fontSize: 14,
+  //                       ),
+  //                     ),
+  //                     Spacer(),
+  //                   ],
+  //                 ),
+  //               );
+  //             }
+  //
+  //             final summary = snapshot.data!;
+  //
+  //             if (summary.totalReviews == 0) {
+  //               return Container(
+  //                 padding: EdgeInsets.all(16),
+  //                 decoration: BoxDecoration(
+  //                   color: Colors.grey[50],
+  //                   borderRadius: BorderRadius.circular(12),
+  //                   border: Border.all(color: Colors.grey[200]!),
+  //                 ),
+  //                 child: Row(
+  //                   children: [
+  //                     Icon(Icons.star_border, color: Colors.grey[400]),
+  //                     SizedBox(width: 8),
+  //                     Text(
+  //                       'no reviews',
+  //                       style: TextStyle(
+  //                         color: Colors.grey[600],
+  //                         fontSize: 14,
+  //                       ),
+  //                     ),
+  //                     Spacer(),
+  //                   ],
+  //                 ),
+  //               );
+  //             }
+  //
+  //             return Column(
+  //               children: [
+  //                 // Compact Rating Display
+  //                 Row(
+  //                   children: [
+  //                     Icon(
+  //                       Icons.star,
+  //                       color: Color(0xFF2D7A6E),
+  //                       size: 20,
+  //                     ),
+  //                     SizedBox(width: 6),
+  //                     Text(
+  //                       summary.averageRating.toStringAsFixed(1),
+  //                       style: TextStyle(
+  //                         fontSize: 16,
+  //                         fontWeight: FontWeight.w600,
+  //                         color: Colors.grey[800],
+  //                       ),
+  //                     ),
+  //                     SizedBox(width: 6),
+  //                     Text(
+  //                       '(${summary.totalReviews} reviews)',
+  //                       style: TextStyle(
+  //                         fontSize: 14,
+  //                         color: Colors.grey[600],
+  //                       ),
+  //                     ),
+  //                     Spacer(),
+  //                     Icon(
+  //                       Icons.chevron_right,
+  //                       color: Colors.grey[400],
+  //                     ),
+  //                   ],
+  //                 ),
+  //
+  //                 if (summary.verifiedReviewsCount > 0) ...[
+  //                   SizedBox(height: 8),
+  //                   Row(
+  //                     children: [
+  //                       Container(
+  //                         padding:
+  //                             EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+  //                         decoration: BoxDecoration(
+  //                           color: Colors.green[100],
+  //                           borderRadius: BorderRadius.circular(10),
+  //                         ),
+  //                         child: Text(
+  //                           '${summary.verifiedReviewsCount} verified',
+  //                           style: TextStyle(
+  //                             fontSize: 11,
+  //                             color: Colors.green[700],
+  //                             fontWeight: FontWeight.w500,
+  //                           ),
+  //                         ),
+  //                       ),
+  //                     ],
+  //                   ),
+  //                 ],
+  //               ],
+  //             );
+  //           },
+  //         ),
+  //
+  //         SizedBox(height: 16),
+  //
+  //         // Action Button
+  //         Center(
+  //           child: ElevatedButton.icon(
+  //             onPressed: _navigateToReviewList,
+  //             icon: Icon(Icons.list, size: 18),
+  //             label: Text('reviews.view_all_reviews'.tr()),
+  //             style: ElevatedButton.styleFrom(
+  //               backgroundColor: Color(0xFF215C5C),
+  //               foregroundColor: Colors.white,
+  //               padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
-          // Rating Summary
-          FutureBuilder<ReviewSummary>(
-            future: ReviewService().getReviewSummary(widget.trip.id),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: SizedBox(
-                    height: 40,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Color(0xFF0046FF),
-                    ),
-                  ),
-                );
-              }
-
-              if (snapshot.hasError || !snapshot.hasData) {
-                return Container(
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[200]!),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.star_border, color: Colors.grey[400]),
-                      SizedBox(width: 8),
-                      Text(
-                        'no reviews',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                        ),
-                      ),
-                      Spacer(),
-                  
-                    ],
-                  ),
-                );
-              }
-
-              final summary = snapshot.data!;
-
-              if (summary.totalReviews == 0) {
-                return Container(
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[200]!),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.star_border, color: Colors.grey[400]),
-                      SizedBox(width: 8),
-                      Text(
-                        'no reviews',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                        ),
-                      ),
-                      Spacer(),
-                 
-                    ],
-                  ),
-                );
-              }
-
-              return Column(
-                children: [
-                  // Compact Rating Display
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.star,
-                        color: Color(0xFFFF8040),
-                        size: 20,
-                      ),
-                      SizedBox(width: 6),
-                      Text(
-                        summary.averageRating.toStringAsFixed(1),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[800],
-                        ),
-                      ),
-                      SizedBox(width: 6),
-                      Text(
-                        '(${summary.totalReviews} reviews)',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      Spacer(),
-                      Icon(
-                        Icons.chevron_right,
-                        color: Colors.grey[400],
-                      ),
-                    ],
-                  ),
-
-                  if (summary.verifiedReviewsCount > 0) ...[
-                    SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Container(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.green[100],
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            '${summary.verifiedReviewsCount} verified',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.green[700],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-              );
-            },
-          ),
-
-          SizedBox(height: 16),
-
-          // Action Buttons
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _navigateToReviewList,
-                  icon: Icon(Icons.list, size: 18),
-                  label: Text('View All'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Color(0xFF0046FF),
-                    side: BorderSide(color: Color(0xFF0046FF)),
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _navigateToCreateReview,
-                  icon: Icon(Icons.rate_review, size: 18),
-                  label: Text('Write Review'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF0046FF),
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _navigateToReviewList() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ReviewListScreen(
-          targetId: widget.trip.id,
-          reviewType: ReviewType.trip,
-          targetName: '${widget.trip.fromLocation} → ${widget.trip.toLocation}',
-        ),
-      ),
-    );
-  }
-
-  void _navigateToCreateReview() async {
-    final hasBooked = await _checkIfUserBookedTrip();
-
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => CreateReviewScreen(
-          targetId: widget.trip.id,
-          reviewType: ReviewType.trip,
-          targetName: '${widget.trip.fromLocation} → ${widget.trip.toLocation}',
-          targetImageUrl: widget.trip.travelerPhotoUrl,
-          isVerifiedBooking: hasBooked,
-        ),
-      ),
-    );
-  }
+  // void _navigateToReviewList() {
+  //   Navigator.of(context).push(
+  //     MaterialPageRoute(
+  //       builder: (context) => ReviewListScreen(
+  //         targetId: widget.trip.id,
+  //         reviewType: ReviewType.trip,
+  //         targetName: '${widget.trip.fromLocation} → ${widget.trip.toLocation}',
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildActionButton() {
     // Debug logging to check values
@@ -1141,7 +1095,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
               elevation: 6,
               icon: Icon(Icons.chat_bubble_outline),
               label: Text(
-                'Chat',
+                'nav.chat'.tr(),
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
@@ -1155,7 +1109,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
             child: FloatingActionButton.extended(
               heroTag: "match_button_${widget.trip.id}",
               onPressed: _isLoading ? null : _handleMatchRequest,
-              backgroundColor: _isRequested ? Colors.green : Color(0xFF0046FF),
+              backgroundColor: _isRequested ? Colors.green : Color(0xFF215C5C),
               foregroundColor: Colors.white,
               elevation: 6,
               icon: _isLoading
@@ -1241,7 +1195,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           action: SnackBarAction(
-            label: 'Chat Now',
+            label: 'detail.chat_now'.tr(),
             textColor: Colors.white,
             onPressed: () {
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -1266,7 +1220,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
                   children: [
                     Icon(Icons.check_circle, color: Colors.green, size: 28),
                     SizedBox(width: 12),
-                    Text('Request Sent!'),
+                    Text('detail.request_sent'.tr()),
                   ],
                 ),
                 content: Text(
@@ -1276,7 +1230,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: Text('Later'),
+                    child: Text('home.later'.tr()),
                   ),
                   ElevatedButton.icon(
                     onPressed: () {
@@ -1284,9 +1238,9 @@ class _TripDetailScreenState extends State<TripDetailScreen>
                       _startChatWithTraveler();
                     },
                     icon: Icon(Icons.chat_bubble_outline),
-                    label: Text('Start Chat'),
+                    label: Text('chat.start_chat'.tr()),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF0046FF),
+                      backgroundColor: Color(0xFF215C5C),
                       foregroundColor: Colors.white,
                     ),
                   ),
@@ -1303,7 +1257,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to send request. Please try again.'),
+          content: Text('detail.request_failed'.tr()),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -1346,7 +1300,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to start chat. Please try again.'),
+            content: Text('chat.start_failed'.tr()),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape:
@@ -1441,17 +1395,6 @@ class _TripDetailScreenState extends State<TripDetailScreen>
         return 'Large';
       case PackageSize.extraLarge:
         return 'XL';
-    }
-  }
-
-  /// Check if the current user has booked this trip
-  Future<bool> _checkIfUserBookedTrip() async {
-    try {
-      final bookingService = BookingService();
-      return await bookingService.hasUserBookedTrip(widget.trip.id);
-    } catch (e) {
-      print('Error checking booking status: $e');
-      return false; // Default to false if error
     }
   }
 

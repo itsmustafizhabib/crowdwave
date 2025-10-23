@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sizer/sizer.dart';
 import '../../core/models/delivery_tracking.dart';
 import '../../core/models/package_request.dart';
@@ -86,8 +87,7 @@ class TrackingStatusCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Progress',
+                Text('common.progress'.tr(),
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
@@ -119,28 +119,28 @@ class TrackingStatusCard extends StatelessWidget {
           // Tracking details
           _buildDetailRow(
             icon: Icons.local_shipping,
-            label: 'Tracking ID',
+            label: 'tracking.tracking_id'.tr(),
             value: tracking.id.substring(0, 8).toUpperCase(),
           ),
 
           if (tracking.pickupTime != null)
             _buildDetailRow(
               icon: Icons.flight_takeoff,
-              label: 'Picked up',
+              label: 'tracking.picked_up_label'.tr(),
               value: _formatDateTime(tracking.pickupTime!),
             ),
 
           if (tracking.deliveryTime != null)
             _buildDetailRow(
               icon: Icons.check_circle,
-              label: 'Delivered',
+              label: 'tracking.delivered_label'.tr(),
               value: _formatDateTime(tracking.deliveryTime!),
             ),
 
           if (tracking.currentLocation != null && tracking.isInProgress)
             _buildDetailRow(
               icon: Icons.location_on,
-              label: 'Current Location',
+              label: 'tracking.current_location_label'.tr(),
               value: tracking.currentLocation!.address,
             ),
 

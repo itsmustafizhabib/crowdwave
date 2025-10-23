@@ -6,12 +6,12 @@ class AppColors {
   AppColors._();
 
   // Primary Colors from AppTheme
-  static const Color primary = Color(0xFF001BB7); // Dark Navy - Primary dark
+  static const Color primary = Color(0xFF2D7A6E); // Dark Navy - Primary dark
   static const Color primaryVariant =
-      Color(0xFF0046FF); // Electric Blue - Primary
+      Color(0xFF215C5C); // Electric Blue - Primary
   static const Color secondary =
-      Color(0xFF0046FF); // Electric Blue for interactive elements
-  static const Color accent = Color(0xFFFF8040); // Orange Accent - Accent/CTA
+      Color(0xFF215C5C); // Electric Blue for interactive elements
+  static const Color accent = Color(0xFF2D7A6E); // Orange Accent - Accent/CTA
 
   // Background & Surface
   static const Color background = Color(0xFFE9E9E9); // Light Grey - Background
@@ -21,7 +21,7 @@ class AppColors {
   static const Color success = Color(0xFF28A745); // Standard green
   static const Color error = Color(0xFFB00020); // Error red
   static const Color warning = Color(0xFFFFC107); // Amber for caution
-  static const Color info = Color(0xFF17A2B8); // Info blue
+  static const Color info = Color(0xFF28A745); // Info blue
 
   // Text Colors
   static const Color textPrimary = Color(0xFF212529); // Near-black
@@ -47,12 +47,12 @@ class AppColors {
   static const Color statusBarBackground =
       Color(0x80FF8040); // 50% transparent orange
 
-  // Solid Blue Status Bar Background (matching home screen header)
+  // Solid Teal Status Bar Background (universal green theme)
   static const Color solidBlueStatusBar =
-      Color(0xFF0046FF); // Electric Blue - matches headers
+      Color(0xFF215C5C); // Teal status bar matching theme
 
   /// Status bar configuration method
-  /// Returns the solid blue color for universal status bar styling
+  /// Returns the teal color for universal status bar styling
   static Color get statusBarBlue => solidBlueStatusBar;
 
   // Shadow & Overlay
@@ -61,13 +61,13 @@ class AppColors {
 
   // Gradients
   static const List<Color> primaryGradient = [
-    Color(0xFF001BB7),
-    Color(0xFF0046FF),
+    Color(0xFF2D7A6E),
+    Color(0xFF215C5C),
   ];
 
   static const List<Color> accentGradient = [
-    Color(0xFFFF8040),
-    Color(0xFFFF6B35),
+    Color(0xFF2D7A6E),
+    Color(0xFF2D7A6E),
   ];
 
   // Dark Mode Colors (for future implementation)

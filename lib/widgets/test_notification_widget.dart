@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import '../../services/notification_service.dart';
 import '../../models/notification_model.dart';
 import '../../utils/toast_utils.dart';
@@ -11,9 +12,9 @@ class TestNotificationWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return FloatingActionButton.extended(
       onPressed: () => _showTestNotificationDialog(context),
-      backgroundColor: const Color(0xFF0046FF),
+      backgroundColor: const Color(0xFF215C5C),
       foregroundColor: Colors.white,
-      label: const Text('Test Notifications'),
+      label: Text('debug.test_notifications'.tr()),
       icon: const Icon(Icons.notifications_active),
     );
   }
@@ -22,34 +23,33 @@ class TestNotificationWidget extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Test Notifications'),
-        content:
-            const Text('Which type of notification would you like to test?'),
+        title: Text('debug.test_notifications'.tr()),
+        content: Text('debug.test_notification_prompt'.tr()),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _sendTestTravellerNotification();
             },
-            child: const Text('New Traveller'),
+            child: Text('debug.new_traveller'.tr()),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _sendTestPackageNotification();
             },
-            child: const Text('New Package'),
+            child: Text('debug.new_package'.tr()),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _sendTestOpportunityNotification();
             },
-            child: const Text('Opportunities'),
+            child: Text('debug.opportunities'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text('common.cancel'.tr()),
           ),
         ],
       ),
@@ -61,9 +61,8 @@ class TestNotificationWidget extends StatelessWidget {
 
     notificationService.createNotification(
       userId: 'current_user_id', // You'd get this from auth service
-      title: 'Dubai to Islamabad: New Traveller Alert!',
-      body:
-          'Send/Receive your packages now with our new traveller from Dubai to Islamabad. Place your bid now',
+      title: 'debug.test_traveller_title'.tr(),
+      body: 'debug.test_traveller_body'.tr(),
       type: NotificationType.general,
       data: {
         'type': 'new_traveller',
@@ -73,8 +72,8 @@ class TestNotificationWidget extends StatelessWidget {
     );
 
     ToastUtils.show(
-      'Check your notifications to see the new traveller alert',
-      title: 'Test Notification Sent!',
+      'debug.test_notification_check'.tr(),
+      title: 'debug.test_notification_sent'.tr(),
     );
   }
 
@@ -83,9 +82,8 @@ class TestNotificationWidget extends StatelessWidget {
 
     notificationService.createNotification(
       userId: 'current_user_id', // You'd get this from auth service
-      title: 'New Package Request in Your Area!',
-      body:
-          'Someone needs to send a package from Karachi to Lahore. Accept this delivery request now!',
+      title: 'debug.test_package_title'.tr(),
+      body: 'debug.test_package_body'.tr(),
       type: NotificationType.general,
       data: {
         'type': 'new_package',
@@ -95,8 +93,8 @@ class TestNotificationWidget extends StatelessWidget {
     );
 
     ToastUtils.show(
-      'Check your notifications to see the new package request',
-      title: 'Test Notification Sent!',
+      'debug.test_package_check'.tr(),
+      title: 'debug.test_notification_sent'.tr(),
     );
   }
 
@@ -105,9 +103,8 @@ class TestNotificationWidget extends StatelessWidget {
 
     notificationService.createNotification(
       userId: 'current_user_id', // You'd get this from auth service
-      title: 'Opportunities in Your Area!',
-      body:
-          'Found 3 travellers and 2 package requests near you. Check them out!',
+      title: 'debug.test_opportunity_title'.tr(),
+      body: 'debug.test_opportunity_body'.tr(),
       type: NotificationType.general,
       data: {
         'type': 'nearby_opportunities',
@@ -117,8 +114,8 @@ class TestNotificationWidget extends StatelessWidget {
     );
 
     ToastUtils.show(
-      'Check your notifications to see the opportunities summary',
-      title: 'Test Notification Sent!',
+      'debug.test_opportunity_check'.tr(),
+      title: 'debug.test_notification_sent'.tr(),
     );
   }
 }

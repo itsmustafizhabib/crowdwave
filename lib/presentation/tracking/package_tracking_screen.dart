@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sizer/sizer.dart';
 import '../../core/models/delivery_tracking.dart';
 import '../../core/models/package_request.dart';
@@ -7,7 +8,7 @@ import '../../services/tracking_service.dart';
 import '../../services/auth_state_service.dart';
 import '../tracking/tracking_timeline_widget.dart';
 import '../tracking/tracking_status_card.dart';
-import '../tracking/tracking_location_widget.dart';
+import '../tracking/tracking_location_widget_simple.dart';
 import '../../widgets/liquid_loading_indicator.dart';
 import '../../widgets/liquid_refresh_indicator.dart';
 
@@ -129,7 +130,7 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen>
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Package Tracking'),
+        title: Text('post_package.package_tracking'.tr()),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -232,7 +233,7 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen>
             ),
             SizedBox(height: 3.h),
             Text(
-              'Something went wrong',
+              'error_messages.something_went_wrong'.tr(),
               style: TextStyle(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
@@ -262,8 +263,8 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen>
                       child: ElevatedButton.icon(
                         onPressed: () => Navigator.of(context).pop(),
                         icon: const Icon(Icons.arrow_back, size: 18),
-                        label: const Text(
-                          'Back',
+                        label: Text(
+                          'common.back'.tr(),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -288,8 +289,8 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen>
                       child: ElevatedButton.icon(
                         onPressed: _refreshTracking,
                         icon: const Icon(Icons.refresh, size: 18),
-                        label: const Text(
-                          'Refresh',
+                        label: Text(
+                          'common.refresh'.tr(),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -328,8 +329,7 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen>
               color: Colors.grey[400],
             ),
             SizedBox(height: 2.h),
-            Text(
-              'Tracking Not Found',
+            Text('tracking.tracking_not_found'.tr(),
               style: TextStyle(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
@@ -337,8 +337,7 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen>
               ),
             ),
             SizedBox(height: 1.h),
-            Text(
-              'The tracking information for this package could not be found.',
+            Text('post_package.the_tracking_information_for_this_package_could_no'.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14.sp,
@@ -349,7 +348,7 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen>
             ElevatedButton.icon(
               onPressed: () => Get.back(),
               icon: const Icon(Icons.arrow_back),
-              label: const Text('Go Back'),
+              label: Text('common.go_back'.tr()),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.grey[600],
                 foregroundColor: Colors.white,
@@ -379,8 +378,7 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Traveler Actions',
+          Text('travel.traveler_actions'.tr(),
             style: TextStyle(
               fontSize: 16.sp,
               fontWeight: FontWeight.bold,
@@ -394,7 +392,7 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen>
                 child: ElevatedButton.icon(
                   onPressed: _showUpdateStatusDialog,
                   icon: const Icon(Icons.update, size: 18),
-                  label: const Text('Update Status'),
+                  label: Text('tracking.update_status'.tr()),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
@@ -407,7 +405,7 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen>
                 child: OutlinedButton.icon(
                   onPressed: _addLocationCheckpoint,
                   icon: const Icon(Icons.location_on, size: 18),
-                  label: const Text('Add Checkpoint'),
+                  label: Text('tracking.add_checkpoint'.tr()),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.blue,
                     padding: EdgeInsets.symmetric(vertical: 1.5.h),
@@ -438,8 +436,7 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Need Help?',
+          Text('common.need_help'.tr(),
             style: TextStyle(
               fontSize: 16.sp,
               fontWeight: FontWeight.bold,
@@ -453,7 +450,7 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen>
                 child: OutlinedButton.icon(
                   onPressed: _contactSupport,
                   icon: const Icon(Icons.support_agent, size: 18),
-                  label: const Text('Contact Support'),
+                  label: Text('booking.contact_support'.tr()),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.green,
                     padding: EdgeInsets.symmetric(vertical: 1.5.h),
@@ -465,7 +462,7 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen>
                 child: OutlinedButton.icon(
                   onPressed: _reportIssue,
                   icon: const Icon(Icons.report_problem, size: 18),
-                  label: const Text('Report Issue'),
+                  label: Text('tracking.report_issue'.tr()),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.orange,
                     padding: EdgeInsets.symmetric(vertical: 1.5.h),
@@ -483,7 +480,7 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Update Delivery Status'),
+        title: Text('tracking.update_delivery_status'.tr()),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -499,7 +496,7 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen>
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: const Text('Cancel'),
+            child: Text('common.cancel'.tr()),
           ),
         ],
       ),

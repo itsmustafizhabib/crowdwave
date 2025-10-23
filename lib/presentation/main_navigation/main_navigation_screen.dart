@@ -1,17 +1,25 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:get/get.dart' hide Trans;
 import '../home/updated_home_screen.dart';
 import '../orders/orders_screen.dart';
-import '../travel/travel_screen.dart';
 import '../wallet/wallet_screen.dart';
 import '../chat/chat_screen.dart';
+import '../account/account_screen.dart';
 import '../settings/notification_settings_screen.dart';
 import '../../services/auth_state_service.dart';
+import '../../services/locale/locale_detection_service.dart';
+import '../../services/deal_negotiation_service.dart';
 import '../../routes/app_routes.dart';
 import '../../services/location_notification_service.dart';
 import '../../utils/black_screen_fix.dart';
+import '../../utils/debug_menu.dart';
 import '../../widgets/liquid_loading_indicator.dart';
+import '../../widgets/language_picker_sheet.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({Key? key}) : super(key: key);
@@ -20,48 +28,50 @@ class MainNavigationScreen extends StatefulWidget {
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen>
-    with TickerProviderStateMixin {
+class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
   late PageController _pageController;
-  late List<AnimationController> _iconAnimationControllers;
-  late AnimationController _indicatorAnimationController;
   final AuthStateService _authService = AuthStateService();
   final LocationBasedNotificationService _locationNotificationService =
       LocationBasedNotificationService();
 
+  // Unseen offers count for badge
+  int _unseenOffersCount = 0;
+  StreamSubscription<int>? _offersCountSubscription;
+
   // Based on analysis of the app structure
   final List<Widget> _screens = [
     const UpdatedHomeScreen(), // Updated home screen with the new design
-    const OrdersScreen(), // Order management
-    const TravelScreen(), // Travel/Flight services
-    const WalletScreen(), // Payments & earnings
     const ChatScreen(), // Chat functionality
+    const OrdersScreen(), // Order management
+    const WalletScreen(), // Payments & earnings
+    const AccountScreen(), // Account settings and profile
   ];
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
-    _indicatorAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-
-    _iconAnimationControllers = List.generate(5, (index) {
-      final controller = AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 200),
-      );
-      if (index == 0) controller.forward(); // Start with home selected
-      return controller;
-    });
 
     // Listen to auth state changes to update drawer UI when user data changes
     _authService.addListener(_onAuthStateChanged);
 
+    // Setup unseen offers count stream
+    _setupOffersCountStream();
+
     // Don't initialize location notifications automatically
     // Users will enable them manually in settings when they want them
+  }
+
+  void _setupOffersCountStream() {
+    _offersCountSubscription =
+        DealNegotiationService().streamUnseenOffersCount().listen((count) {
+      if (mounted) {
+        setState(() {
+          _unseenOffersCount = count;
+        });
+      }
+    });
   }
 
   void _onAuthStateChanged() {
@@ -80,18 +90,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       // Remove listeners first
       _authService.removeListener(_onAuthStateChanged);
 
+      // Cancel stream subscriptions
+      _offersCountSubscription?.cancel();
+
       // Dispose controllers safely
       if (_pageController.hasClients) {
         _pageController.dispose();
-      }
-
-      _indicatorAnimationController.dispose();
-
-      for (var controller in _iconAnimationControllers) {
-        if (!controller.isCompleted && !controller.isDismissed) {
-          controller.stop();
-        }
-        controller.dispose();
       }
 
       // Stop location notifications with error handling
@@ -125,10 +129,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       curve: Curves.easeInOutCubic,
     );
 
-    // Update icon animations
-    _iconAnimationControllers[_selectedIndex].reverse();
-    _iconAnimationControllers[index].forward();
-
     setState(() {
       _selectedIndex = index;
     });
@@ -141,29 +141,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       child: Scaffold(
         extendBody: true,
         extendBodyBehindAppBar: true,
-        drawer: _selectedIndex == 0
-            ? _buildDrawer()
-            : null, // Only show drawer on home screen
         body: PageView(
           controller: _pageController,
           physics: const ClampingScrollPhysics(), // Prevent over-scroll issues
           onPageChanged: (index) {
             if (_selectedIndex != index && mounted) {
-              try {
-                _iconAnimationControllers[_selectedIndex].reverse();
-                _iconAnimationControllers[index].forward();
-                setState(() {
-                  _selectedIndex = index;
-                });
-              } catch (e) {
-                print('❌ Page change error: $e');
-                // Fallback: just update index without animations
-                if (mounted) {
-                  setState(() {
-                    _selectedIndex = index;
-                  });
-                }
-              }
+              setState(() {
+                _selectedIndex = index;
+              });
             }
           },
           children: _screens,
@@ -198,13 +183,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildNavItem(0, Icons.home_outlined, Icons.home, 'Home'),
-            _buildNavItem(
-                1, Icons.receipt_long_outlined, Icons.receipt_long, 'Orders'),
-            _buildNavItem(2, Icons.flight_outlined, Icons.flight, 'Travel'),
+            _buildNavItem(0, Icons.home_outlined, Icons.home, 'nav.home'.tr()),
+            _buildNavItem(1, Icons.chat_outlined, Icons.chat, 'nav.chat'.tr()),
+            _buildNavItem(2, Icons.receipt_long_outlined, Icons.receipt_long,
+                'nav.orders'.tr(),
+                badgeCount: _unseenOffersCount),
             _buildNavItem(3, Icons.account_balance_wallet_outlined,
-                Icons.account_balance_wallet, 'Wallet'),
-            _buildNavItem(4, Icons.chat_outlined, Icons.chat, 'Chat'),
+                Icons.account_balance_wallet, 'nav.wallet'.tr()),
+            _buildNavItem(
+                4, Icons.person_outline, Icons.person, 'nav.account'.tr()),
           ],
         ),
       ),
@@ -212,71 +199,89 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   }
 
   Widget _buildNavItem(
-      int index, IconData inactiveIcon, IconData activeIcon, String label) {
+      int index, IconData inactiveIcon, IconData activeIcon, String label,
+      {int? badgeCount}) {
     final isSelected = _selectedIndex == index;
 
-    return GestureDetector(
-      onTap: () => _onItemTapped(index),
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Animated icon container with indicator
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                // Background indicator
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOutCubic,
-                  width: isSelected ? 50 : 0,
-                  height: isSelected ? 32 : 0,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0046FF).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                // Icon with scale animation
-                AnimatedBuilder(
-                  animation: _iconAnimationControllers[index],
-                  builder: (context, child) {
-                    final scale =
-                        1.0 + (_iconAnimationControllers[index].value * 0.2);
-                    return Transform.scale(
-                      scale: scale,
-                      child: Icon(
-                        isSelected ? activeIcon : inactiveIcon,
-                        size: 24,
-                        color: Color.lerp(
-                          Colors.grey[600],
-                          const Color(0xFF0046FF),
-                          _iconAnimationControllers[index].value,
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _onItemTapped(index),
+        behavior: HitTestBehavior.opaque,
+        child: SizedBox(
+          height: 70,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon area with fixed size
+              SizedBox(
+                width: 50,
+                height: 32,
+                child: Stack(
+                  alignment: Alignment.center,
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Background indicator
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOutCubic,
+                      width: isSelected ? 50 : 0,
+                      height: isSelected ? 32 : 0,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFCCE8C9),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    // Icon with fixed size - no scaling
+                    Icon(
+                      isSelected ? activeIcon : inactiveIcon,
+                      size: 24,
+                      color: isSelected
+                          ? const Color(0xFF215C5C)
+                          : Colors.grey[800],
+                    ),
+                    // Badge
+                    if (badgeCount != null && badgeCount > 0)
+                      Positioned(
+                        right: 7,
+                        top: -4,
+                        child: Container(
+                          width: 18,
+                          height: 18,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 1.5),
+                          ),
+                          child: Center(
+                            child: Text(
+                              badgeCount > 9 ? '9+' : badgeCount.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 8,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    );
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            // Animated label
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOutCubic,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: Color.lerp(
-                  Colors.grey[600],
-                  const Color(0xFF0046FF),
-                  _iconAnimationControllers[index].value,
+                  ],
                 ),
               ),
-              child: Text(label),
-            ),
-          ],
+              const SizedBox(height: 4),
+              // Label - always dark and bold
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -294,7 +299,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
             width: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF0046FF), Color(0xFF001BB7)],
+                colors: [Color(0xFF215C5C), Color(0xFF2D7A6E)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -340,7 +345,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
               children: [
                 _buildDrawerItem(
                   icon: Icons.person_outline,
-                  title: 'Profile',
+                  title: 'drawer.profile'.tr(),
                   onTap: () {
                     Navigator.pop(context);
                     _showProfileBottomSheet();
@@ -348,15 +353,31 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                 ),
                 _buildDrawerItem(
                   icon: Icons.settings_outlined,
-                  title: 'Settings',
+                  title: 'drawer.settings'.tr(),
                   onTap: () {
                     Navigator.pop(context);
-                    _showComingSoonDialog('Settings');
+                    _showComingSoonDialog('drawer.settings'.tr());
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.language,
+                  title: 'drawer.language'.tr(),
+                  subtitle: context.locale.languageCode.toUpperCase(),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await LanguagePickerSheet.show(
+                      context: context,
+                      onLanguageSelected: (String languageCode) async {
+                        final localeService =
+                            Get.find<LocaleDetectionService>();
+                        await localeService.updateLocale(languageCode);
+                      },
+                    );
                   },
                 ),
                 _buildDrawerItem(
                   icon: Icons.notifications_outlined,
-                  title: 'Notification Settings',
+                  title: 'drawer.notification_settings'.tr(),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
@@ -370,43 +391,60 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                 ),
                 _buildDrawerItem(
                   icon: Icons.history_outlined,
-                  title: 'Order History',
+                  title: 'drawer.order_history'.tr(),
                   onTap: () {
                     Navigator.pop(context);
-                    _showComingSoonDialog('Order History');
+                    _showComingSoonDialog('drawer.order_history'.tr());
                   },
                 ),
                 _buildDrawerItem(
                   icon: Icons.payment_outlined,
-                  title: 'Payment Methods',
+                  title: 'drawer.payment_methods'.tr(),
                   onTap: () {
                     Navigator.pop(context);
-                    _showComingSoonDialog('Payment Methods');
+                    _showComingSoonDialog('drawer.payment_methods'.tr());
                   },
                 ),
                 _buildDrawerItem(
                   icon: Icons.help_outline,
-                  title: 'Help & Support',
+                  title: 'drawer.help_support'.tr(),
                   onTap: () {
                     Navigator.pop(context);
-                    _showComingSoonDialog('Help & Support');
+                    _showComingSoonDialog('drawer.help_support'.tr());
                   },
                 ),
                 _buildDrawerItem(
                   icon: Icons.info_outline,
-                  title: 'About',
+                  title: 'drawer.about'.tr(),
                   onTap: () {
                     Navigator.pop(context);
                     _showAboutDialog();
                   },
                 ),
+                // ✅ DEBUG: Add notification test screen (only in debug mode)
+                if (kDebugMode) ...[
+                  const Divider(
+                    indent: 16,
+                    endIndent: 16,
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.bug_report,
+                    title: 'drawer.debug_menu'.tr(),
+                    onTap: () {
+                      Navigator.pop(context);
+                      DebugMenu.show(context);
+                    },
+                    textColor: Colors.orange,
+                    iconColor: Colors.orange,
+                  ),
+                ],
                 const Divider(
                   indent: 16,
                   endIndent: 16,
                 ),
                 _buildDrawerItem(
                   icon: Icons.logout,
-                  title: 'Logout',
+                  title: 'drawer.logout'.tr(),
                   onTap: () {
                     Navigator.pop(context);
                     _showLogoutDialog();
@@ -437,11 +475,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
             fit: BoxFit.cover,
             placeholder: (context, url) => LiquidLoadingIndicator(
               size: 80,
-              color: Color(0xFF0046FF),
+              color: Color(0xFF215C5C),
             ),
             errorWidget: (context, url, error) => const Icon(
               Icons.person,
-              color: Color(0xFF0046FF),
+              color: Color(0xFF215C5C),
               size: 40,
             ),
           ),
@@ -454,7 +492,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
         child: Text(
           _getUserInitials(),
           style: const TextStyle(
-            color: Color(0xFF0046FF),
+            color: Color(0xFF215C5C),
             fontSize: 28,
             fontWeight: FontWeight.w600,
           ),
@@ -467,6 +505,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    String? subtitle,
     Color? textColor,
     Color? iconColor,
   }) {
@@ -484,6 +523,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
           fontWeight: FontWeight.w500,
         ),
       ),
+      subtitle: subtitle != null
+          ? Text(
+              subtitle,
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 12,
+              ),
+            )
+          : null,
       onTap: onTap,
       horizontalTitleGap: 12,
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
@@ -562,10 +610,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
             ),
 
             // Header
-            const Padding(
+            Padding (
               padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                'Profile Information',
+              child: Text('profile.profile_information'.tr(),
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
@@ -624,7 +671,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                         Navigator.pushNamed(context, AppRoutes.profileOptions);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0046FF),
+                        backgroundColor: const Color(0xFF215C5C),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -632,8 +679,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                         ),
                         elevation: 0,
                       ),
-                      child: const Text(
-                        'Edit Profile',
+                      child: Text('profile.edit_profile'.tr(),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -714,8 +760,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        title: const Text(
-          'Coming Soon',
+        title: Text('profile.coming_soon'.tr(),
           style: TextStyle(
             fontWeight: FontWeight.w600,
             color: Colors.black87,
@@ -730,10 +775,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'OK',
+            child: Text('common.ok'.tr(),
               style: TextStyle(
-                color: Color(0xFF0046FF),
+                color: Color(0xFF215C5C),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -746,13 +790,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   void _showAboutDialog() {
     showAboutDialog(
       context: context,
-      applicationName: 'CrowdWave',
+      applicationName: 'app.name'.tr(),
       applicationVersion: '1.0.0',
       applicationIcon: Container(
         width: 60,
         height: 60,
         decoration: BoxDecoration(
-          color: const Color(0xFF0046FF),
+          color: const Color(0xFF215C5C),
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Icon(
@@ -762,8 +806,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
         ),
       ),
       children: [
-        const Text(
-          'CrowdWave connects senders and travelers for efficient package delivery worldwide.',
+        Text('post_package.crowdwave_connects_senders_and_travelers_for_effic'.tr(),
           style: TextStyle(
             color: Colors.black54,
           ),
@@ -779,15 +822,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        title: const Text(
-          'Logout',
+        title: Text('drawer.logout'.tr(),
           style: TextStyle(
             fontWeight: FontWeight.w600,
             color: Colors.black87,
           ),
         ),
-        content: const Text(
-          'Are you sure you want to logout?',
+        content: Text('common.are_you_sure_you_want_to_logout'.tr(),
           style: TextStyle(
             color: Colors.black54,
           ),
@@ -795,8 +836,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Cancel',
+            child: Text('common.cancel'.tr(),
               style: TextStyle(
                 color: Colors.grey,
                 fontWeight: FontWeight.w600,
@@ -827,8 +867,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                 }
               }
             },
-            child: const Text(
-              'Logout',
+            child: Text('drawer.logout'.tr(),
               style: TextStyle(
                 color: Colors.red,
                 fontWeight: FontWeight.w600,

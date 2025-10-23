@@ -1,7 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:lottie/lottie.dart';
 
 import 'login_view.dart';
@@ -40,7 +41,8 @@ class _SignUpViewState extends State<SignUpView> {
   bool isSigningUp = false;
 
   final _formKey = GlobalKey<FormState>();
-  final EnhancedFirebaseAuthService _authService = EnhancedFirebaseAuthService();
+  final EnhancedFirebaseAuthService _authService =
+      EnhancedFirebaseAuthService();
   final UsernameService _usernameService = UsernameService();
   final UserProfileService _userProfileService = UserProfileService();
 
@@ -171,7 +173,7 @@ class _SignUpViewState extends State<SignUpView> {
         Padding(
           padding: const EdgeInsets.only(left: 20.0),
           child: Text(
-            'Sign Up',
+            'auth.sign_up_1'.tr(),
             style: kLoginTitleStyle(size),
           ),
         ),
@@ -181,7 +183,7 @@ class _SignUpViewState extends State<SignUpView> {
         Padding(
           padding: const EdgeInsets.only(left: 20.0),
           child: Text(
-            'Create Account',
+            'profile.create_account'.tr(),
             style: kLoginSubtitleStyle(size),
           ),
         ),
@@ -200,7 +202,7 @@ class _SignUpViewState extends State<SignUpView> {
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.person),
                     suffixIcon: _getUsernameSuffixIcon(),
-                    hintText: 'Username',
+                    hintText: 'common.username'.tr(),
                     border: const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(15)),
                     ),
@@ -221,15 +223,16 @@ class _SignUpViewState extends State<SignUpView> {
                   // The validator receives the text that the user has entered.
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Username is required';
+                      return 'auth.username_is_required'.tr();
                     } else if (value.length < 3) {
-                      return 'Username must be at least 3 characters';
+                      return 'auth.username_must_be_at_least_3_characters'.tr();
                     } else if (value.length > 30) {
-                      return 'Username cannot exceed 30 characters';
+                      return 'auth.username_cannot_exceed_30_characters'.tr();
                     } else if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
-                      return 'Username can only contain letters, numbers, and underscores';
+                      return 'auth.username_can_only_contain_letters_numbers_and_underscores'
+                          .tr();
                     } else if (isUsernameAvailable == false) {
-                      return 'This username is already taken';
+                      return 'auth.this_username_is_already_taken'.tr();
                     }
                     return null;
                   },
@@ -242,10 +245,10 @@ class _SignUpViewState extends State<SignUpView> {
                 TextFormField(
                   style: kTextFormFieldStyle(),
                   controller: emailController,
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.email_rounded),
-                    hintText: 'Email',
-                    border: OutlineInputBorder(
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.email_rounded),
+                    hintText: 'profile.email'.tr(),
+                    border: const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(15)),
                     ),
                   ),
@@ -287,7 +290,7 @@ class _SignUpViewState extends State<SignUpView> {
                           simpleUIController.isObscureActive();
                         },
                       ),
-                      hintText: 'Password',
+                      hintText: 'auth.password'.tr(),
                       border: const OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(15)),
                       ),
@@ -348,11 +351,11 @@ class _SignUpViewState extends State<SignUpView> {
                   },
                   child: RichText(
                     text: TextSpan(
-                      text: 'Already have an account?',
+                      text: 'profile.already_have_an_account'.tr(),
                       style: kHaveAnAccountStyle(size),
                       children: [
                         TextSpan(
-                            text: " Login",
+                            text: " ${'auth.login'.tr()}",
                             style: kLoginOrSignUpTextStyle(size)),
                       ],
                     ),
@@ -377,7 +380,7 @@ class _SignUpViewState extends State<SignUpView> {
         Padding(
           padding: const EdgeInsets.only(left: 20.0),
           child: Text(
-            'Sign Up',
+            'auth.sign_up_1'.tr(),
             style: kLoginTitleStyle(size),
           ),
         ),
@@ -387,7 +390,7 @@ class _SignUpViewState extends State<SignUpView> {
         Padding(
           padding: const EdgeInsets.only(left: 20.0),
           child: Text(
-            'Create Account',
+            'profile.create_account'.tr(),
             style: kLoginSubtitleStyle(size),
           ),
         ),
@@ -407,7 +410,7 @@ class _SignUpViewState extends State<SignUpView> {
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.person),
                     suffixIcon: _getUsernameSuffixIcon(),
-                    hintText: 'Username',
+                    hintText: 'common.username'.tr(),
                     border: const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(15)),
                     ),
@@ -447,9 +450,9 @@ class _SignUpViewState extends State<SignUpView> {
                 TextFormField(
                   controller: emailController,
                   style: kTextFormFieldStyle(),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     prefixIcon: Icon(Icons.email_rounded),
-                    hintText: 'Email',
+                    hintText: 'profile.email'.tr(),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(15)),
                     ),
@@ -478,7 +481,7 @@ class _SignUpViewState extends State<SignUpView> {
                               : Icons.visibility_off,
                         ),
                       ),
-                      hintText: 'Password',
+                      hintText: 'auth.password'.tr(),
                       border: const OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(15)),
                       ),
@@ -532,11 +535,11 @@ class _SignUpViewState extends State<SignUpView> {
                   },
                   child: RichText(
                     text: TextSpan(
-                      text: 'Already have an account?',
+                      text: 'profile.already_have_an_account'.tr(),
                       style: kHaveAnAccountStyle(size),
                       children: [
                         TextSpan(
-                            text: " Login",
+                            text: " ${'auth.login'.tr()}",
                             style: kLoginOrSignUpTextStyle(size)),
                       ],
                     ),
@@ -559,7 +562,7 @@ class _SignUpViewState extends State<SignUpView> {
       height: 55,
       child: ElevatedButton(
         style: ButtonStyle(
-          backgroundColor: WidgetStateProperty.all(Colors.deepPurpleAccent),
+          backgroundColor: WidgetStateProperty.all(Color(0xFF008080)),
           shape: WidgetStateProperty.all(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
@@ -621,11 +624,7 @@ class _SignUpViewState extends State<SignUpView> {
                         // Don't block signup if email verification fails
                         print('❌ Email verification failed: $e');
                         debugPrint('Email verification failed: $e');
-
-                        // Show specific error to user
-                        _showCustomSnackbar('Email Issue',
-                            'Account created but verification email failed. Please check spam folder or try resending later.',
-                            isError: true);
+                        // User will be taken to verification screen where they can resend if needed
                       }
 
                       // Create user profile with username
@@ -668,7 +667,7 @@ class _SignUpViewState extends State<SignUpView> {
                           allowsEmailMarketing: false,
                           allowsSMSNotifications: true,
                           preferredLanguage: 'en',
-                          preferredCurrency: 'USD',
+                          preferredCurrency: 'EUR',
                           preferredTransportModes: [],
                         ),
                         createdAt: DateTime.now(),
@@ -680,13 +679,16 @@ class _SignUpViewState extends State<SignUpView> {
 
                       // Show success message
                       _showCustomSnackbar('Success',
-                          'Account created! Please verify your email before logging in. Check your inbox!');
+                          'Account created! Please verify your email to continue.');
 
-                      // Sign out the user so they must verify email first
-                      await _authService.signOut();
-
-                      // Navigate back to login screen
-                      Get.offAllNamed(AppRoutes.login);
+                      // Navigate to email verification screen instead of signing out
+                      Get.offAllNamed(
+                        AppRoutes.emailVerification,
+                        arguments: {
+                          'email': user.email,
+                          'userId': user.uid,
+                        },
+                      );
                     }
                   } catch (e) {
                     // Reset loading state on error
@@ -719,7 +721,7 @@ class _SignUpViewState extends State<SignUpView> {
                   ),
                   SizedBox(width: 12),
                   Text(
-                    'Creating Account...',
+                    'profile.creating_account'.tr(),
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -729,7 +731,7 @@ class _SignUpViewState extends State<SignUpView> {
                 ],
               )
             : Text(
-                'Sign up',
+                'auth.sign_up_1'.tr(),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -909,7 +911,7 @@ class _SignUpViewState extends State<SignUpView> {
           height: 20,
           child: CircularProgressIndicator(
             strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF008080)),
           ),
         ),
       );
@@ -942,7 +944,7 @@ class _SignUpViewState extends State<SignUpView> {
       backgroundColor = Colors.red.shade600;
       iconData = Icons.error_outline;
     } else if (isInfo) {
-      backgroundColor = Colors.blue.shade600;
+      backgroundColor = Color(0xFF008080);
       iconData = Icons.info_outline;
     } else {
       backgroundColor = Colors.green.shade600;

@@ -9,13 +9,13 @@ class StatusBarUtils {
   StatusBarUtils._();
 
   /// Universal status bar style configuration
-  /// Uses solid blue (same as home screen header) with white content
+  /// Uses solid teal background with white icons for consistent green theme
   static const SystemUiOverlayStyle universalStatusBarStyle =
       SystemUiOverlayStyle(
-    statusBarColor: AppColors
-        .solidBlueStatusBar, // Solid blue background (same as home screen header)
+    statusBarColor:
+        AppColors.solidBlueStatusBar, // Teal background (matching green theme)
     statusBarIconBrightness:
-        Brightness.light, // White icons/text for better contrast on blue
+        Brightness.light, // White icons/text for better contrast on teal
     statusBarBrightness: Brightness.dark, // For iOS
     systemNavigationBarColor: Colors.transparent,
     systemNavigationBarIconBrightness: Brightness.dark,

@@ -22,6 +22,12 @@ class Booking {
   final List<String> attachments;
   final BookingTerms terms;
 
+  // Payment hold and release tracking
+  final PaymentHoldStatus paymentHoldStatus;
+  final DateTime? paymentHeldAt;
+  final DateTime? paymentReleasedAt;
+  final String? paymentReleaseReason;
+
   const Booking({
     required this.id,
     required this.packageId,
@@ -41,6 +47,10 @@ class Booking {
     this.specialInstructions,
     this.attachments = const [],
     required this.terms,
+    this.paymentHoldStatus = PaymentHoldStatus.held,
+    this.paymentHeldAt,
+    this.paymentReleasedAt,
+    this.paymentReleaseReason,
   });
 
   /// Create booking from Firestore document
@@ -77,6 +87,19 @@ class Booking {
       specialInstructions: data['specialInstructions'],
       attachments: List<String>.from(data['attachments'] ?? []),
       terms: BookingTerms.fromMap(data['terms'] ?? {}),
+      paymentHoldStatus: data['paymentHoldStatus'] != null
+          ? PaymentHoldStatus.values.firstWhere(
+              (e) => e.name == data['paymentHoldStatus'],
+              orElse: () => PaymentHoldStatus.held,
+            )
+          : PaymentHoldStatus.held,
+      paymentHeldAt: data['paymentHeldAt'] != null
+          ? (data['paymentHeldAt'] as Timestamp).toDate()
+          : null,
+      paymentReleasedAt: data['paymentReleasedAt'] != null
+          ? (data['paymentReleasedAt'] as Timestamp).toDate()
+          : null,
+      paymentReleaseReason: data['paymentReleaseReason'],
     );
   }
 
@@ -103,6 +126,13 @@ class Booking {
       'specialInstructions': specialInstructions,
       'attachments': attachments,
       'terms': terms.toMap(),
+      'paymentHoldStatus': paymentHoldStatus.name,
+      'paymentHeldAt':
+          paymentHeldAt != null ? Timestamp.fromDate(paymentHeldAt!) : null,
+      'paymentReleasedAt': paymentReleasedAt != null
+          ? Timestamp.fromDate(paymentReleasedAt!)
+          : null,
+      'paymentReleaseReason': paymentReleaseReason,
     };
   }
 
@@ -126,6 +156,10 @@ class Booking {
     String? specialInstructions,
     List<String>? attachments,
     BookingTerms? terms,
+    PaymentHoldStatus? paymentHoldStatus,
+    DateTime? paymentHeldAt,
+    DateTime? paymentReleasedAt,
+    String? paymentReleaseReason,
   }) {
     return Booking(
       id: id ?? this.id,
@@ -146,6 +180,10 @@ class Booking {
       specialInstructions: specialInstructions ?? this.specialInstructions,
       attachments: attachments ?? this.attachments,
       terms: terms ?? this.terms,
+      paymentHoldStatus: paymentHoldStatus ?? this.paymentHoldStatus,
+      paymentHeldAt: paymentHeldAt ?? this.paymentHeldAt,
+      paymentReleasedAt: paymentReleasedAt ?? this.paymentReleasedAt,
+      paymentReleaseReason: paymentReleaseReason ?? this.paymentReleaseReason,
     );
   }
 
@@ -210,6 +248,13 @@ enum BookingStatus {
   completed, // Delivery completed successfully
   cancelled, // Booking cancelled
   disputed, // Dispute raised
+}
+
+/// Payment hold status enumeration
+enum PaymentHoldStatus {
+  held, // Payment held in escrow after booking
+  released, // Payment released to traveler
+  refunded, // Payment refunded to sender
 }
 
 /// Booking terms and conditions

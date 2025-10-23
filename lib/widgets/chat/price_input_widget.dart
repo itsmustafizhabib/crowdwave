@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 
 class PriceInputWidget extends StatefulWidget {
@@ -86,7 +87,7 @@ class _PriceInputWidgetState extends State<PriceInputWidget> {
           children: [
             Icon(
               Icons.local_offer,
-              color: Color(0xFF0046FF),
+              color: Color(0xFF215C5C),
               size: 24,
             ),
             SizedBox(width: 8),
@@ -125,8 +126,7 @@ class _PriceInputWidgetState extends State<PriceInputWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Your Price',
+        Text('common.your_price'.tr(),
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -151,11 +151,11 @@ class _PriceInputWidgetState extends State<PriceInputWidget> {
                   ),
                 ),
                 child: Text(
-                  '\$',
+                  '€',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF0046FF),
+                    color: Color(0xFF215C5C),
                   ),
                 ),
               ),
@@ -194,7 +194,7 @@ class _PriceInputWidgetState extends State<PriceInputWidget> {
                     }
 
                     if (price > 10000) {
-                      return 'Price cannot exceed \$10,000';
+                      return 'Price cannot exceed €10,000';
                     }
 
                     return null;
@@ -209,8 +209,7 @@ class _PriceInputWidgetState extends State<PriceInputWidget> {
           children: [
             Icon(Icons.info_outline, size: 14, color: Colors.grey[600]),
             SizedBox(width: 4),
-            Text(
-              'Enter your delivery fee for this package',
+            Text('post_package.enter_your_delivery_fee_for_this_package'.tr(),
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey[600],
@@ -245,7 +244,7 @@ class _PriceInputWidgetState extends State<PriceInputWidget> {
             maxLines: 3,
             maxLength: 200,
             decoration: InputDecoration(
-              hintText: 'Add a message to explain your offer...',
+              hintText: 'chat.add_a_message_to_explain_your_offer'.tr(),
               border: InputBorder.none,
               contentPadding: EdgeInsets.all(16),
               hintStyle: TextStyle(
@@ -289,8 +288,7 @@ class _PriceInputWidgetState extends State<PriceInputWidget> {
               ),
               side: BorderSide(color: Colors.grey[300]!),
             ),
-            child: Text(
-              'Cancel',
+            child: Text('common.cancel'.tr(),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -303,7 +301,7 @@ class _PriceInputWidgetState extends State<PriceInputWidget> {
           child: ElevatedButton(
             onPressed: _isLoading ? null : _submitOffer,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF0046FF),
+              backgroundColor: Color(0xFF215C5C),
               foregroundColor: Colors.white,
               padding: EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
@@ -320,8 +318,7 @@ class _PriceInputWidgetState extends State<PriceInputWidget> {
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                : Text(
-                    'Send Offer',
+                : Text('booking.send_offer'.tr(),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -351,7 +348,7 @@ class _PriceInputWidgetState extends State<PriceInputWidget> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: Invalid price format'),
+          content: Text('error_messages.invalid_price_format'.tr()),
           backgroundColor: Colors.red,
         ),
       );
@@ -406,10 +403,10 @@ class _QuickPriceInputState extends State<QuickPriceInput> {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 12),
             child: Text(
-              '\$',
+              '€',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF0046FF),
+                color: Color(0xFF215C5C),
               ),
             ),
           ),

@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import '../core/models/chat_message.dart';
 import '../core/models/chat_conversation.dart';
 import '../services/chat_service.dart';
@@ -25,6 +26,9 @@ class ChatController extends GetxController {
   final RxString error = ''.obs;
   final RxString searchQuery = ''.obs;
 
+  // ✅ NEW: Track which conversations have received their first Firestore snapshot
+  final RxSet<String> _conversationsWithData = <String>{}.obs;
+
   // ✅ CRITICAL FIX: Flag to prevent duplicate conversation listeners
   bool _conversationListenerStarted = false;
 
@@ -33,6 +37,12 @@ class ChatController extends GetxController {
 
   // ✅ NEW: Flag to prevent UI updates during logout/login transitions
   bool _isTransitioning = false;
+
+  // ✅ NEW: Store pending conversations received during transition
+  List<ChatConversation>? _pendingConversations;
+
+  // ✅ NEW: Flag to track if chat has been initialized already
+  bool _isInitialized = false;
 
   // ✅ ALTERNATIVE: Create a reactive computed property for filtered conversations
   late final RxList<ChatConversation> _filteredConversations =
@@ -126,6 +136,7 @@ class ChatController extends GetxController {
 
     _conversationsSubscription?.cancel();
     _conversationListenerStarted = false; // ✅ Reset flag on cleanup
+    _pendingConversations = null; // ✅ Clear pending conversations
 
     for (final subscription in _messageSubscriptions.values) {
       subscription.cancel();
@@ -152,6 +163,16 @@ class ChatController extends GetxController {
   // Initialize chat functionality
   Future<void> _initializeChat() async {
     try {
+      // ✅ CRITICAL FIX: Skip if already initialized to prevent re-initialization loops
+      if (_isInitialized) {
+        if (kDebugMode) {
+          print('✅ Chat already initialized - skipping re-initialization');
+          print('   - Conversations: ${conversations.length}');
+          print('   - Filtered: ${_filteredConversations.length}');
+        }
+        return;
+      }
+
       if (kDebugMode) {
         print('🚀 STARTING CHAT INITIALIZATION...');
       }
@@ -213,11 +234,35 @@ class ChatController extends GetxController {
       // ✅ Clear transitioning flag after initialization completes
       _isTransitioning = false;
 
+      // ✅ CRITICAL FIX: Apply pending conversations that arrived during transition
+      if (_pendingConversations != null) {
+        if (kDebugMode) {
+          print(
+              '🔄 Applying ${_pendingConversations!.length} pending conversations received during transition');
+        }
+        conversations.assignAll(_pendingConversations!);
+        _pendingConversations = null;
+      }
+
+      // ✅ CRITICAL FIX: Update filtered conversations after transition flag is cleared
+      if (conversations.isNotEmpty) {
+        _updateFilteredConversations();
+        if (kDebugMode) {
+          print(
+              '✅ Updated filtered conversations after initialization: ${_filteredConversations.length}');
+        }
+      }
+
+      // ✅ Mark as initialized to prevent re-initialization
+      _isInitialized = true;
+
       if (kDebugMode) {
         print('✅ Chat initialization completed successfully!');
         print('  - Final conversations count: ${conversations.length}');
+        print('  - Final filtered count: ${_filteredConversations.length}');
         print('  - Final loading state: ${isLoading.value}');
         print('  - Transitioning flag cleared');
+        print('  - Controller marked as initialized');
       }
     } catch (e) {
       error.value = e.toString();
@@ -334,8 +379,11 @@ class ChatController extends GetxController {
               }
             });
           } else {
+            // ✅ Store pending conversations to apply after transition
+            _pendingConversations = conversationsList;
             if (kDebugMode) {
-              print('⏸️ Skipping conversation update during transition');
+              print(
+                  '⏸️ Skipping conversation update during transition - storing ${conversationsList.length} pending conversations');
             }
           }
 
@@ -440,9 +488,18 @@ class ChatController extends GetxController {
               '👁️ Starting background monitoring for conversation: $conversationId');
         }
 
+        // ✅ CRITICAL FIX: DO NOT initialize messagesMap entry here
+        // Wait for actual Firestore data to arrive before setting the key
+        // This prevents UI from showing "No messages yet" before data loads
+
         _messageSubscriptions[conversationId] =
             _chatService.getMessagesStream(conversationId).listen(
           (messagesList) {
+            if (kDebugMode) {
+              print(
+                  '📨 GLOBAL MONITORING: Received ${messagesList.length} messages for $conversationId');
+            }
+
             // Preserve optimistic messages when updating from stream
             final currentMessages = messagesMap[conversationId] ?? [];
             final optimisticMessages = currentMessages
@@ -480,9 +537,14 @@ class ChatController extends GetxController {
             // Update messages map for real-time access
             messagesMap[conversationId] = combinedMessages;
 
+            // ✅ Mark that this conversation has received Firestore data
+            _conversationsWithData.add(conversationId);
+
             if (kDebugMode) {
               print(
-                  '📨 Background message update - Conversation: $conversationId, Messages: ${combinedMessages.length} (${optimisticMessages.length} optimistic)');
+                  '✅ GLOBAL MONITORING: Updated messagesMap[$conversationId] with ${combinedMessages.length} messages');
+              print(
+                  '� Background message update - Conversation: $conversationId, Messages: ${combinedMessages.length} (${optimisticMessages.length} optimistic)');
             }
 
             // In-app notifications disabled - preventing repeated notifications
@@ -558,7 +620,7 @@ class ChatController extends GetxController {
       Get.snackbar(
         senderName,
         message.type == MessageType.image ? '📷 Image' : message.content,
-        backgroundColor: const Color(0xFF0046FF),
+        backgroundColor: const Color(0xFF215C5C),
         colorText: Colors.white,
         duration: const Duration(seconds: 4),
         margin: const EdgeInsets.all(16),
@@ -580,7 +642,7 @@ class ChatController extends GetxController {
             Get.back(); // Close notification
             _navigateToChat(conversationId, senderName, message.senderId);
           },
-          child: const Text(
+          child: Text('notifications.view'.tr()t(
             'VIEW',
             style: TextStyle(
               color: Colors.white,
@@ -638,12 +700,49 @@ class ChatController extends GetxController {
             '✅ Global monitoring already active for conversation: $conversationId');
         print(
             '👁️ Messages will be marked as read when viewing this conversation');
+        print(
+            '   📊 Current messagesMap has key: ${messagesMap.containsKey(conversationId)}');
+        if (messagesMap.containsKey(conversationId)) {
+          print(
+              '   📊 Current messages count: ${messagesMap[conversationId]?.length ?? 0}');
+        }
       }
 
-      // Mark messages as read since user is now viewing this conversation
-      final currentMessages = messagesMap[conversationId];
-      if (currentMessages != null) {
-        _markMessagesAsReadIfNeeded(conversationId, currentMessages);
+      // ✅ FIX: If messages haven't loaded yet, force load them now
+      if (!_conversationsWithData.contains(conversationId)) {
+        if (kDebugMode) {
+          print(
+              '⚡ Messages not loaded yet, forcing immediate load for: $conversationId');
+        }
+        
+        try {
+          // Force load messages immediately using a one-time fetch
+          final messages = await _chatService.getMessagesOnce(conversationId);
+          
+          // Update messages map
+          messagesMap[conversationId] = messages;
+          _conversationsWithData.add(conversationId);
+          
+          if (kDebugMode) {
+            print(
+                '✅ Force loaded ${messages.length} messages for: $conversationId');
+          }
+          
+          // Mark messages as read
+          if (messages.isNotEmpty) {
+            _markMessagesAsReadIfNeeded(conversationId, messages);
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('❌ Error force loading messages: $e');
+          }
+        }
+      } else {
+        // Messages already loaded, just mark as read
+        final currentMessages = messagesMap[conversationId];
+        if (currentMessages != null && currentMessages.isNotEmpty) {
+          _markMessagesAsReadIfNeeded(conversationId, currentMessages);
+        }
       }
 
       return; // Don't create duplicate stream
@@ -654,9 +753,18 @@ class ChatController extends GetxController {
       print('🔄 Starting individual message monitoring for: $conversationId');
     }
 
+    // ✅ CRITICAL FIX: DO NOT initialize empty array here
+    // Wait for actual Firestore data before setting the messagesMap key
+    // This prevents showing "No messages yet" before data arrives
+
     _messageSubscriptions[conversationId] =
         _chatService.getMessagesStream(conversationId).listen(
       (messagesList) {
+        if (kDebugMode) {
+          print(
+              '📨 Received ${messagesList.length} messages for conversation: $conversationId');
+        }
+
         // Get current messages (including optimistic ones)
         final currentMessages =
             List<ChatMessage>.from(messagesMap[conversationId] ?? []);
@@ -699,6 +807,14 @@ class ChatController extends GetxController {
 
         // Update the messages
         messagesMap[conversationId] = updatedMessages;
+
+        // ✅ Mark that this conversation has received Firestore data
+        _conversationsWithData.add(conversationId);
+
+        if (kDebugMode) {
+          print(
+              '✅ Updated messagesMap for conversation: $conversationId with ${updatedMessages.length} messages');
+        }
 
         // Mark messages as read if user is viewing the conversation
         _markMessagesAsReadIfNeeded(conversationId, updatedMessages);
@@ -991,7 +1107,21 @@ class ChatController extends GetxController {
 
   // Get messages for a conversation
   List<ChatMessage> getMessages(String conversationId) {
-    return messagesMap[conversationId] ?? [];
+    final messages = messagesMap[conversationId] ?? [];
+    if (kDebugMode) {
+      print(
+          '🔍 getMessages() called for $conversationId: ${messages.length} messages');
+      if (messages.isEmpty) {
+        print('  ⚠️ No messages found in messagesMap');
+        print('  📊 messagesMap keys: ${messagesMap.keys.toList()}');
+      }
+    }
+    return messages;
+  }
+
+  // ✅ NEW: Check if conversation has received its first Firestore data
+  bool hasReceivedMessages(String conversationId) {
+    return _conversationsWithData.contains(conversationId);
   }
 
   // Get unread count for a conversation
@@ -1047,35 +1177,81 @@ class ChatController extends GetxController {
     }
   }
 
+  // ✅ NEW: Add cooldown to prevent rapid refreshes
+  DateTime? _lastRefreshTime;
+  static const Duration _refreshCooldown = Duration(seconds: 2);
+
+  // ✅ NEW: Optimistically clear unread count for a conversation
+  void clearUnreadCountOptimistically(String conversationId) {
+    try {
+      final currentUserId = _chatService.currentUserId;
+      if (currentUserId == null) return;
+
+      // Find the conversation in the list
+      final index =
+          conversations.indexWhere((conv) => conv.id == conversationId);
+      if (index == -1) return;
+
+      final conversation = conversations[index];
+
+      // Create updated unread counts map with 0 for current user
+      final updatedUnreadCounts =
+          Map<String, int>.from(conversation.unreadCounts);
+      updatedUnreadCounts[currentUserId] = 0;
+
+      // Create updated conversation with cleared unread count
+      final updatedConversation = conversation.copyWith(
+        unreadCounts: updatedUnreadCounts,
+      );
+
+      // Update the conversation in the list
+      conversations[index] = updatedConversation;
+
+      // Also update filtered conversations
+      final filteredIndex = _filteredConversations
+          .indexWhere((conv) => conv.id == conversationId);
+      if (filteredIndex != -1) {
+        _filteredConversations[filteredIndex] = updatedConversation;
+      }
+
+      if (kDebugMode) {
+        print(
+            '✨ Optimistically cleared unread count for conversation: $conversationId');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error clearing unread count optimistically: $e');
+      }
+    }
+  }
+
   // Refresh conversations
   Future<void> refreshConversations() async {
     try {
+      // ✅ THROTTLE: Prevent rapid refreshes that cause infinite loops
+      final now = DateTime.now();
+      if (_lastRefreshTime != null &&
+          now.difference(_lastRefreshTime!) < _refreshCooldown) {
+        if (kDebugMode) {
+          print('� Refresh throttled - too soon since last refresh');
+        }
+        return;
+      }
+      _lastRefreshTime = now;
+
       if (kDebugMode) {
-        print('🔄 Refreshing conversations manually...');
+        print('�🔄 Refreshing conversations manually...');
         print('   - Current conversations count: ${conversations.length}');
         print('   - Current loading state: ${isLoading.value}');
       }
 
-      // ✅ FIX: Set loading to true for refresh, but add timeout
-      isLoading.value = true;
+      // ✅ FIX: Don't set loading to true on manual refresh to avoid UI flickering
       error.value = '';
-
-      // ✅ CRITICAL FIX: Add immediate timeout to prevent infinite loading
-      Timer(const Duration(seconds: 3), () {
-        if (isLoading.value) {
-          if (kDebugMode) {
-            print(
-                '⏰ Refresh timeout: Forcing loading to false after 3 seconds');
-          }
-          isLoading.value = false;
-        }
-      });
 
       // Ensure ChatService is initialized
       await _ensureChatServiceInitialized();
 
-      // ✅ FIX: Don't restart listener (which recreates stream controller)
-      // Just force refresh to get latest data through existing listener
+      // ✅ FIX: Just force refresh to get latest data through existing listener
       if (kDebugMode) {
         print('🔄 Force refreshing conversations from server...');
       }
@@ -1084,9 +1260,6 @@ class ChatController extends GetxController {
       if (kDebugMode) {
         print('✅ Conversations refresh initiated');
       }
-
-      // ✅ FIX: Don't wait for stream response - let timeout handle it
-      // The stream listener will set loading to false when data arrives
     } catch (e) {
       error.value = e.toString();
       isLoading.value = false; // Always set false on error
@@ -1138,6 +1311,7 @@ class ChatController extends GetxController {
 
     // Reset state flags
     _conversationListenerStarted = false;
+    _isInitialized = false; // ✅ Reset initialization flag
 
     // ✅ Reset transitioning flag after a delay to allow cleanup to complete
     Future.delayed(const Duration(milliseconds: 500), () {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../widgets/liquid_loading_indicator.dart';
 import '../../models/review_model.dart';
 import '../../services/review_service.dart';
@@ -193,7 +194,7 @@ class _ReviewListScreenState extends State<ReviewListScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Recent Reviews',
+                'reviews.recent_reviews'.tr(),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -201,7 +202,7 @@ class _ReviewListScreenState extends State<ReviewListScreen>
               TextButton.icon(
                 onPressed: () => _tabController.animateTo(1),
                 icon: const Icon(Icons.list),
-                label: const Text('View All'),
+                label: Text('reviews.view_all'.tr()),
               ),
             ],
           ),
@@ -310,7 +311,7 @@ class _ReviewListScreenState extends State<ReviewListScreen>
           ),
           const SizedBox(height: 16),
           Text(
-            'Failed to load reviews',
+            'error_messages.failed_to_load_reviews'.tr(),
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
@@ -324,7 +325,7 @@ class _ReviewListScreenState extends State<ReviewListScreen>
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => _loadReviews(refresh: true),
-            child: const Text('Retry'),
+            child: Text('common.retry'.tr()),
           ),
         ],
       ),
@@ -348,7 +349,7 @@ class _ReviewListScreenState extends State<ReviewListScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'Be the first to share your experience!',
+            'common.be_the_first_to_share_your_experience'.tr(),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Colors.grey,
                 ),
@@ -357,7 +358,7 @@ class _ReviewListScreenState extends State<ReviewListScreen>
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _navigateToCreateReview,
-            child: const Text('Write Review'),
+            child: Text('reviews.write_review'.tr()),
           ),
         ],
       ),
@@ -368,12 +369,13 @@ class _ReviewListScreenState extends State<ReviewListScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reviews - ${widget.targetName}'),
+        title: Text('reviews.reviews_for'
+            .tr(namedArgs: {'targetName': widget.targetName})),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: 'Overview'),
-            Tab(text: 'All Reviews'),
+          tabs: [
+            Tab(text: 'common.overview'.tr()),
+            Tab(text: 'reviews.all_reviews'.tr()),
           ],
         ),
         actions: [
@@ -549,7 +551,7 @@ class _ReviewCardState extends State<ReviewCard> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
-                                'Verified',
+                                'profile.verified'.tr(),
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: Colors.green[700],
@@ -583,9 +585,9 @@ class _ReviewCardState extends State<ReviewCard> {
                 ),
                 PopupMenuButton(
                   itemBuilder: (context) => [
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'report',
-                      child: Text('Report'),
+                      child: Text('reviews.report'.tr()),
                     ),
                   ],
                   onSelected: (value) {
@@ -639,7 +641,9 @@ class _ReviewCardState extends State<ReviewCard> {
                     _toggleHelpful(context, widget.review);
                   },
                   icon: const Icon(Icons.thumb_up_outlined, size: 16),
-                  label: Text('Helpful (${widget.review.helpfulCount})'),
+                  label: Text('reviews.helpful_count'.tr(namedArgs: {
+                    'count': widget.review.helpfulCount.toString()
+                  })),
                   style: TextButton.styleFrom(
                     padding: EdgeInsets.zero,
                     minimumSize: const Size(0, 32),
@@ -653,7 +657,9 @@ class _ReviewCardState extends State<ReviewCard> {
                       _showCommentsDialog(context, widget.review);
                     },
                     icon: const Icon(Icons.comment_outlined, size: 16),
-                    label: Text('Comments (${widget.review.comments.length})'),
+                    label: Text('reviews.comments_count'.tr(namedArgs: {
+                      'count': widget.review.comments.length.toString()
+                    })),
                     style: TextButton.styleFrom(
                       padding: EdgeInsets.zero,
                       minimumSize: const Size(0, 32),
@@ -673,8 +679,8 @@ class _ReviewCardState extends State<ReviewCard> {
       final currentUser = EnhancedFirebaseAuthService().currentUser;
       if (currentUser == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please sign in to mark reviews as helpful'),
+          SnackBar(
+            content: Text('reviews.sign_in_helpful'.tr()),
             backgroundColor: Colors.red,
           ),
         );
@@ -712,7 +718,8 @@ class _ReviewCardState extends State<ReviewCard> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update helpful status: $e'),
+            content:
+                Text('reviews.helpful_update_failed'.tr(args: [e.toString()])),
             backgroundColor: Colors.red,
           ),
         );
@@ -724,21 +731,21 @@ class _ReviewCardState extends State<ReviewCard> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Report Review'),
-        content: const Text(
-            'Are you sure you want to report this review for inappropriate content?'),
+        title: Text('reviews.report_review'.tr()),
+        content: Text(
+            'reviews.are_you_sure_you_want_to_report_this_review_for_in'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () async {
               Navigator.of(context).pop();
               await _reportReview(context, review);
             },
-            child: const Text(
-              'Report',
+            child: Text(
+              'comments.report'.tr(),
               style: TextStyle(color: Colors.red),
             ),
           ),
@@ -752,8 +759,8 @@ class _ReviewCardState extends State<ReviewCard> {
       final currentUser = EnhancedFirebaseAuthService().currentUser;
       if (currentUser == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please sign in to report reviews'),
+          SnackBar(
+            content: Text('reviews.sign_in_report'.tr()),
             backgroundColor: Colors.red,
           ),
         );
@@ -769,8 +776,8 @@ class _ReviewCardState extends State<ReviewCard> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Review reported successfully'),
+          SnackBar(
+            content: Text('reviews.reported_successfully'.tr()),
             backgroundColor: Colors.green,
           ),
         );
@@ -779,7 +786,7 @@ class _ReviewCardState extends State<ReviewCard> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to report review: $e'),
+            content: Text('reviews.report_failed'.tr(args: [e.toString()])),
             backgroundColor: Colors.red,
           ),
         );
@@ -799,8 +806,8 @@ class _ReviewCardState extends State<ReviewCard> {
             children: [
               Row(
                 children: [
-                  const Text(
-                    'Comments',
+                  Text(
+                    'common.comments'.tr(),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -875,7 +882,7 @@ class _ReviewFilterBottomSheetState extends State<ReviewFilterBottomSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Filter Reviews',
+                'reviews.filter_reviews'.tr(),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               TextButton(
@@ -884,7 +891,7 @@ class _ReviewFilterBottomSheetState extends State<ReviewFilterBottomSheet> {
                     _filter = ReviewFilter();
                   });
                 },
-                child: const Text('Clear'),
+                child: Text('reviews.clear'.tr()),
               ),
             ],
           ),
@@ -893,7 +900,7 @@ class _ReviewFilterBottomSheetState extends State<ReviewFilterBottomSheet> {
 
           // Star Rating Filter
           Text(
-            'Rating',
+            'profile.rating'.tr(),
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
@@ -942,7 +949,7 @@ class _ReviewFilterBottomSheetState extends State<ReviewFilterBottomSheet> {
 
           // Other Filters
           CheckboxListTile(
-            title: const Text('Verified bookings only'),
+            title: Text('reviews.verified_bookings_only'.tr()),
             value: _filter.verifiedOnly ?? false,
             onChanged: (value) {
               setState(() {
@@ -958,7 +965,7 @@ class _ReviewFilterBottomSheetState extends State<ReviewFilterBottomSheet> {
           ),
 
           CheckboxListTile(
-            title: const Text('With photos'),
+            title: Text('reviews.with_photos'.tr()),
             value: _filter.withPhotos ?? false,
             onChanged: (value) {
               setState(() {
@@ -974,7 +981,7 @@ class _ReviewFilterBottomSheetState extends State<ReviewFilterBottomSheet> {
           ),
 
           CheckboxListTile(
-            title: const Text('With comments'),
+            title: Text('reviews.with_comments'.tr()),
             value: _filter.withComments ?? false,
             onChanged: (value) {
               setState(() {
@@ -993,7 +1000,7 @@ class _ReviewFilterBottomSheetState extends State<ReviewFilterBottomSheet> {
 
           // Sort Options
           Text(
-            'Sort by',
+            'common.sort_by'.tr(),
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
@@ -1003,18 +1010,22 @@ class _ReviewFilterBottomSheetState extends State<ReviewFilterBottomSheet> {
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
             ),
-            items: const [
+            items: [
               DropdownMenuItem(
-                  value: ReviewSortBy.newest, child: Text('Newest first')),
+                  value: ReviewSortBy.newest,
+                  child: Text('reviews.sort_newest'.tr())),
               DropdownMenuItem(
-                  value: ReviewSortBy.oldest, child: Text('Oldest first')),
+                  value: ReviewSortBy.oldest,
+                  child: Text('reviews.sort_oldest'.tr())),
               DropdownMenuItem(
                   value: ReviewSortBy.highestRated,
-                  child: Text('Highest rated')),
+                  child: Text('reviews.sort_highest'.tr())),
               DropdownMenuItem(
-                  value: ReviewSortBy.lowestRated, child: Text('Lowest rated')),
+                  value: ReviewSortBy.lowestRated,
+                  child: Text('reviews.sort_lowest'.tr())),
               DropdownMenuItem(
-                  value: ReviewSortBy.mostHelpful, child: Text('Most helpful')),
+                  value: ReviewSortBy.mostHelpful,
+                  child: Text('reviews.sort_helpful'.tr())),
             ],
             onChanged: (value) {
               if (value != null) {
@@ -1041,7 +1052,7 @@ class _ReviewFilterBottomSheetState extends State<ReviewFilterBottomSheet> {
                 widget.onApplyFilter(_filter);
                 Navigator.of(context).pop();
               },
-              child: const Text('Apply Filters'),
+              child: Text('common.apply_filters'.tr()),
             ),
           ),
 

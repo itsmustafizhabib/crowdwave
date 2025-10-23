@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
-import '../../../services/firebase_auth_service.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/error_handler.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -20,7 +21,8 @@ class _PasswordResetWithCodeViewState extends State<PasswordResetWithCodeView> {
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  final FirebaseAuthService _authService = Get.find<FirebaseAuthService>();
+  // Use Firebase Auth directly for password reset
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   bool _isLoading = false;
   bool _isCodeSent = false;
@@ -44,8 +46,8 @@ class _PasswordResetWithCodeViewState extends State<PasswordResetWithCodeView> {
     setState(() => _isLoading = true);
 
     try {
-      // Send password reset email
-      await _authService.sendPasswordResetEmail(_emailController.text.trim());
+      // Send password reset email using Firebase Auth
+      await _auth.sendPasswordResetEmail(email: _emailController.text.trim());
 
       setState(() {
         _isCodeSent = true;
@@ -70,9 +72,11 @@ class _PasswordResetWithCodeViewState extends State<PasswordResetWithCodeView> {
     setState(() => _isLoading = true);
 
     try {
-      // Confirm password reset with code
-      await _authService.confirmPasswordReset(
-          _codeController.text.trim(), _newPasswordController.text.trim());
+      // Confirm password reset with code using Firebase Auth
+      await _auth.confirmPasswordReset(
+        code: _codeController.text.trim(),
+        newPassword: _newPasswordController.text.trim(),
+      );
 
       setState(() => _isLoading = false);
 
@@ -97,7 +101,7 @@ class _PasswordResetWithCodeViewState extends State<PasswordResetWithCodeView> {
     setState(() => _isLoading = true);
 
     try {
-      await _authService.sendPasswordResetEmail(_emailController.text.trim());
+      await _auth.sendPasswordResetEmail(email: _emailController.text.trim());
       _startResendCountdown();
       _showSnackbar(
           'Code Resent!', 'A new reset code has been sent to your email.',
@@ -134,8 +138,7 @@ class _PasswordResetWithCodeViewState extends State<PasswordResetWithCodeView> {
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () => Get.back(),
         ),
-        title: Text(
-          'Reset Password',
+        title: Text('auth.reset_password'.tr(),
           style: TextStyle(
             color: Colors.black87,
             fontSize: 18,
@@ -215,8 +218,7 @@ class _PasswordResetWithCodeViewState extends State<PasswordResetWithCodeView> {
                   Center(
                     child: TextButton(
                       onPressed: () => Get.back(),
-                      child: Text(
-                        'Back to Sign In',
+                      child: Text('auth.back_to_sign_in'.tr(),
                         style: TextStyle(
                           color: AppColors.primary,
                           fontSize: 16,
@@ -240,8 +242,8 @@ class _PasswordResetWithCodeViewState extends State<PasswordResetWithCodeView> {
       enabled: !_isCodeSent,
       keyboardType: TextInputType.emailAddress,
       decoration: InputDecoration(
-        labelText: 'Email Address',
-        hintText: 'Enter your email',
+        labelText: 'kyc.email_address'.tr(),
+        hintText: 'common.enter_your_email'.tr(),
         prefixIcon: const Icon(Icons.email_outlined),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -275,7 +277,7 @@ class _PasswordResetWithCodeViewState extends State<PasswordResetWithCodeView> {
         letterSpacing: 8,
       ),
       decoration: InputDecoration(
-        labelText: 'Reset Code',
+        labelText: 'common.reset_code'.tr(),
         hintText: '000000',
         counterText: '',
         border: OutlineInputBorder(
@@ -306,8 +308,8 @@ class _PasswordResetWithCodeViewState extends State<PasswordResetWithCodeView> {
       controller: _newPasswordController,
       obscureText: !_isPasswordVisible,
       decoration: InputDecoration(
-        labelText: 'New Password',
-        hintText: 'Enter new password',
+        labelText: 'auth.new_password'.tr(),
+        hintText: 'auth.enter_new_password'.tr(),
         prefixIcon: const Icon(Icons.lock_outline),
         suffixIcon: IconButton(
           icon: Icon(
@@ -347,8 +349,8 @@ class _PasswordResetWithCodeViewState extends State<PasswordResetWithCodeView> {
       controller: _confirmPasswordController,
       obscureText: !_isConfirmPasswordVisible,
       decoration: InputDecoration(
-        labelText: 'Confirm New Password',
-        hintText: 'Confirm new password',
+        labelText: 'auth.confirm_new_password_1'.tr(),
+        hintText: 'auth.confirm_new_password_1'.tr(),
         prefixIcon: const Icon(Icons.lock_outline),
         suffixIcon: IconButton(
           icon: Icon(
@@ -444,7 +446,7 @@ class _PasswordResetWithCodeViewState extends State<PasswordResetWithCodeView> {
       backgroundColor = Colors.green.shade600;
       iconData = Icons.check_circle_outline;
     } else {
-      backgroundColor = Colors.blue.shade600;
+      backgroundColor = Color(0xFF008080);
       iconData = Icons.info_outline;
     }
 

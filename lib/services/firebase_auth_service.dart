@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -122,12 +123,22 @@ class FirebaseAuthService {
   // Sign in with Apple
   Future<User?> signInWithApple() async {
     try {
+      // On iOS, check if Apple Sign-In is available (native)
+      // On Android/Web, it will use web authentication (always available if configured)
+      if (!kIsWeb && Platform.isIOS) {
+        final isAvailable = await SignInWithApple.isAvailable();
+        if (!isAvailable) {
+          throw Exception('Apple Sign-In is not available on this device');
+        }
+      }
+
       // Request credential for the currently signed in Apple account
       final appleCredential = await SignInWithApple.getAppleIDCredential(
         scopes: [
           AppleIDAuthorizationScopes.email,
           AppleIDAuthorizationScopes.fullName,
         ],
+        // Web authentication options are REQUIRED for Android and Web
         webAuthenticationOptions: WebAuthenticationOptions(
           clientId: "com.crowdwave.service", // ✅ Your Apple Service ID
           redirectUri: Uri.parse(

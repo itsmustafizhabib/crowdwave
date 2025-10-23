@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../widgets/liquid_loading_indicator.dart';
 import '../../models/review_model.dart';
 import '../../services/review_service.dart';
@@ -187,9 +188,8 @@ class _ReportContentDialogState extends State<ReportContentDialog> {
     if (_selectedReason == 'other' &&
         _additionalInfoController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content:
-              Text('Please provide additional information for "Other" reports'),
+        SnackBar(
+          content: Text('moderation.other_report_info'.tr()),
           backgroundColor: Colors.orange,
         ),
       );
@@ -224,9 +224,10 @@ class _ReportContentDialogState extends State<ReportContentDialog> {
         widget.onReport?.call(_selectedReason!, additionalInfo);
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-                'Content reported successfully. Thank you for helping keep our community safe.'),
+                'common.content_reported_successfully_thank_you_for_helpin'
+                    .tr()),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 4),
           ),
@@ -344,7 +345,7 @@ class _ReportContentDialogState extends State<ReportContentDialog> {
 
                     // Report Reasons
                     Text(
-                      'Why are you reporting this content?',
+                      'common.why_are_you_reporting_this_content'.tr(),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -406,9 +407,10 @@ class _ReportContentDialogState extends State<ReportContentDialog> {
                     const SizedBox(height: 8),
                     TextField(
                       controller: _additionalInfoController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText:
-                            'Provide any additional context or details...',
+                            'common.provide_any_additional_context_or_details'
+                                .tr(),
                         border: OutlineInputBorder(),
                       ),
                       maxLines: 3,
@@ -435,7 +437,7 @@ class _ReportContentDialogState extends State<ReportContentDialog> {
                       onPressed: _isSubmitting
                           ? null
                           : () => Navigator.of(context).pop(),
-                      child: const Text('Cancel'),
+                      child: Text('common.cancel'.tr()),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -458,7 +460,7 @@ class _ReportContentDialogState extends State<ReportContentDialog> {
                                     AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
-                          : const Text('Submit Report'),
+                          : Text('moderation.submit_report'.tr()),
                     ),
                   ),
                 ],
@@ -564,7 +566,7 @@ class ContentSafetyIndicator extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Content Safety Assessment',
+                  'common.content_safety_assessment'.tr(),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -689,7 +691,7 @@ class _ModerationPanelWidgetState extends State<ModerationPanelWidget> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.blue[50],
+      color: Color(0xFF008080),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -697,13 +699,13 @@ class _ModerationPanelWidgetState extends State<ModerationPanelWidget> {
           children: [
             Row(
               children: [
-                Icon(Icons.admin_panel_settings, color: Colors.blue[700]),
+                Icon(Icons.admin_panel_settings, color: Color(0xFF008080)),
                 const SizedBox(width: 8),
                 Text(
-                  'Moderation Panel',
+                  'common.moderation_panel'.tr(),
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: Colors.blue[700],
+                    color: Color(0xFF008080),
                   ),
                 ),
               ],
@@ -714,7 +716,7 @@ class _ModerationPanelWidgetState extends State<ModerationPanelWidget> {
             // Current Status
             Row(
               children: [
-                Text('Current Status: '),
+                Text('moderation.current_status'.tr()),
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -761,7 +763,7 @@ class _ModerationPanelWidgetState extends State<ModerationPanelWidget> {
                     onPressed: () =>
                         _updateModerationStatus(ModerationStatus.approved),
                     icon: const Icon(Icons.check, size: 16),
-                    label: const Text('Approve'),
+                    label: Text('moderation.approve'.tr()),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
@@ -771,7 +773,7 @@ class _ModerationPanelWidgetState extends State<ModerationPanelWidget> {
                     onPressed: () =>
                         _updateModerationStatus(ModerationStatus.pending),
                     icon: const Icon(Icons.pending, size: 16),
-                    label: const Text('Pending'),
+                    label: Text('wallet.status_pending'.tr()),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
                       foregroundColor: Colors.white,
@@ -781,7 +783,7 @@ class _ModerationPanelWidgetState extends State<ModerationPanelWidget> {
                     onPressed: () =>
                         _updateModerationStatus(ModerationStatus.rejected),
                     icon: const Icon(Icons.block, size: 16),
-                    label: const Text('Reject'),
+                    label: Text('matching.reject'.tr()),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,

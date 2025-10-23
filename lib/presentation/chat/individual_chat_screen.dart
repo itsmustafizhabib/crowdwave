@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
 import 'dart:convert';
 import '../../controllers/chat_controller.dart';
@@ -12,6 +11,7 @@ import '../../widgets/enhanced_snackbar.dart';
 import '../../widgets/chat/deal_offer_message_widget.dart';
 import '../../services/zego_call_service.dart';
 import '../../services/presence_service.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 
 class IndividualChatScreen extends StatefulWidget {
   final String conversationId;
@@ -70,41 +70,53 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
 
   Future<void> _initializeChat() async {
     try {
-      // First, ensure the conversation exists by creating or getting it
-      final conversationId = await _chatController.createOrGetConversation(
-        otherUserId: widget.otherUserId,
-        otherUserName: widget.otherUserName,
-        otherUserAvatar: widget.otherUserAvatar,
-      );
-
-      // Then start listening to messages
-      if (conversationId != null) {
-        await _chatController.startListeningToMessages(conversationId);
-
-        // ✅ Auto-mark conversation as read when user opens it
-        await _chatController.chatService
-            .markConversationAsRead(conversationId);
-
-        if (kDebugMode) {
-          print('📖 Auto-marked conversation as read: $conversationId');
-        }
-
-        // ✅ ENHANCED: Ensure scroll to bottom after messages are loaded
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _scrollToBottomForced();
-        });
-
-        // ✅ ENHANCED: Also scroll after a short delay to handle async loading
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted) {
-            _scrollToBottomForced();
-          }
-        });
-      }
-    } catch (e) {
-      print('Error initializing chat: $e');
-      // Fallback: try to listen to the conversation anyway
+      // ✅ IMMEDIATE: Start listening to the provided conversation ID right away
+      // This ensures we show messages immediately without waiting for creation
       await _chatController.startListeningToMessages(widget.conversationId);
+
+      // ✅ FIX: Defer reactive operations to next frame to prevent setState during build
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+
+        try {
+          // First, ensure the conversation exists by creating or getting it
+          final conversationId = await _chatController.createOrGetConversation(
+            otherUserId: widget.otherUserId,
+            otherUserName: widget.otherUserName,
+            otherUserAvatar: widget.otherUserAvatar,
+          );
+
+          // Auto-mark conversation as read when user opens it
+          if (conversationId != null) {
+            await _chatController.chatService
+                .markConversationAsRead(conversationId);
+
+            if (kDebugMode) {
+              print('📖 Auto-marked conversation as read: $conversationId');
+            }
+          }
+
+          // ✅ ENHANCED: Ensure scroll to bottom after messages are loaded
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollToBottomForced();
+          });
+
+          // ✅ ENHANCED: Also scroll after a short delay to handle async loading
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              _scrollToBottomForced();
+            }
+          });
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error in deferred chat initialization: $e');
+          }
+        }
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error initializing chat: $e');
+      }
 
       // ✅ ENHANCED: Ensure scroll to bottom even on fallback
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -169,14 +181,14 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundColor: const Color(0xFF0046FF).withOpacity(0.1),
+                  backgroundColor: const Color(0xFF215C5C).withOpacity(0.1),
                   backgroundImage: widget.otherUserAvatar != null
                       ? NetworkImage(widget.otherUserAvatar!)
                       : null,
                   child: widget.otherUserAvatar == null
                       ? const Icon(
                           Icons.person,
-                          color: Color(0xFF0046FF),
+                          color: Color(0xFF215C5C),
                           size: 20,
                         )
                       : null,
@@ -223,7 +235,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
 
                     if (isOnline) {
                       return Text(
-                        'Online',
+                        'chat.online'.tr(),
                         style: TextStyle(
                           color: Colors.green[600],
                           fontSize: 12,
@@ -267,7 +279,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                             );
                           } else {
                             return Text(
-                              'Last seen recently',
+                              'common.last_seen_recently'.tr(),
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 12,
@@ -312,22 +324,63 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
               final messages =
                   _chatController.getMessages(widget.conversationId);
               final isLoading = _chatController.isLoading.value;
-              final hasLoadedMessages = _chatController.messagesMap
-                  .containsKey(widget.conversationId);
+              // ✅ FIX: Check if we've actually received Firestore data, not just initialized empty array
+              final hasLoadedMessages =
+                  _chatController.hasReceivedMessages(widget.conversationId);
+
+              if (kDebugMode) {
+                print('🖼️ UI REBUILD:');
+                print('  - Conversation ID: ${widget.conversationId}');
+                print('  - Messages count: ${messages.length}');
+                print('  - Is loading: $isLoading');
+                print('  - Has loaded messages: $hasLoadedMessages');
+                print(
+                    '  - messagesMap keys: ${_chatController.messagesMap.keys.toList()}');
+                if (messages.isNotEmpty) {
+                  print('  - First message: ${messages.first.content}');
+                  print('  - Last message: ${messages.last.content}');
+                }
+              }
 
               // Show loading indicator if still loading and no messages loaded yet
               if (isLoading && !hasLoadedMessages) {
-                return const Center(
+                return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircularProgressIndicator(
-                        color: Color(0xFF0046FF),
+                      const CircularProgressIndicator(
+                        color: Color(0xFF215C5C),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       Text(
-                        'Loading messages...',
-                        style: TextStyle(
+                        'chat.loading_messages'.tr(),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              // ✅ FIX: Show loading while waiting for first message batch from active subscription
+              if (messages.isEmpty && !hasLoadedMessages) {
+                if (kDebugMode) {
+                  print(
+                      '⏳ Waiting for first message batch from global monitoring...');
+                }
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const CircularProgressIndicator(
+                        color: Color(0xFF215C5C),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'chat.loading_chats'.tr(),
+                        style: const TextStyle(
                           fontSize: 16,
                           color: Colors.grey,
                         ),
@@ -339,28 +392,31 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
 
               // Show empty state only when we've loaded but there are no messages
               if (messages.isEmpty && hasLoadedMessages) {
-                return const Center(
+                if (kDebugMode) {
+                  print('⚠️ Showing empty state - no messages found');
+                }
+                return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.chat_bubble_outline,
                         size: 64,
                         color: Colors.grey,
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       Text(
-                        'No messages yet',
-                        style: TextStyle(
+                        'chat.no_messages'.tr(),
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                           color: Colors.grey,
                         ),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
-                        'Start the conversation!',
-                        style: TextStyle(
+                        'common.start_the_conversation'.tr(),
+                        style: const TextStyle(
                           fontSize: 14,
                           color: Colors.grey,
                         ),
@@ -426,7 +482,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                   // Attachment button
                   IconButton(
                     icon:
-                        const Icon(Icons.attach_file, color: Color(0xFF0046FF)),
+                        const Icon(Icons.attach_file, color: Color(0xFF215C5C)),
                     onPressed: _showAttachmentOptions,
                   ),
 
@@ -442,8 +498,8 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                         controller: _messageController,
                         maxLines: null,
                         textInputAction: TextInputAction.newline,
-                        decoration: const InputDecoration(
-                          hintText: 'Type a message...',
+                        decoration: InputDecoration(
+                          hintText: 'chat.type_message'.tr(),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(
                             horizontal: 16,
@@ -460,7 +516,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                   // Send button
                   CircleAvatar(
                     radius: 24,
-                    backgroundColor: const Color(0xFF0046FF),
+                    backgroundColor: const Color(0xFF215C5C),
                     child: IconButton(
                       icon: const Icon(Icons.send, color: Colors.white),
                       onPressed: _sendTextMessage,
@@ -486,14 +542,14 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
           if (!isFromCurrentUser) ...[
             CircleAvatar(
               radius: 12,
-              backgroundColor: const Color(0xFF0046FF).withOpacity(0.1),
+              backgroundColor: const Color(0xFF215C5C).withOpacity(0.1),
               backgroundImage: widget.otherUserAvatar != null
                   ? NetworkImage(widget.otherUserAvatar!)
                   : null,
               child: widget.otherUserAvatar == null
                   ? const Icon(
                       Icons.person,
-                      color: Color(0xFF0046FF),
+                      color: Color(0xFF215C5C),
                       size: 12,
                     )
                   : null,
@@ -517,7 +573,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                     color: message.type == MessageType.image
                         ? Colors.transparent
                         : (isFromCurrentUser
-                            ? const Color(0xFF0046FF)
+                            ? const Color(0xFF215C5C)
                             : Colors.white),
                     // Slightly reduced opacity for optimistic messages
                     borderRadius: BorderRadius.only(
@@ -568,10 +624,10 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
             const SizedBox(width: 8),
             CircleAvatar(
               radius: 12,
-              backgroundColor: const Color(0xFF0046FF).withOpacity(0.1),
+              backgroundColor: const Color(0xFF215C5C).withOpacity(0.1),
               child: const Icon(
                 Icons.person,
-                color: Color(0xFF0046FF),
+                color: Color(0xFF215C5C),
                 size: 12,
               ),
             ),
@@ -654,19 +710,19 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                   borderRadius: BorderRadius.circular(12),
                   color: Colors.grey[300],
                 ),
-                child: const Center(
+                child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.image,
                         size: 50,
                         color: Colors.grey,
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
-                        'Image',
-                        style: TextStyle(
+                        'chat.image'.tr(),
+                        style: const TextStyle(
                           color: Colors.grey,
                           fontSize: 14,
                         ),
@@ -772,7 +828,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
         break;
       case MessageStatus.read:
         icon = Icons.done_all;
-        color = const Color(0xFF0046FF);
+        color = const Color(0xFF215C5C);
         break;
       case MessageStatus.failed:
         icon = Icons.error_outline;
@@ -852,19 +908,19 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
               children: [
                 _buildAttachmentOption(
                   icon: Icons.camera_alt,
-                  label: 'Camera',
+                  label: 'common.camera'.tr(),
                   color: Colors.red,
                   onTap: () => _pickImage(ImageSource.camera),
                 ),
                 _buildAttachmentOption(
                   icon: Icons.photo_library,
-                  label: 'Gallery',
-                  color: Colors.blue,
+                  label: 'common.gallery'.tr(),
+                  color: Color(0xFF008080),
                   onTap: () => _pickImage(ImageSource.gallery),
                 ),
                 _buildAttachmentOption(
                   icon: Icons.location_on,
-                  label: 'Location',
+                  label: 'common.location'.tr(),
                   color: Colors.green,
                   onTap: () {
                     Get.back();

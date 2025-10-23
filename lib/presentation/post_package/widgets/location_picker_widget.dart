@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 
 import '../../../core/app_export.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class LocationPickerWidget extends StatefulWidget {
   final String title;
@@ -348,7 +349,7 @@ class _LocationPickerWidgetState extends State<LocationPickerWidget>
                 IconButton(
                   onPressed: () => Navigator.pop(context),
                   icon: CustomIconWidget(
-                    iconName: 'close',
+                    iconName: 'common.close'.tr(),
                     color: AppTheme.lightTheme.colorScheme.onSurface
                         .withValues(alpha: 0.7),
                     size: 24,
@@ -366,8 +367,8 @@ class _LocationPickerWidgetState extends State<LocationPickerWidget>
                 // Search location
                 _buildLocationOption(
                   icon: Icons.search,
-                  title: 'Search for location',
-                  subtitle: 'Enter an address or place name',
+                  title: 'location.search_title'.tr(),
+                  subtitle: 'location.search_subtitle'.tr(),
                   onTap: () => _showSearchDialog(),
                 ),
 
@@ -375,9 +376,8 @@ class _LocationPickerWidgetState extends State<LocationPickerWidget>
                   SizedBox(height: 2.h),
                   _buildLocationOption(
                     icon: Icons.my_location,
-                    title: 'Use current location',
-                    subtitle:
-                        'Allow location access to use your current position',
+                    title: 'location.use_current'.tr(),
+                    subtitle: 'common.allow_location_access_to_use_your_current_position'.tr(),
                     onTap: () => _getCurrentLocation(),
                   ),
                 ],
@@ -385,15 +385,14 @@ class _LocationPickerWidgetState extends State<LocationPickerWidget>
                 SizedBox(height: 2.h),
                 _buildLocationOption(
                   icon: Icons.map,
-                  title: 'Select on map',
-                  subtitle: 'Choose location by tapping on map',
+                  title: 'location.select_on_map'.tr(),
+                  subtitle: 'location.select_on_map_subtitle'.tr(),
                   onTap: () => _showMapPicker(),
                 ),
 
                 // Recent locations (can be added later)
                 SizedBox(height: 2.h),
-                Text(
-                  'Recent Locations',
+                Text('common.recent_locations'.tr(),
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
@@ -847,8 +846,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'Selected Location',
+                                Text('common.selected_location'.tr(),
                                   style: TextStyle(
                                     fontSize: 12.sp,
                                     fontWeight: FontWeight.w500,
@@ -871,8 +869,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                                         ),
                                       ),
                                       SizedBox(width: 2.w),
-                                      Text(
-                                        'Getting address...',
+                                      Text('common.getting_address'.tr(),
                                         style: TextStyle(
                                           fontSize: 11.sp,
                                           color: AppTheme
@@ -1002,8 +999,8 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
       final permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Location permission denied'),
+          SnackBar(
+            content: Text('profile.location_permission_denied'.tr()),
           ),
         );
         return;
@@ -1246,8 +1243,7 @@ class _LocationSearchDialogState extends State<LocationSearchDialog> {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    'Search Location',
+                  child: Text('common.search_location'.tr(),
                     style: TextStyle(
                       fontSize: 18.sp,
                       fontWeight: FontWeight.w600,
@@ -1266,7 +1262,7 @@ class _LocationSearchDialogState extends State<LocationSearchDialog> {
             TextField(
               controller: _controller,
               decoration: InputDecoration(
-                hintText: 'Enter address or place name',
+                hintText: 'location.enter_address_hint'.tr(),
                 prefixIcon: Icon(Icons.search),
                 suffixIcon: _isLoading
                     ? Padding(
@@ -1317,8 +1313,7 @@ class _LocationSearchDialogState extends State<LocationSearchDialog> {
                             color: Colors.grey,
                           ),
                           SizedBox(height: 2.h),
-                          Text(
-                            'Start typing to search',
+                          Text('common.start_typing_to_search'.tr(),
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 14.sp,

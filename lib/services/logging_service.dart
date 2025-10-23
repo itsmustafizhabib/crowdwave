@@ -1,5 +1,6 @@
 import 'dart:developer' as developer;
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants/api_constants.dart';
@@ -27,7 +28,7 @@ class LoggingService {
     await logEvent(
       event: LogEvent.appStart,
       level: LogLevel.info,
-      message: 'CrowdWave app started',
+      message: 'common.crowdwave_app_started'.tr(),
       data: {
         'environment': EnvironmentConfig.currentEnvironment.name,
         'timestamp': DateTime.now().toIso8601String(),
@@ -248,7 +249,7 @@ class LoggingService {
       }
     } catch (e) {
       // Don't let analytics logging break the app
-      developer.log('Failed to log to analytics: $e', name: 'LoggingService');
+      developer.log('Failed to log to analytics: $e', name: 'common.loggingservice'.tr());
     }
   }
 

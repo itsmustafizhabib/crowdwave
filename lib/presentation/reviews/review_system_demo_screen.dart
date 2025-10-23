@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../models/review_model.dart';
 import '../../widgets/star_rating_widget.dart';
 import '../../widgets/moderation_widgets.dart';
@@ -72,8 +73,8 @@ class _ReviewSystemDemoScreenState extends State<ReviewSystemDemoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Review System Demo'),
-        backgroundColor: const Color(0xFF0046FF),
+        title: Text('reviews.demo_title'.tr()),
+        backgroundColor: const Color(0xFF215C5C),
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -113,16 +114,16 @@ class _ReviewSystemDemoScreenState extends State<ReviewSystemDemoScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0046FF).withOpacity(0.1),
+        color: const Color(0xFF215C5C).withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFF0046FF).withOpacity(0.3)),
+        border: Border.all(color: const Color(0xFF215C5C).withOpacity(0.3)),
       ),
       child: Text(
         title,
         style: const TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF0046FF),
+          color: Color(0xFF215C5C),
         ),
       ),
     );
@@ -252,8 +253,7 @@ class _ReviewSystemDemoScreenState extends State<ReviewSystemDemoScreen> {
                                 color: Colors.green[100],
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: Text(
-                                'Verified',
+                              child: Text('profile.verified'.tr(),
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: Colors.green[700],
@@ -453,7 +453,7 @@ class _ReviewSystemDemoScreenState extends State<ReviewSystemDemoScreen> {
                       );
                     },
                     icon: const Icon(Icons.rate_review),
-                    label: const Text('Create Review'),
+                    label: Text('reviews.create_review'.tr()),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -471,7 +471,7 @@ class _ReviewSystemDemoScreenState extends State<ReviewSystemDemoScreen> {
                       );
                     },
                     icon: const Icon(Icons.list),
-                    label: const Text('View Reviews'),
+                    label: Text('reviews.view_reviews'.tr()),
                   ),
                 ),
               ],
@@ -491,7 +491,7 @@ class _ReviewSystemDemoScreenState extends State<ReviewSystemDemoScreen> {
                   );
                 },
                 icon: const Icon(Icons.report),
-                label: const Text('Test Report Dialog'),
+                label: Text('reviews.test_report_dialog'.tr()),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                 ),

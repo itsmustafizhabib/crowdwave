@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -105,7 +106,7 @@ class AppleSignInDemo extends StatelessWidget {
                 children: [
                   Icon(Icons.apple, size: 20),
                   SizedBox(width: 8),
-                  Text("Sign in with Apple"),
+                  Text('auth.sign_in_with_apple'.tr()),
                 ],
               ),
             ),

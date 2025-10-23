@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../widgets/liquid_loading_indicator.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import '../controllers/app_lifecycle_controller.dart';
 import '../services/presence_service.dart';
 import '../controllers/chat_controller.dart';
@@ -354,21 +355,21 @@ class _BlackScreenProtectionState extends State<BlackScreenProtection>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             LiquidLoadingIndicator(
-              color: Color(0xFF0046FF),
+              color: Color(0xFF215C5C),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Recovering...',
-              style: TextStyle(
+            Text(
+              'common.recovering'.tr(),
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
                 color: Color(0xFF262626),
               ),
             ),
             const SizedBox(height: 10),
-            const Text(
-              'Please wait while we restore your session',
-              style: TextStyle(
+            Text(
+              'common.please_wait_while_we_restore_your_session'.tr(),
+              style: const TextStyle(
                 fontSize: 14,
                 color: Color(0xFF525252),
               ),
@@ -379,14 +380,14 @@ class _BlackScreenProtectionState extends State<BlackScreenProtection>
                 Get.offAllNamed('/main-navigation');
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0046FF),
+                backgroundColor: const Color(0xFF215C5C),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
                   vertical: 12,
                 ),
               ),
-              child: const Text('Go to Home'),
+              child: Text('common.go_to_home'.tr()),
             ),
           ],
         ),

@@ -2,19 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 
 import '../../core/app_export.dart';
 import '../../services/firebase_auth_service.dart';
-import '../../services/booking_service.dart';
+// import '../../services/booking_service.dart';
 import '../../controllers/chat_controller.dart';
 import '../chat/individual_chat_screen.dart';
 import '../booking/make_offer_screen.dart';
-import '../../models/review_model.dart';
-import '../../services/review_service.dart';
+// import '../../models/review_model.dart';
+// import '../../services/review_service.dart';
 import '../../widgets/enhanced_snackbar.dart';
-import '../reviews/review_list_screen.dart';
-import '../reviews/create_review_screen.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
+// import '../reviews/review_list_screen.dart';
+// import '../reviews/create_review_screen.dart';
 
 class PackageDetailScreen extends StatefulWidget {
   final PackageRequest package;
@@ -123,8 +124,8 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                         SizedBox(height: 24),
                         _buildSpecialInstructions(),
                       ],
-                      SizedBox(height: 24),
-                      _buildReviewsSection(),
+                      // SizedBox(height: 24),
+                      // _buildReviewsSection(),
                       SizedBox(height: 100), // Space for FAB
                     ],
                   ),
@@ -144,7 +145,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       expandedHeight: 120,
       floating: false,
       pinned: true,
-      backgroundColor: Color(0xFF0046FF),
+      backgroundColor: Color(0xFF215C5C),
       foregroundColor: Colors.white,
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle.light,
@@ -154,23 +155,11 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       ),
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
-          'Package Details',
+          'detail.package_detail_title'.tr(),
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,
             fontSize: 18,
-          ),
-        ),
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF0046FF),
-                Color(0xFF0056FF),
-              ],
-            ),
           ),
         ),
       ),
@@ -199,12 +188,12 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
             children: [
               CircleAvatar(
                 radius: 25,
-                backgroundColor: Color(0xFF0046FF).withOpacity(0.1),
+                backgroundColor: Color(0xFF215C5C).withOpacity(0.1),
                 backgroundImage: widget.package.senderPhotoUrl.isNotEmpty
                     ? CachedNetworkImageProvider(widget.package.senderPhotoUrl)
                     : null,
                 child: widget.package.senderPhotoUrl.isEmpty
-                    ? Icon(Icons.person, color: Color(0xFF0046FF))
+                    ? Icon(Icons.person, color: Color(0xFF215C5C))
                     : null,
               ),
               SizedBox(width: 16),
@@ -222,7 +211,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Package Sender',
+                      'post_package.package_sender'.tr(),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
@@ -236,12 +225,23 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
           ),
           SizedBox(height: 16),
           Text(
+            'common.description'.tr(),
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
             widget.package.packageDetails.description,
             style: TextStyle(
               fontSize: 16,
               color: Colors.black87,
               height: 1.4,
             ),
+            maxLines: null,
+            overflow: TextOverflow.visible,
           ),
         ],
       ),
@@ -254,11 +254,11 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
 
     switch (widget.package.status) {
       case PackageStatus.pending:
-        statusColor = Colors.orange;
+        statusColor = Colors.amber;
         statusText = 'Pending';
         break;
       case PackageStatus.matched:
-        statusColor = Colors.blue;
+        statusColor = Color(0xFF008080);
         statusText = 'Matched';
         break;
       case PackageStatus.confirmed:
@@ -315,7 +315,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Route',
+            'detail.route'.tr(),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -325,9 +325,9 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
           SizedBox(height: 16),
           _buildLocationItem(
             icon: Icons.location_on,
-            label: 'Pickup',
+            label: 'package.pickup'.tr(),
             location: widget.package.pickupLocation,
-            color: Color(0xFF0046FF),
+            color: Color(0xFF215C5C),
           ),
           SizedBox(height: 16),
           Container(
@@ -342,7 +342,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
           SizedBox(height: 16),
           _buildLocationItem(
             icon: Icons.flag,
-            label: 'Destination',
+            label: 'package.destination'.tr(),
             location: widget.package.destinationLocation,
             color: Colors.green,
           ),
@@ -425,7 +425,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Package Details',
+            'detail.package_detail_title'.tr(),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -441,7 +441,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
               'Weight', '${widget.package.packageDetails.weightKg} kg'),
           if (widget.package.packageDetails.valueUSD != null)
             _buildDetailRow('Value',
-                '\$${widget.package.packageDetails.valueUSD!.toStringAsFixed(2)}'),
+                '€${widget.package.packageDetails.valueUSD!.toStringAsFixed(2)}'),
           if (widget.package.packageDetails.brand?.isNotEmpty == true)
             _buildDetailRow('Brand', widget.package.packageDetails.brand!),
           if (widget.package.packageDetails.isFragile ||
@@ -449,7 +449,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
               widget.package.packageDetails.requiresRefrigeration) ...[
             SizedBox(height: 12),
             Text(
-              'Special Requirements',
+              'common.special_requirements'.tr(),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -462,14 +462,13 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
               runSpacing: 8,
               children: [
                 if (widget.package.packageDetails.isFragile)
-                  _buildRequirementChip(
-                      'Fragile', Icons.warning, Colors.orange),
+                  _buildRequirementChip('Fragile', Icons.warning, Colors.amber),
                 if (widget.package.packageDetails.isPerishable)
                   _buildRequirementChip(
                       'Perishable', Icons.schedule, Colors.red),
                 if (widget.package.packageDetails.requiresRefrigeration)
                   _buildRequirementChip(
-                      'Refrigeration', Icons.ac_unit, Colors.blue),
+                      'Refrigeration', Icons.ac_unit, Color(0xFF008080)),
               ],
             ),
           ],
@@ -554,7 +553,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Delivery Preferences',
+            'post_package.step_preferences'.tr(),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -586,7 +585,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                   Icon(Icons.priority_high, size: 14, color: Colors.red),
                   SizedBox(width: 4),
                   Text(
-                    'Urgent Delivery',
+                    'post_package.urgent_delivery'.tr(),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -620,7 +619,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Compensation',
+            'detail.compensation'.tr(),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -633,12 +632,12 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
               Container(
                 padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Color(0xFF0046FF).withOpacity(0.1),
+                  color: Color(0xFF215C5C).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   Icons.attach_money,
-                  color: Color(0xFF0046FF),
+                  color: Color(0xFF215C5C),
                   size: 24,
                 ),
               ),
@@ -647,15 +646,15 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '\$${widget.package.compensationOffer.toStringAsFixed(2)}',
+                    '€${widget.package.compensationOffer.toStringAsFixed(2)}',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF0046FF),
+                      color: Color(0xFF215C5C),
                     ),
                   ),
                   Text(
-                    'Offered for delivery',
+                    'tracking.offered_for_delivery'.tr(),
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -714,7 +713,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Package Photos',
+            'post_package.package_photos'.tr(),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -777,7 +776,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Special Instructions',
+            'detail.special_instructions'.tr(),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -798,253 +797,227 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     );
   }
 
-  Widget _buildReviewsSection() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.star_rate,
-                color: Color(0xFF0046FF),
-                size: 24,
-              ),
-              SizedBox(width: 12),
-              Text(
-                'Reviews & Ratings',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.grey[800],
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 16),
+  // Widget _buildReviewsSection() {
+  //   return Container(
+  //     width: double.infinity,
+  //     padding: EdgeInsets.all(20),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(16),
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.black.withOpacity(0.05),
+  //           blurRadius: 10,
+  //           offset: Offset(0, 2),
+  //         ),
+  //       ],
+  //     ),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Row(
+  //           children: [
+  //             Icon(
+  //               Icons.star_rate,
+  //               color: Color(0xFF215C5C),
+  //               size: 24,
+  //             ),
+  //             SizedBox(width: 12),
+  //             Text(
+  //               'Reviews & Ratings',
+  //               style: TextStyle(
+  //                 fontSize: 18,
+  //                 fontWeight: FontWeight.w700,
+  //                 color: Colors.grey[800],
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //         SizedBox(height: 16),
+  //
+  //         // Rating Summary
+  //         FutureBuilder<ReviewSummary>(
+  //           future: ReviewService().getReviewSummary(widget.package.id),
+  //           builder: (context, snapshot) {
+  //             if (snapshot.connectionState == ConnectionState.waiting) {
+  //               return Center(
+  //                 child: SizedBox(
+  //                   height: 40,
+  //                   child: CircularProgressIndicator(
+  //                     strokeWidth: 2,
+  //                     color: Color(0xFF215C5C),
+  //                   ),
+  //                 ),
+  //               );
+  //             }
+  //
+  //             if (snapshot.hasError || !snapshot.hasData) {
+  //               return Container(
+  //                 padding: EdgeInsets.all(16),
+  //                 decoration: BoxDecoration(
+  //                   color: Colors.grey[50],
+  //                   borderRadius: BorderRadius.circular(12),
+  //                   border: Border.all(color: Colors.grey[200]!),
+  //                 ),
+  //                 child: Row(
+  //                   children: [
+  //                     Icon(Icons.star_border, color: Colors.grey[400]),
+  //                     SizedBox(width: 8),
+  //                     Text(
+  //                       'No reviews yet',
+  //                       style: TextStyle(
+  //                         color: Colors.grey[600],
+  //                         fontSize: 14,
+  //                       ),
+  //                     ),
+  //                     Spacer(),
+  //                   ],
+  //                 ),
+  //               );
+  //             }
+  //
+  //             final summary = snapshot.data!;
+  //
+  //             if (summary.totalReviews == 0) {
+  //               return Container(
+  //                 padding: EdgeInsets.all(16),
+  //                 decoration: BoxDecoration(
+  //                   color: Colors.grey[50],
+  //                   borderRadius: BorderRadius.circular(12),
+  //                   border: Border.all(color: Colors.grey[200]!),
+  //                 ),
+  //                 child: Row(
+  //                   children: [
+  //                     Icon(Icons.star_border, color: Colors.grey[400]),
+  //                     SizedBox(width: 8),
+  //                     Text(
+  //                       'No reviews yet',
+  //                       style: TextStyle(
+  //                         color: Colors.grey[600],
+  //                         fontSize: 14,
+  //                       ),
+  //                     ),
+  //                     Spacer(),
+  //                   ],
+  //                 ),
+  //               );
+  //             }
+  //
+  //             return Column(
+  //               children: [
+  //                 // Compact Rating Display
+  //                 Row(
+  //                   children: [
+  //                     Icon(
+  //                       Icons.star,
+  //                       color: Color(0xFF2D7A6E),
+  //                       size: 20,
+  //                     ),
+  //                     SizedBox(width: 6),
+  //                     Text(
+  //                       summary.averageRating.toStringAsFixed(1),
+  //                       style: TextStyle(
+  //                         fontSize: 16,
+  //                         fontWeight: FontWeight.w600,
+  //                         color: Colors.grey[800],
+  //                       ),
+  //                     ),
+  //                     SizedBox(width: 6),
+  //                     Text(
+  //                       '(${summary.totalReviews} reviews)',
+  //                       style: TextStyle(
+  //                         fontSize: 14,
+  //                         color: Colors.grey[600],
+  //                       ),
+  //                     ),
+  //                     Spacer(),
+  //                     Icon(
+  //                       Icons.chevron_right,
+  //                       color: Colors.grey[400],
+  //                     ),
+  //                   ],
+  //                 ),
+  //
+  //                 if (summary.verifiedReviewsCount > 0) ...[
+  //                   SizedBox(height: 8),
+  //                   Row(
+  //                     children: [
+  //                       Container(
+  //                         padding:
+  //                             EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+  //                         decoration: BoxDecoration(
+  //                           color: Colors.green[100],
+  //                           borderRadius: BorderRadius.circular(10),
+  //                         ),
+  //                         child: Text(
+  //                           '${summary.verifiedReviewsCount} verified',
+  //                           style: TextStyle(
+  //                             fontSize: 11,
+  //                             color: Colors.green[700],
+  //                             fontWeight: FontWeight.w500,
+  //                           ),
+  //                         ),
+  //                       ),
+  //                     ],
+  //                   ),
+  //                 ],
+  //               ],
+  //             );
+  //           },
+  //         ),
+  //
+  //         SizedBox(height: 16),
+  //
+  //         // Action Button
+  //         Center(
+  //           child: OutlinedButton.icon(
+  //             onPressed: _navigateToReviewList,
+  //             icon: Icon(Icons.list, size: 16),
+  //             label: Text(
+  //               'View All Reviews',
+  //               style: TextStyle(fontSize: 14),
+  //             ),
+  //             style: OutlinedButton.styleFrom(
+  //               foregroundColor: Color(0xFF215C5C),
+  //               side: BorderSide(color: Color(0xFF215C5C)),
+  //               padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
-          // Rating Summary
-          FutureBuilder<ReviewSummary>(
-            future: ReviewService().getReviewSummary(widget.package.id),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: SizedBox(
-                    height: 40,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Color(0xFF0046FF),
-                    ),
-                  ),
-                );
-              }
+  // void _navigateToReviewList() {
+  //   Navigator.of(context).push(
+  //     MaterialPageRoute(
+  //       builder: (context) => ReviewListScreen(
+  //         targetId: widget.package.id,
+  //         reviewType: ReviewType.package,
+  //         targetName: widget.package.packageDetails.description,
+  //       ),
+  //     ),
+  //   );
+  // }
 
-              if (snapshot.hasError || !snapshot.hasData) {
-                return Container(
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[200]!),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.star_border, color: Colors.grey[400]),
-                      SizedBox(width: 8),
-                      Text(
-                        'No reviews yet',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                        ),
-                      ),
-                      Spacer(),
-                  
-                    ],
-                  ),
-                );
-              }
-
-              final summary = snapshot.data!;
-
-              if (summary.totalReviews == 0) {
-                return Container(
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[200]!),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.star_border, color: Colors.grey[400]),
-                      SizedBox(width: 8),
-                      Text(
-                        'No reviews yet',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                        ),
-                      ),
-                      Spacer(),
-                  
-                    ],
-                  ),
-                );
-              }
-
-              return Column(
-                children: [
-                  // Compact Rating Display
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.star,
-                        color: Color(0xFFFF8040),
-                        size: 20,
-                      ),
-                      SizedBox(width: 6),
-                      Text(
-                        summary.averageRating.toStringAsFixed(1),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[800],
-                        ),
-                      ),
-                      SizedBox(width: 6),
-                      Text(
-                        '(${summary.totalReviews} reviews)',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      Spacer(),
-                      Icon(
-                        Icons.chevron_right,
-                        color: Colors.grey[400],
-                      ),
-                    ],
-                  ),
-
-                  if (summary.verifiedReviewsCount > 0) ...[
-                    SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Container(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.green[100],
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            '${summary.verifiedReviewsCount} verified',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.green[700],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-              );
-            },
-          ),
-
-          SizedBox(height: 16),
-
-          // Action Buttons
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _navigateToReviewList,
-                  icon: Icon(Icons.list, size: 14),
-                  label: Text(
-                    'View All',
-                    style: TextStyle(fontSize: 11),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Color(0xFF0046FF),
-                    side: BorderSide(color: Color(0xFF0046FF)),
-                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                  ),
-                ),
-              ),
-              SizedBox(width: 8),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _navigateToCreateReview,
-                  icon: Icon(Icons.rate_review, size: 14),
-                  label: Text(
-                    'Write',
-                    style: TextStyle(fontSize: 11),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF0046FF),
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _navigateToReviewList() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ReviewListScreen(
-          targetId: widget.package.id,
-          reviewType: ReviewType.package,
-          targetName: widget.package.packageDetails.description,
-        ),
-      ),
-    );
-  }
-
-  void _navigateToCreateReview() async {
-    final hasHandled = await _checkIfUserHandledPackage();
-
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => CreateReviewScreen(
-          targetId: widget.package.id,
-          reviewType: ReviewType.package,
-          targetName: widget.package.packageDetails.description,
-          targetImageUrl: widget.package.photoUrls.isNotEmpty
-              ? widget.package.photoUrls.first
-              : null,
-          isVerifiedBooking: hasHandled,
-        ),
-      ),
-    );
-  }
+  // void _navigateToCreateReview() async {
+  //   final hasHandled = await _checkIfUserHandledPackage();
+  //
+  //   Navigator.of(context).push(
+  //     MaterialPageRoute(
+  //       builder: (context) => CreateReviewScreen(
+  //         targetId: widget.package.id,
+  //         reviewType: ReviewType.package,
+  //         targetName: widget.package.packageDetails.description,
+  //         targetImageUrl: widget.package.photoUrls.isNotEmpty
+  //             ? widget.package.photoUrls.first
+  //             : null,
+  //         isVerifiedBooking: hasHandled,
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildActionButton() {
     // Debug logging to check values
@@ -1077,7 +1050,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
               elevation: 6,
               icon: Icon(Icons.chat_bubble_outline),
               label: Text(
-                'Chat',
+                'nav.chat'.tr(),
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
@@ -1091,7 +1064,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
             child: FloatingActionButton.extended(
               heroTag: "interest_button_${widget.package.id}",
               onPressed: _isLoading ? null : _navigateToMakeOfferScreen,
-              backgroundColor: Color(0xFF0046FF),
+              backgroundColor: Color(0xFF215C5C),
               foregroundColor: Colors.white,
               elevation: 6,
               icon: _isLoading
@@ -1105,7 +1078,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                     )
                   : Icon(Icons.monetization_on),
               label: Text(
-                'Make Offer',
+                'detail.make_offer'.tr(),
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
@@ -1143,7 +1116,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       if (currentUserId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Please log in to start chatting.'),
+            content: Text('chat.login_required'.tr()),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape:
@@ -1185,7 +1158,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to start chat. Please try again.'),
+            content: Text('chat.start_failed'.tr()),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape:
@@ -1196,7 +1169,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to start chat. Please try again.'),
+          content: Text('chat.start_failed'.tr()),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -1205,16 +1178,16 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     }
   }
 
-  /// Check if the current user has handled (booked) this package
-  Future<bool> _checkIfUserHandledPackage() async {
-    try {
-      final bookingService = BookingService();
-      return await bookingService.hasUserBookedPackage(widget.package.id);
-    } catch (e) {
-      print('Error checking package handling status: $e');
-      return false; // Default to false if error
-    }
-  }
+  // /// Check if the current user has handled (booked) this package
+  // Future<bool> _checkIfUserHandledPackage() async {
+  //   try {
+  //     final bookingService = BookingService();
+  //     return await bookingService.hasUserBookedPackage(widget.package.id);
+  //   } catch (e) {
+  //     print('Error checking package handling status: $e');
+  //     return false; // Default to false if error
+  //   }
+  // }
 
   String _getPackageTypeText(PackageType type) {
     switch (type) {
@@ -1248,7 +1221,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       case PackageSize.large:
         return 'Large (Suitcase space)';
       case PackageSize.extraLarge:
-        return 'Extra Large (Special arrangement)';
+        return 'Extra Large (Special item)';
     }
   }
 }

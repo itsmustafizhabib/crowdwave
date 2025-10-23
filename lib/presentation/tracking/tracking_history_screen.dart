@@ -1,9 +1,11 @@
 import '../../widgets/liquid_refresh_indicator.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sizer/sizer.dart';
 import '../../core/models/delivery_tracking.dart';
 import '../../services/tracking_service.dart';
+import '../../routes/tracking_route_handler.dart';
 
 class TrackingHistoryScreen extends StatefulWidget {
   const TrackingHistoryScreen({Key? key}) : super(key: key);
@@ -113,25 +115,25 @@ class _TrackingHistoryScreenState extends State<TrackingHistoryScreen>
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Delivery History'),
+        title: Text('account.delivery_history'.tr()),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
         bottom: TabBar(
           controller: _tabController,
-          labelColor: Colors.blue,
+          labelColor: Color(0xFF008080),
           unselectedLabelColor: Colors.grey[600],
-          indicatorColor: Colors.blue,
+          indicatorColor: Color(0xFF008080),
           indicatorWeight: 3,
           labelStyle: TextStyle(
             fontSize: 12.sp,
             fontWeight: FontWeight.bold,
           ),
-          tabs: const [
-            Tab(text: 'Active'),
-            Tab(text: 'Delivered'),
-            Tab(text: 'Pending'),
-            Tab(text: 'All'),
+          tabs: [
+            Tab(text: 'status.active'.tr()),
+            Tab(text: 'tracking.delivered_label'.tr()),
+            Tab(text: 'wallet.status_pending'.tr()),
+            Tab(text: 'common.all'.tr()),
           ],
         ),
       ),
@@ -183,7 +185,7 @@ class _TrackingHistoryScreenState extends State<TrackingHistoryScreen>
             ),
             SizedBox(height: 3.h),
             Text(
-              'Something went wrong',
+              'error_messages.something_went_wrong'.tr(),
               style: TextStyle(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
@@ -192,7 +194,8 @@ class _TrackingHistoryScreenState extends State<TrackingHistoryScreen>
             ),
             SizedBox(height: 1.h),
             Text(
-              'We encountered an unexpected error while\nprocessing your request.',
+              'error_messages.we_encountered_an_unexpected_error_while_processin'
+                  .tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14.sp,
@@ -213,8 +216,8 @@ class _TrackingHistoryScreenState extends State<TrackingHistoryScreen>
                       child: ElevatedButton.icon(
                         onPressed: () => Navigator.of(context).pop(),
                         icon: const Icon(Icons.arrow_back, size: 18),
-                        label: const Text(
-                          'Back',
+                        label: Text(
+                          'common.back'.tr(),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -239,15 +242,15 @@ class _TrackingHistoryScreenState extends State<TrackingHistoryScreen>
                       child: ElevatedButton.icon(
                         onPressed: _loadTrackingHistory,
                         icon: const Icon(Icons.refresh, size: 18),
-                        label: const Text(
-                          'Refresh',
+                        label: Text(
+                          'common.refresh'.tr(),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0046FF),
+                          backgroundColor: const Color(0xFF215C5C),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -280,7 +283,7 @@ class _TrackingHistoryScreenState extends State<TrackingHistoryScreen>
             ),
             SizedBox(height: 2.h),
             Text(
-              'No Delivery History',
+              'tracking.no_delivery_history'.tr(),
               style: TextStyle(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
@@ -289,7 +292,8 @@ class _TrackingHistoryScreenState extends State<TrackingHistoryScreen>
             ),
             SizedBox(height: 1.h),
             Text(
-              'Your delivery tracking history will appear here once you start making deliveries.',
+              'tracking.your_delivery_tracking_history_will_appear_here_on'
+                  .tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14.sp,
@@ -300,9 +304,9 @@ class _TrackingHistoryScreenState extends State<TrackingHistoryScreen>
             ElevatedButton.icon(
               onPressed: () => Get.back(),
               icon: const Icon(Icons.add),
-              label: const Text('Start Delivering'),
+              label: Text('tracking.start_delivering'.tr()),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: Color(0xFF008080),
                 foregroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 1.5.h),
               ),
@@ -328,7 +332,7 @@ class _TrackingHistoryScreenState extends State<TrackingHistoryScreen>
               ),
               SizedBox(height: 2.h),
               Text(
-                'No items in this category',
+                'common.no_items_in_this_category'.tr(),
                 style: TextStyle(
                   fontSize: 16.sp,
                   color: Colors.grey[600],
@@ -430,7 +434,7 @@ class _TrackingHistoryScreenState extends State<TrackingHistoryScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Progress',
+                      'common.progress'.tr(),
                       style: TextStyle(
                         fontSize: 13.sp,
                         color: Colors.grey[600],
@@ -493,7 +497,7 @@ class _TrackingHistoryScreenState extends State<TrackingHistoryScreen>
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
                   decoration: BoxDecoration(
-                    color: Colors.blue[50],
+                    color: Color(0xFF008080),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -501,7 +505,7 @@ class _TrackingHistoryScreenState extends State<TrackingHistoryScreen>
                     children: [
                       Icon(
                         Icons.location_history,
-                        color: Colors.blue[600],
+                        color: Color(0xFF008080),
                         size: 4.w,
                       ),
                       SizedBox(width: 1.w),
@@ -509,7 +513,7 @@ class _TrackingHistoryScreenState extends State<TrackingHistoryScreen>
                         '${tracking.trackingPoints.length} location points',
                         style: TextStyle(
                           fontSize: 11.sp,
-                          color: Colors.blue[700],
+                          color: Color(0xFF008080),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -593,7 +597,11 @@ class _TrackingHistoryScreenState extends State<TrackingHistoryScreen>
   }
 
   void _viewTrackingDetails(DeliveryTracking tracking) {
-    Get.toNamed('/tracking/${tracking.id}');
+    // Use TrackingRouteHandler for proper navigation with parameters
+    TrackingRouteHandler.navigateToPackageTracking(
+      trackingId: tracking.id,
+      packageRequestId: tracking.packageRequestId,
+    );
   }
 
   String _formatDate(DateTime dateTime) {

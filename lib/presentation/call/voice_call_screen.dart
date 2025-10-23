@@ -494,8 +494,8 @@ class _VoiceCallScreenState extends State<VoiceCallScreen>
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      const Color(0xFF0046FF).withOpacity(0.3),
-                      const Color(0xFF00D4FF).withOpacity(0.3),
+                      const Color(0xFF215C5C).withOpacity(0.3),
+                      const Color(0xFF2D7A6E).withOpacity(0.3),
                     ],
                   ),
                   border: Border.all(
@@ -605,7 +605,7 @@ class _VoiceCallScreenState extends State<VoiceCallScreen>
           _buildControlButton(
             icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_down,
             backgroundColor: _isSpeakerOn
-                ? const Color(0xFF0046FF)
+                ? const Color(0xFF215C5C)
                 : const Color(0xFF2C2C2E),
             onPressed: _toggleSpeaker,
           ),

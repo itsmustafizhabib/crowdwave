@@ -4,12 +4,13 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 import '../../../core/app_export.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class PackageDetailsWidget extends StatefulWidget {
   final TextEditingController descriptionController;
-  final PackageSize selectedSize;
+  final PackageSize? selectedSize;
   final double weightKg;
-  final PackageType selectedType;
+  final PackageType? selectedType;
   final TextEditingController brandController;
   final double? valueUSD;
   final bool isFragile;
@@ -53,7 +54,6 @@ class PackageDetailsWidget extends StatefulWidget {
 
 class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
     with TickerProviderStateMixin {
-  
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   final ImagePicker _imagePicker = ImagePicker();
@@ -96,35 +96,35 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
             // Package Description
             _buildSectionTitle('Package Description', Icons.description),
             _buildDescriptionField(),
-            
+
             SizedBox(height: 4.h),
-            
+
             // Package Photos
             _buildSectionTitle('Package Photos', Icons.photo_camera),
             _buildPhotoSection(),
-            
+
             SizedBox(height: 4.h),
-            
+
             // Package Type & Size
             _buildSectionTitle('Package Details', Icons.inventory_2),
             _buildPackageTypeSelector(),
             SizedBox(height: 3.h),
             _buildPackageSizeSelector(),
-            
+
             SizedBox(height: 4.h),
-            
+
             // Weight & Value
             _buildSectionTitle('Weight & Value', Icons.scale),
             _buildWeightAndValueSection(),
-            
+
             SizedBox(height: 4.h),
-            
+
             // Special Handling
             _buildSectionTitle('Special Handling', Icons.warning_amber),
             _buildSpecialHandlingOptions(),
-            
+
             SizedBox(height: 4.h),
-            
+
             // Brand/Store (Optional)
             _buildSectionTitle('Brand/Store (Optional)', Icons.store),
             _buildBrandField(),
@@ -178,9 +178,11 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
         controller: widget.descriptionController,
         maxLines: 4,
         decoration: InputDecoration(
-          hintText: 'Describe your package in detail (e.g., iPhone 15 Pro in original box, documents in sealed envelope, etc.)',
+          hintText:
+              'Describe your package in detail (e.g., iPhone 15 Pro in original box, documents in sealed envelope, etc.)',
           hintStyle: TextStyle(
-            color: AppTheme.lightTheme.colorScheme.onSurface.withValues(alpha: 0.5),
+            color: AppTheme.lightTheme.colorScheme.onSurface
+                .withValues(alpha: 0.5),
             fontSize: 12.sp,
           ),
           border: InputBorder.none,
@@ -207,15 +209,15 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Upload clear photos of your package',
+          Text('post_package.upload_clear_photos_of_your_package'.tr(),
             style: TextStyle(
               fontSize: 12.sp,
-              color: AppTheme.lightTheme.colorScheme.onSurface.withValues(alpha: 0.7),
+              color: AppTheme.lightTheme.colorScheme.onSurface
+                  .withValues(alpha: 0.7),
             ),
           ),
           SizedBox(height: 2.h),
-          
+
           // Photo grid
           if (widget.packagePhotos.isNotEmpty) ...[
             GridView.builder(
@@ -227,7 +229,8 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
                 mainAxisSpacing: 2.w,
                 childAspectRatio: 1,
               ),
-              itemCount: widget.packagePhotos.length + (widget.packagePhotos.length < 6 ? 1 : 0),
+              itemCount: widget.packagePhotos.length +
+                  (widget.packagePhotos.length < 6 ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index == widget.packagePhotos.length) {
                   return _buildAddPhotoButton();
@@ -265,8 +268,7 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
               size: 28,
             ),
             SizedBox(height: 1.h),
-            Text(
-              'Add Photo',
+            Text('common.add_photo'.tr(),
               style: TextStyle(
                 fontSize: 10.sp,
                 fontWeight: FontWeight.w500,
@@ -317,22 +319,45 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
 
   Widget _buildPackageTypeSelector() {
     final types = [
-      {'type': PackageType.documents, 'label': 'Documents', 'icon': Icons.description},
-      {'type': PackageType.electronics, 'label': 'Electronics', 'icon': Icons.smartphone},
-      {'type': PackageType.clothing, 'label': 'Clothing', 'icon': Icons.checkroom},
+      {
+        'type': PackageType.documents,
+        'label': 'Documents',
+        'icon': Icons.description
+      },
+      {
+        'type': PackageType.electronics,
+        'label': 'Electronics',
+        'icon': Icons.smartphone
+      },
+      {
+        'type': PackageType.clothing,
+        'label': 'Clothing',
+        'icon': Icons.checkroom
+      },
       {'type': PackageType.food, 'label': 'Food', 'icon': Icons.restaurant},
-      {'type': PackageType.medicine, 'label': 'Medicine', 'icon': Icons.medical_services},
-      {'type': PackageType.gifts, 'label': 'Gifts', 'icon': Icons.card_giftcard},
+      {
+        'type': PackageType.medicine,
+        'label': 'Medicine',
+        'icon': Icons.medical_services
+      },
+      {
+        'type': PackageType.gifts,
+        'label': 'Gifts',
+        'icon': Icons.card_giftcard
+      },
       {'type': PackageType.books, 'label': 'Books', 'icon': Icons.menu_book},
-      {'type': PackageType.cosmetics, 'label': 'Cosmetics', 'icon': Icons.face_retouching_natural},
+      {
+        'type': PackageType.cosmetics,
+        'label': 'Cosmetics',
+        'icon': Icons.face_retouching_natural
+      },
       {'type': PackageType.other, 'label': 'Other', 'icon': Icons.category},
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Package Type',
+        Text('post_package.package_type'.tr(),
           style: TextStyle(
             fontSize: 14.sp,
             fontWeight: FontWeight.w500,
@@ -345,21 +370,23 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
           runSpacing: 2.w,
           children: types.map((typeData) {
             final isSelected = widget.selectedType == typeData['type'];
-            
+
             return InkWell(
-              onTap: () => widget.onTypeChanged(typeData['type'] as PackageType),
+              onTap: () =>
+                  widget.onTypeChanged(typeData['type'] as PackageType),
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
                 decoration: BoxDecoration(
-                  color: isSelected 
+                  color: isSelected
                       ? AppTheme.lightTheme.primaryColor.withValues(alpha: 0.1)
                       : AppTheme.lightTheme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: isSelected 
+                    color: isSelected
                         ? AppTheme.lightTheme.primaryColor
-                        : AppTheme.lightTheme.colorScheme.outline.withValues(alpha: 0.3),
+                        : AppTheme.lightTheme.colorScheme.outline
+                            .withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
@@ -367,9 +394,10 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
                   children: [
                     Icon(
                       typeData['icon'] as IconData,
-                      color: isSelected 
+                      color: isSelected
                           ? AppTheme.lightTheme.primaryColor
-                          : AppTheme.lightTheme.colorScheme.onSurface.withValues(alpha: 0.7),
+                          : AppTheme.lightTheme.colorScheme.onSurface
+                              .withValues(alpha: 0.7),
                       size: 18,
                     ),
                     SizedBox(width: 2.w),
@@ -378,7 +406,7 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
                       style: TextStyle(
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w500,
-                        color: isSelected 
+                        color: isSelected
                             ? AppTheme.lightTheme.primaryColor
                             : AppTheme.lightTheme.colorScheme.onSurface,
                       ),
@@ -424,8 +452,7 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Package Size',
+        Text('post_package.package_size'.tr(),
           style: TextStyle(
             fontSize: 14.sp,
             fontWeight: FontWeight.w500,
@@ -436,23 +463,26 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
         Column(
           children: sizes.map((sizeData) {
             final isSelected = widget.selectedSize == sizeData['size'];
-            
+
             return Container(
               margin: EdgeInsets.only(bottom: 2.h),
               child: InkWell(
-                onTap: () => widget.onSizeChanged(sizeData['size'] as PackageSize),
+                onTap: () =>
+                    widget.onSizeChanged(sizeData['size'] as PackageSize),
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
                   padding: EdgeInsets.all(3.w),
                   decoration: BoxDecoration(
-                    color: isSelected 
-                        ? AppTheme.lightTheme.primaryColor.withValues(alpha: 0.1)
+                    color: isSelected
+                        ? AppTheme.lightTheme.primaryColor
+                            .withValues(alpha: 0.1)
                         : AppTheme.lightTheme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isSelected 
+                      color: isSelected
                           ? AppTheme.lightTheme.primaryColor
-                          : AppTheme.lightTheme.colorScheme.outline.withValues(alpha: 0.3),
+                          : AppTheme.lightTheme.colorScheme.outline
+                              .withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(
@@ -460,16 +490,19 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
                       Container(
                         padding: EdgeInsets.all(2.w),
                         decoration: BoxDecoration(
-                          color: isSelected 
-                              ? AppTheme.lightTheme.primaryColor.withValues(alpha: 0.2)
-                              : AppTheme.lightTheme.colorScheme.outline.withValues(alpha: 0.1),
+                          color: isSelected
+                              ? AppTheme.lightTheme.primaryColor
+                                  .withValues(alpha: 0.2)
+                              : AppTheme.lightTheme.colorScheme.outline
+                                  .withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
                           sizeData['icon'] as IconData,
-                          color: isSelected 
+                          color: isSelected
                               ? AppTheme.lightTheme.primaryColor
-                              : AppTheme.lightTheme.colorScheme.onSurface.withValues(alpha: 0.7),
+                              : AppTheme.lightTheme.colorScheme.onSurface
+                                  .withValues(alpha: 0.7),
                           size: 24,
                         ),
                       ),
@@ -483,7 +516,7 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
                               style: TextStyle(
                                 fontSize: 14.sp,
                                 fontWeight: FontWeight.w600,
-                                color: isSelected 
+                                color: isSelected
                                     ? AppTheme.lightTheme.primaryColor
                                     : AppTheme.lightTheme.colorScheme.onSurface,
                               ),
@@ -492,7 +525,8 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
                               sizeData['description'] as String,
                               style: TextStyle(
                                 fontSize: 11.sp,
-                                color: AppTheme.lightTheme.colorScheme.onSurface.withValues(alpha: 0.6),
+                                color: AppTheme.lightTheme.colorScheme.onSurface
+                                    .withValues(alpha: 0.6),
                               ),
                             ),
                           ],
@@ -523,8 +557,7 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Weight (kg)',
+              Text('post_package.weight_label'.tr(),
                 style: TextStyle(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w500,
@@ -538,7 +571,8 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
                   color: AppTheme.lightTheme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppTheme.lightTheme.colorScheme.outline.withValues(alpha: 0.3),
+                    color: AppTheme.lightTheme.colorScheme.outline
+                        .withValues(alpha: 0.3),
                   ),
                 ),
                 child: Column(
@@ -565,16 +599,16 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
             ],
           ),
         ),
-        
+
         SizedBox(width: 4.w),
-        
+
         // Value
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Value (USD)',
+                'Value (EUR)',
                 style: TextStyle(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w500,
@@ -587,15 +621,16 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
                   color: AppTheme.lightTheme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppTheme.lightTheme.colorScheme.outline.withValues(alpha: 0.3),
+                    color: AppTheme.lightTheme.colorScheme.outline
+                        .withValues(alpha: 0.3),
                   ),
                 ),
                 child: TextFormField(
                   initialValue: widget.valueUSD?.toString() ?? '',
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    hintText: 'Optional',
-                    prefixText: '\$ ',
+                    hintText: 'common.optional'.tr(),
+                    prefixText: '€ ',
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.all(3.w),
                   ),
@@ -626,8 +661,8 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
         children: [
           _buildHandlingOption(
             icon: Icons.warning,
-            title: 'Fragile',
-            subtitle: 'Handle with extra care',
+            title: 'package.fragile'.tr(),
+            subtitle: 'package.fragile_desc'.tr(),
             value: widget.isFragile,
             onChanged: widget.onFragileChanged,
             color: Colors.orange,
@@ -635,8 +670,8 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
           Divider(height: 3.h),
           _buildHandlingOption(
             icon: Icons.schedule,
-            title: 'Perishable',
-            subtitle: 'Time-sensitive item',
+            title: 'package.perishable'.tr(),
+            subtitle: 'package.perishable_desc'.tr(),
             value: widget.isPerishable,
             onChanged: widget.onPerishableChanged,
             color: Colors.red,
@@ -644,11 +679,11 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
           Divider(height: 3.h),
           _buildHandlingOption(
             icon: Icons.ac_unit,
-            title: 'Requires Refrigeration',
-            subtitle: 'Keep cold during transport',
+            title: 'package.requires_refrigeration'.tr(),
+            subtitle: 'package.refrigeration_desc'.tr(),
             value: widget.requiresRefrigeration,
             onChanged: widget.onRefrigerationChanged,
-            color: Colors.blue,
+            color: Color(0xFF008080),
           ),
         ],
       ),
@@ -694,7 +729,8 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
                 subtitle,
                 style: TextStyle(
                   fontSize: 11.sp,
-                  color: AppTheme.lightTheme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  color: AppTheme.lightTheme.colorScheme.onSurface
+                      .withValues(alpha: 0.6),
                 ),
               ),
             ],
@@ -753,23 +789,23 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
               ),
             ),
             SizedBox(height: 3.h),
-            
+
             // Title
-            Text(
-              'Add Package Photo',
+            Text('post_package.add_package_photo'.tr(),
               style: TextStyle(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.w600,
               ),
             ),
             SizedBox(height: 3.h),
-            
+
             // Camera option
             ListTile(
               leading: Container(
                 padding: EdgeInsets.all(2.w),
                 decoration: BoxDecoration(
-                  color: AppTheme.lightTheme.primaryColor.withValues(alpha: 0.1),
+                  color:
+                      AppTheme.lightTheme.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -777,20 +813,21 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
                   color: AppTheme.lightTheme.primaryColor,
                 ),
               ),
-              title: Text('Take Photo'),
-              subtitle: Text('Use camera to capture package'),
+              title: Text('common.take_photo'.tr()),
+              subtitle: Text('package.take_photo_desc'.tr()),
               onTap: () {
                 Navigator.pop(context);
                 _pickImage(ImageSource.camera);
               },
             ),
-            
+
             // Gallery option
             ListTile(
               leading: Container(
                 padding: EdgeInsets.all(2.w),
                 decoration: BoxDecoration(
-                  color: AppTheme.lightTheme.primaryColor.withValues(alpha: 0.1),
+                  color:
+                      AppTheme.lightTheme.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -798,14 +835,14 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
                   color: AppTheme.lightTheme.primaryColor,
                 ),
               ),
-              title: Text('Choose from Gallery'),
-              subtitle: Text('Select existing photo'),
+              title: Text('common.choose_from_gallery'.tr()),
+              subtitle: Text('common.select_photo_desc'.tr()),
               onTap: () {
                 Navigator.pop(context);
                 _pickImage(ImageSource.gallery);
               },
             ),
-            
+
             SizedBox(height: 2.h),
           ],
         ),
@@ -821,7 +858,7 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
         maxWidth: 1024,
         maxHeight: 1024,
       );
-      
+
       if (image != null) {
         final List<File> updatedPhotos = List.from(widget.packagePhotos);
         updatedPhotos.add(File(image.path));

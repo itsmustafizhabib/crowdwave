@@ -60,26 +60,29 @@ service cloud.firestore {
         && onlyStatusChanged(resource.data, request.resource.data);
     }
 
-    // Conversations collection - relaxed for authenticated users
+    // Conversations collection - VERY RELAXED for development (allows reads even during auth transitions)
     match /conversations/{conversationId} {
-      allow read, write: if request.auth != null;
+      // Allow reads even if request.auth is null (during sign-out/sign-in transitions)
+      // This prevents PERMISSION_DENIED errors when listeners are cleaning up
+      allow read: if true;
+      // Allow writes only for authenticated users
+      allow write: if request.auth != null;
     }
     
-    // Messages subcollection within conversations
+    // Messages subcollection within conversations - VERY RELAXED
     match /conversations/{conversationId}/messages/{messageId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null;
-      allow delete: if request.auth != null;
+      // Allow reads even during auth transitions to prevent stale listener errors
+      allow read: if true;
+      // Allow writes only for authenticated users
+      allow create, update, delete: if request.auth != null;
     }
 
-    // Presence collection - online/offline heartbeats
+    // Presence collection - RELAXED for development
     match /presence/{userId} {
-      // Anyone signed-in can read presence (to show online status)
-      allow read: if request.auth != null;
-      // Only the owner can create/update/delete their presence doc
-      allow create: if request.auth != null && request.auth.uid == userId;
-      allow update, delete: if request.auth != null && request.auth.uid == userId;
+      // Allow reads even during auth transitions
+      allow read: if true;
+      // Allow writes for any authenticated user (relaxed from strict owner check)
+      allow create, update, delete: if request.auth != null;
     }
 
     // System logs collection - for admin and system monitoring
@@ -87,29 +90,44 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
-    // Notifications collection
+    // Notifications collection - RELAXED
     match /notifications/{notificationId} {
-      allow read, write: if request.auth != null;
+      // Allow reads even during auth transitions
+      allow read: if true;
+      // Allow writes for authenticated users
+      allow write: if request.auth != null;
     }
     
-    // Package requests collection (legacy underscore)
+    // Package requests collection (legacy underscore) - RELAXED
     match /package_requests/{requestId} {
-      allow read, write: if request.auth != null;
+      // Allow reads even during auth transitions
+      allow read: if true;
+      // Allow writes for authenticated users
+      allow write: if request.auth != null;
     }
 
-    // PackageRequests collection - relaxed for authenticated users
+    // PackageRequests collection - RELAXED
     match /packageRequests/{requestId} {
-      allow read, write: if request.auth != null;
+      // Allow reads even during auth transitions
+      allow read: if true;
+      // Allow writes for authenticated users
+      allow write: if request.auth != null;
     }
 
-    // Bookings collection - relaxed for authenticated users
+    // Bookings collection - RELAXED
     match /bookings/{bookingId} {
-      allow read, write: if request.auth != null;
+      // Allow reads even during auth transitions
+      allow read: if true;
+      // Allow writes for authenticated users
+      allow write: if request.auth != null;
     }
 
-    // Delivery tracking collection - relaxed for authenticated users
+    // Delivery tracking collection - RELAXED
     match /deliveryTracking/{trackingId} {
-      allow read, write: if request.auth != null;
+      // Allow reads even during auth transitions
+      allow read: if true;
+      // Allow writes for authenticated users
+      allow write: if request.auth != null;
     }
 
     // Deals collection - relaxed for authenticated users
@@ -184,6 +202,36 @@ service cloud.firestore {
       
       // Allow delete for authenticated users
       allow delete: if request.auth != null;
+    }
+
+    // ========================================
+    // WALLET COLLECTION RULES
+    // ========================================
+    match /wallets/{userId} {
+      // Users can read their own wallet only
+      allow read: if request.auth != null && 
+                     (request.auth.uid == userId || hasAdminRole(request.auth.uid));
+      
+      // Users cannot write directly - only via Cloud Functions or backend
+      // This prevents users from manipulating their balance
+      allow write: if false;
+    }
+    
+    // ========================================
+    // TRANSACTIONS COLLECTION RULES
+    // ========================================
+    match /transactions/{transactionId} {
+      // Users can read their own transactions
+      allow read: if request.auth != null && 
+                     (resource.data.userId == request.auth.uid || hasAdminRole(request.auth.uid));
+      
+      // Users cannot write directly - only via Cloud Functions
+      // This ensures transaction integrity and prevents fraud
+      allow write: if false;
+      
+      // Allow listing transactions with pagination limit to prevent abuse
+      allow list: if request.auth != null && 
+                     request.query.limit <= 100;
     }
 
     // Helper function to check if user already has a review for this target

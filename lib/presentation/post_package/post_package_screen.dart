@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 
 import '../../core/app_export.dart';
 import '../../services/firebase_auth_service.dart';
@@ -42,9 +43,9 @@ class _PostPackageScreenState extends State<PostPackageScreen>
 
   // Step 2: Package Details
   final TextEditingController _descriptionController = TextEditingController();
-  PackageSize _selectedSize = PackageSize.small;
-  double _weightKg = 1.0;
-  PackageType _selectedType = PackageType.other;
+  PackageSize? _selectedSize;
+  double _weightKg = 0.1;
+  PackageType? _selectedType;
   final TextEditingController _brandController = TextEditingController();
   double? _valueUSD;
   bool _isFragile = false;
@@ -63,7 +64,7 @@ class _PostPackageScreenState extends State<PostPackageScreen>
       TextEditingController();
 
   // Step 4: Compensation
-  double _compensationOffer = 10.0;
+  double _compensationOffer = 5.0;
   bool _insuranceRequired = false;
   double? _insuranceValue;
 
@@ -117,7 +118,7 @@ class _PostPackageScreenState extends State<PostPackageScreen>
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Post a Package',
+          'post_package.title'.tr(),
           style: TextStyle(
             fontSize: 18.sp,
             fontWeight: FontWeight.w600,
@@ -221,13 +222,13 @@ class _PostPackageScreenState extends State<PostPackageScreen>
   String _getStepTitle(int step) {
     switch (step) {
       case 0:
-        return 'Pickup & Destination';
+        return 'post_package.step_locations'.tr();
       case 1:
-        return 'Package Details';
+        return 'post_package.step_details'.tr();
       case 2:
-        return 'Delivery Preferences';
+        return 'post_package.step_preferences'.tr();
       case 3:
-        return 'Set Compensation';
+        return 'post_package.step_compensation'.tr();
       default:
         return '';
     }
@@ -236,13 +237,13 @@ class _PostPackageScreenState extends State<PostPackageScreen>
   String _getStepDescription(int step) {
     switch (step) {
       case 0:
-        return 'Where should your package be picked up and delivered?';
+        return 'post_package.subtitle_locations'.tr();
       case 1:
-        return 'Tell us about your package and upload photos';
+        return 'post_package.subtitle_details'.tr();
       case 2:
-        return 'When do you need it delivered and any special requirements?';
+        return 'post_package.subtitle_preferences'.tr();
       case 3:
-        return 'How much are you willing to pay for delivery?';
+        return 'post_package.subtitle_compensation'.tr();
       default:
         return '';
     }
@@ -255,7 +256,7 @@ class _PostPackageScreenState extends State<PostPackageScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           LocationPickerWidget(
-            title: 'Pickup Location',
+            title: 'post_package.pickup_location'.tr(),
             location: _pickupLocation,
             onLocationSelected: (location) {
               setState(() {
@@ -264,7 +265,7 @@ class _PostPackageScreenState extends State<PostPackageScreen>
             },
           ),
           LocationPickerWidget(
-            title: 'Destination',
+            title: 'post_package.destination'.tr(),
             location: _destinationLocation,
             onLocationSelected: (location) {
               setState(() {
@@ -294,7 +295,11 @@ class _PostPackageScreenState extends State<PostPackageScreen>
                   SizedBox(width: 3.w),
                   Expanded(
                     child: Text(
-                      'Distance: ${_calculateDistance().toStringAsFixed(1)} km\nEstimated delivery cost range: \$${(_calculateDistance() * 0.5).toStringAsFixed(0)} - \$${(_calculateDistance() * 1.2).toStringAsFixed(0)}',
+                      'post_package.distance_info'.tr(namedArgs: {
+                        'distance': _calculateDistance().toStringAsFixed(1),
+                        'min': (_calculateDistance() * 0.5).toStringAsFixed(0),
+                        'max': (_calculateDistance() * 1.2).toStringAsFixed(0),
+                      }),
                       style: TextStyle(
                         fontSize: 11.sp,
                         color: AppTheme.lightTheme.primaryColor,
@@ -345,7 +350,7 @@ class _PostPackageScreenState extends State<PostPackageScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Delivery Date
-          _buildSectionTitle('Delivery Date'),
+          _buildSectionTitle('post_package.delivery_date'.tr()),
           Container(
             padding: EdgeInsets.all(3.w),
             decoration: BoxDecoration(
@@ -372,7 +377,7 @@ class _PostPackageScreenState extends State<PostPackageScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Preferred Delivery Date',
+                              'post_package.preferred_delivery_date'.tr(),
                               style: TextStyle(
                                 fontSize: 12.sp,
                                 fontWeight: FontWeight.w500,
@@ -417,14 +422,13 @@ class _PostPackageScreenState extends State<PostPackageScreen>
                     });
                   },
                   title: Text(
-                    'I\'m flexible with dates',
+                    'post_package.flexible_dates'.tr(),
                     style: TextStyle(
                       fontSize: 12.sp,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  subtitle: Text(
-                    'Get better matches by allowing date flexibility',
+                  subtitle: Text('post_package.flexible_hint'.tr(),
                     style: TextStyle(fontSize: 10.sp),
                   ),
                   controlAffinity: ListTileControlAffinity.leading,
@@ -437,19 +441,18 @@ class _PostPackageScreenState extends State<PostPackageScreen>
           SizedBox(height: 3.h),
 
           // Transport Modes
-          _buildSectionTitle('Preferred Transport'),
+          _buildSectionTitle('post_package.preferred_transport'.tr()),
           _buildTransportModeSelector(),
 
           SizedBox(height: 3.h),
 
           // Special Instructions
-          _buildSectionTitle('Special Instructions'),
+          _buildSectionTitle('post_package.special_instructions'.tr()),
           TextFormField(
             controller: _specialInstructionsController,
             maxLines: 3,
             decoration: InputDecoration(
-              hintText:
-                  'Any special handling instructions, delivery notes, or requirements...',
+              hintText: 'post_package.special_instructions_hint'.tr(),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -472,19 +475,19 @@ class _PostPackageScreenState extends State<PostPackageScreen>
               value: _isUrgent,
               onChanged: (value) => setState(() => _isUrgent = value ?? false),
               title: Text(
-                'Urgent Delivery',
+                'post_package.urgent_delivery'.tr(),
                 style: TextStyle(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               subtitle: Text(
-                'Mark as urgent for priority matching (+\$5 fee)',
+                'post_package.urgent_subtitle'.tr(),
                 style: TextStyle(fontSize: 11.sp),
               ),
               secondary: CustomIconWidget(
                 iconName: 'priority_high',
-                color: Color(0xFFFF8040),
+                color: Color(0xFF2D7A6E),
                 size: 24,
               ),
               controlAffinity: ListTileControlAffinity.leading,
@@ -622,13 +625,13 @@ class _PostPackageScreenState extends State<PostPackageScreen>
               child: OutlinedButton(
                 onPressed: _previousStep,
                 style: OutlinedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 3.h),
+                  padding: EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
                 child: Text(
-                  'Back',
+                  'common.back'.tr(),
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
@@ -649,7 +652,7 @@ class _PostPackageScreenState extends State<PostPackageScreen>
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.lightTheme.primaryColor,
                 foregroundColor: Colors.white,
-                padding: EdgeInsets.only(top: 3.h, bottom: 4.h),
+                padding: EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -664,7 +667,9 @@ class _PostPackageScreenState extends State<PostPackageScreen>
                       ),
                     )
                   : Text(
-                      _currentStep < _totalSteps - 1 ? 'Next' : 'Post Package',
+                      _currentStep < _totalSteps - 1
+                          ? 'common.next'.tr()
+                          : 'post_package.submit_button'.tr(),
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
@@ -714,6 +719,24 @@ class _PostPackageScreenState extends State<PostPackageScreen>
           _showErrorSnackBar(locationError);
           return false;
         }
+        // Check if pickup and destination are the same
+        if (_pickupLocation != null && _destinationLocation != null) {
+          // Check exact coordinate match
+          if (_pickupLocation!.latitude == _destinationLocation!.latitude &&
+              _pickupLocation!.longitude == _destinationLocation!.longitude) {
+            _showErrorSnackBar(
+                'Pickup and destination locations cannot be the same');
+            return false;
+          }
+          // Check if distance is too small (less than 100 meters)
+          final distance = _calculateDistance();
+          if (distance < 0.1) {
+            // 0.1 km = 100 meters
+            _showErrorSnackBar(
+                'Pickup and destination locations are too close. Please select different locations.');
+            return false;
+          }
+        }
         return true;
       case 1:
         String? descriptionError =
@@ -721,6 +744,18 @@ class _PostPackageScreenState extends State<PostPackageScreen>
                 _descriptionController.text);
         if (descriptionError != null) {
           _showErrorSnackBar(descriptionError);
+          return false;
+        }
+        if (_selectedSize == null) {
+          _showErrorSnackBar('post_package.validation_size'.tr());
+          return false;
+        }
+        if (_weightKg < 0.1) {
+          _showErrorSnackBar('post_package.validation_weight'.tr());
+          return false;
+        }
+        if (_selectedType == null) {
+          _showErrorSnackBar('post_package.validation_type'.tr());
           return false;
         }
         return true;
@@ -731,6 +766,10 @@ class _PostPackageScreenState extends State<PostPackageScreen>
             ValidationMessages.validateCompensation(_compensationOffer);
         if (compensationError != null) {
           _showErrorSnackBar(compensationError);
+          return false;
+        }
+        if (_compensationOffer < 5.0) {
+          _showErrorSnackBar('post_package.validation_compensation_min'.tr());
           return false;
         }
         return true;
@@ -784,7 +823,7 @@ class _PostPackageScreenState extends State<PostPackageScreen>
     try {
       final user = _authService.currentUser;
       if (user == null) {
-        _showErrorSnackBar('Please sign in to continue');
+        _showErrorSnackBar('post_package.validation_signin'.tr());
         return;
       }
 
@@ -796,8 +835,8 @@ class _PostPackageScreenState extends State<PostPackageScreen>
 
           // Show progress for photo processing
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Processing photos...'),
+            SnackBar(
+              content: Text('post_package.processing_photos'.tr()),
               duration: Duration(seconds: 2),
             ),
           );
@@ -815,7 +854,8 @@ class _PostPackageScreenState extends State<PostPackageScreen>
 
           print('Successfully processed ${photoUrls.length} photos');
         } catch (e) {
-          _showErrorSnackBar('Failed to process photos: $e');
+          _showErrorSnackBar('post_package.error_processing_photos'
+              .tr(namedArgs: {'error': e.toString()}));
           return;
         }
       }
@@ -829,9 +869,9 @@ class _PostPackageScreenState extends State<PostPackageScreen>
         destinationLocation: _destinationLocation!,
         packageDetails: PackageDetails(
           description: _descriptionController.text.trim(),
-          size: _selectedSize,
+          size: _selectedSize!,
           weightKg: _weightKg,
-          type: _selectedType,
+          type: _selectedType!,
           brand: _brandController.text.trim().isNotEmpty
               ? _brandController.text.trim()
               : null,
@@ -865,7 +905,7 @@ class _PostPackageScreenState extends State<PostPackageScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Package posted successfully!'),
+            content: Text('post_package.success_message'.tr()),
             backgroundColor: Colors.green,
           ),
         );

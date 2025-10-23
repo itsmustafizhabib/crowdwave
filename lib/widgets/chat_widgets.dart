@@ -19,7 +19,7 @@ class ChatFloatingButton extends StatelessWidget {
             onPressed: () {
               Get.to(() => const ChatScreen());
             },
-            backgroundColor: const Color(0xFF0046FF),
+            backgroundColor: const Color(0xFF215C5C),
             child: Stack(
               children: [
                 const Icon(
@@ -33,7 +33,7 @@ class ChatFloatingButton extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(2),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFF8040),
+                        color: const Color(0xFF2D7A6E),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       constraints: const BoxConstraints(
@@ -81,7 +81,7 @@ class ChatBottomNavigationIcon extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFF8040),
+                      color: const Color(0xFF2D7A6E),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     constraints: const BoxConstraints(

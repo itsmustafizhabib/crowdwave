@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sizer/sizer.dart';
 import 'dart:math';
 
@@ -220,8 +221,7 @@ class _CompensationWidgetState extends State<CompensationWidget>
               ),
               SizedBox(width: 3.w),
               Expanded(
-                child: Text(
-                  'Pricing Insights',
+                child: Text('common.pricing_insights'.tr(),
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
@@ -246,7 +246,7 @@ class _CompensationWidgetState extends State<CompensationWidget>
               Expanded(
                 child: _buildInsightItem(
                   'Market Rate',
-                  '\$${baseAmount.toStringAsFixed(0)}',
+                  '€${baseAmount.toStringAsFixed(0)}',
                   Icons.trending_up,
                   Colors.green,
                 ),
@@ -255,9 +255,9 @@ class _CompensationWidgetState extends State<CompensationWidget>
               Expanded(
                 child: _buildInsightItem(
                   'Per KM',
-                  '\$${(baseAmount / distance).toStringAsFixed(2)}',
+                  '€${(baseAmount / distance).toStringAsFixed(2)}',
                   Icons.straighten,
-                  Colors.blue,
+                  Color(0xFF008080),
                 ),
               ),
               SizedBox(width: 3.w),
@@ -380,8 +380,7 @@ class _CompensationWidgetState extends State<CompensationWidget>
                             color: Colors.green,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Text(
-                            'POPULAR',
+                          child: Text('common.popular'.tr(),
                             style: TextStyle(
                               fontSize: 8.sp,
                               fontWeight: FontWeight.w700,
@@ -392,7 +391,7 @@ class _CompensationWidgetState extends State<CompensationWidget>
                         SizedBox(height: 1.h),
                       ],
                       Text(
-                        '\$${amount.toStringAsFixed(0)}',
+                        '€${amount.toStringAsFixed(0)}',
                         style: TextStyle(
                           fontSize: 18.sp,
                           fontWeight: FontWeight.w700,
@@ -447,8 +446,7 @@ class _CompensationWidgetState extends State<CompensationWidget>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Set Your Amount',
+              Text('common.set_your_amount'.tr(),
                 style: TextStyle(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w500,
@@ -462,7 +460,7 @@ class _CompensationWidgetState extends State<CompensationWidget>
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  '\$${widget.compensationOffer.toStringAsFixed(0)}',
+                  '€${widget.compensationOffer.toStringAsFixed(0)}',
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w700,
@@ -485,7 +483,7 @@ class _CompensationWidgetState extends State<CompensationWidget>
               thumbShape: RoundSliderThumbShape(enabledThumbRadius: 12),
             ),
             child: Slider(
-              value: widget.compensationOffer,
+              value: widget.compensationOffer.clamp(5.0, 500.0),
               min: 5.0,
               max: 500.0,
               divisions: 99,
@@ -495,9 +493,8 @@ class _CompensationWidgetState extends State<CompensationWidget>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('\$5',
-                  style: TextStyle(fontSize: 11.sp, color: Colors.grey)),
-              Text('\$500',
+              Text('€5', style: TextStyle(fontSize: 11.sp, color: Colors.grey)),
+              Text('€500',
                   style: TextStyle(fontSize: 11.sp, color: Colors.grey)),
             ],
           ),
@@ -539,15 +536,14 @@ class _CompensationWidgetState extends State<CompensationWidget>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Your Offer',
+                Text('booking.your_offer'.tr(),
                   style: TextStyle(
                     fontSize: 12.sp,
                     color: Colors.white.withValues(alpha: 0.8),
                   ),
                 ),
                 Text(
-                  '\$${widget.compensationOffer.toStringAsFixed(0)}',
+                  '€${widget.compensationOffer.toStringAsFixed(0)}',
                   style: TextStyle(
                     fontSize: 28.sp,
                     fontWeight: FontWeight.w700,
@@ -592,16 +588,14 @@ class _CompensationWidgetState extends State<CompensationWidget>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Package Insurance',
+                    Text('post_package.package_insurance'.tr(),
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     SizedBox(height: 0.5.h),
-                    Text(
-                      'Protect your package against loss or damage',
+                    Text('post_package.protect_your_package_against_loss_or_damage'.tr(),
                       style: TextStyle(
                         fontSize: 11.sp,
                         color: AppTheme.lightTheme.colorScheme.onSurface
@@ -628,8 +622,7 @@ class _CompensationWidgetState extends State<CompensationWidget>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Insurance Value',
+                      Text('post_package.insurance_value'.tr(),
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w500,
@@ -642,8 +635,8 @@ class _CompensationWidgetState extends State<CompensationWidget>
                             '',
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          hintText: 'Enter value',
-                          prefixText: '\$ ',
+                          hintText: 'common.enter_value'.tr(),
+                          prefixText: '€ ',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -662,8 +655,7 @@ class _CompensationWidgetState extends State<CompensationWidget>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Insurance Fee',
+                      Text('booking.insurance_fee'.tr(),
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w500,
@@ -719,8 +711,7 @@ class _CompensationWidgetState extends State<CompensationWidget>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Cost Breakdown',
+          Text('common.cost_breakdown'.tr(),
             style: TextStyle(
               fontSize: 16.sp,
               fontWeight: FontWeight.w600,
@@ -735,15 +726,14 @@ class _CompensationWidgetState extends State<CompensationWidget>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Total Cost',
+              Text('common.total_cost'.tr(),
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               Text(
-                '\$${totalCost.toStringAsFixed(2)}',
+                '€${totalCost.toStringAsFixed(2)}',
                 style: TextStyle(
                   fontSize: 18.sp,
                   fontWeight: FontWeight.w700,
@@ -772,7 +762,7 @@ class _CompensationWidgetState extends State<CompensationWidget>
             ),
           ),
           Text(
-            '\$${amount.toStringAsFixed(2)}',
+            '€${amount.toStringAsFixed(2)}',
             style: TextStyle(
               fontSize: 12.sp,
               fontWeight: FontWeight.w500,
@@ -787,10 +777,10 @@ class _CompensationWidgetState extends State<CompensationWidget>
     return Container(
       padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
-        color: Colors.blue.withValues(alpha: 0.05),
+        color: Color(0xFF008080).withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.blue.withValues(alpha: 0.2),
+          color: Color(0xFF008080).withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -798,14 +788,13 @@ class _CompensationWidgetState extends State<CompensationWidget>
         children: [
           Row(
             children: [
-              Icon(Icons.lightbulb, color: Colors.blue, size: 20),
+              Icon(Icons.lightbulb, color: Color(0xFF008080), size: 20),
               SizedBox(width: 2.w),
-              Text(
-                'Tips for Better Matching',
+              Text('common.tips_for_better_matching'.tr(),
                 style: TextStyle(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
-                  color: Colors.blue[700],
+                  color: Color(0xFF008080),
                 ),
               ),
             ],
@@ -832,7 +821,7 @@ class _CompensationWidgetState extends State<CompensationWidget>
               text,
               style: TextStyle(
                 fontSize: 11.sp,
-                color: Colors.blue[600],
+                color: Color(0xFF008080),
               ),
             ),
           ),

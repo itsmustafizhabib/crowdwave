@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import '../routes/app_routes.dart';
 
@@ -18,11 +19,11 @@ class DebugMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Row(
+      title: Row(
         children: [
-          Icon(Icons.bug_report, color: Colors.orange),
-          SizedBox(width: 8),
-          Text('Debug Menu'),
+          const Icon(Icons.bug_report, color: Colors.orange),
+          const SizedBox(width: 8),
+          Text('debug.menu_title'.tr()),
         ],
       ),
       content: Column(
@@ -30,25 +31,25 @@ class DebugMenu extends StatelessWidget {
         children: [
           ListTile(
             leading: const Icon(Icons.email),
-            title: const Text('Email Test Screen'),
-            subtitle: const Text('Test email verification & password reset'),
+            title: Text('debug.email_test_screen'.tr()),
+            subtitle: Text('debug.email_test_description'.tr()),
             onTap: () {
               Navigator.of(context).pop();
               Navigator.pushNamed(context, AppRoutes.emailTest);
             },
           ),
           const Divider(),
-          const ListTile(
-            leading: Icon(Icons.info, color: Colors.blue),
-            title: Text('Debug Menu'),
-            subtitle: Text('Available only in debug mode'),
+          ListTile(
+            leading: const Icon(Icons.info, color: Color(0xFF008080)),
+            title: Text('debug.menu_title'.tr()),
+            subtitle: Text('debug.debug_mode_only'.tr()),
           ),
         ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
+          child: Text('common.close'.tr()),
         ),
       ],
     );

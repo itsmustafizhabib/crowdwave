@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/app_export.dart';
 import '../../services/firebase_auth_service.dart';
@@ -41,15 +42,14 @@ class _UserPackagesScreenState extends State<UserPackagesScreen>
     return Scaffold(
       backgroundColor: const Color(0xFFE9E9E9),
       appBar: AppBar(
-        title: Text(
-          'My Posts',
+        title: Text('common.my_posts'.tr(),
           style: TextStyle(
             color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: Color(0xFF0046FF),
+        backgroundColor: Color(0xFF215C5C),
         foregroundColor: Colors.white,
         elevation: 0,
         bottom: TabBar(
@@ -60,11 +60,11 @@ class _UserPackagesScreenState extends State<UserPackagesScreen>
           tabs: [
             Tab(
               icon: Icon(Icons.local_shipping),
-              text: 'My Packages',
+              text: 'home.my_packages'.tr(),
             ),
             Tab(
               icon: Icon(Icons.flight_takeoff),
-              text: 'My Trips',
+              text: 'travel.my_trips'.tr(),
             ),
           ],
         ),
@@ -146,7 +146,7 @@ class _UserPackagesScreenState extends State<UserPackagesScreen>
           return _buildEmptyStateWidget(
             'No Trips Posted',
             'You haven\'t posted any trips yet.',
-            Icons.flight_takeoff,
+            Icons.route,
             'Post Trip',
             () => Navigator.pushNamed(context, '/postTrip'),
           );
@@ -259,9 +259,9 @@ class _UserPackagesScreenState extends State<UserPackagesScreen>
                   ),
                   Spacer(),
                   Text(
-                    '\$${package.compensationOffer.toStringAsFixed(2)}',
+                    '€${package.compensationOffer.toStringAsFixed(2)}',
                     style: TextStyle(
-                      color: Color(0xFF0046FF),
+                      color: Color(0xFF215C5C),
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
@@ -274,8 +274,7 @@ class _UserPackagesScreenState extends State<UserPackagesScreen>
                   children: [
                     Icon(Icons.priority_high, color: Colors.red, size: 16),
                     SizedBox(width: 4),
-                    Text(
-                      'URGENT',
+                    Text('status.urgent'.tr(),
                       style: TextStyle(
                         color: Colors.red,
                         fontSize: 12,
@@ -364,9 +363,9 @@ class _UserPackagesScreenState extends State<UserPackagesScreen>
                   ),
                   Spacer(),
                   Text(
-                    '\$${trip.suggestedReward.toStringAsFixed(2)}',
+                    '€${trip.suggestedReward.toStringAsFixed(2)}',
                     style: TextStyle(
-                      color: Color(0xFF0046FF),
+                      color: Color(0xFF215C5C),
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
@@ -449,8 +448,7 @@ class _UserPackagesScreenState extends State<UserPackagesScreen>
             color: Colors.grey,
           ),
           SizedBox(height: 16),
-          Text(
-            'Please log in to view your posts',
+          Text('common.please_log_in_to_view_your_posts'.tr(),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -524,7 +522,7 @@ class _UserPackagesScreenState extends State<UserPackagesScreen>
           ElevatedButton(
             onPressed: onPressed,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF0046FF),
+              backgroundColor: Color(0xFF215C5C),
               foregroundColor: Colors.white,
               padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               shape: RoundedRectangleBorder(
@@ -550,7 +548,7 @@ class _UserPackagesScreenState extends State<UserPackagesScreen>
       case PackageStatus.pending:
         return Colors.orange;
       case PackageStatus.matched:
-        return Colors.blue;
+        return Color(0xFF008080);
       case PackageStatus.confirmed:
         return Colors.green;
       case PackageStatus.pickedUp:
@@ -594,7 +592,7 @@ class _UserPackagesScreenState extends State<UserPackagesScreen>
       case TripStatus.full:
         return Colors.orange;
       case TripStatus.inProgress:
-        return Colors.blue;
+        return Color(0xFF008080);
       case TripStatus.completed:
         return Colors.green[700]!;
       case TripStatus.cancelled:

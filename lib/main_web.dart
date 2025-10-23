@@ -3,7 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:sizer/sizer.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'firebase_options.dart';
 
 import '../services/auth_state_service.dart';
@@ -72,7 +73,7 @@ class WebHomePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('CrowdWave'),
+        title: Text('app.name'.tr()),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
       ),
@@ -99,8 +100,8 @@ class WebHomePage extends StatelessWidget {
               const SizedBox(height: 32),
 
               // Title
-              const Text(
-                'CrowdWave',
+              Text(
+                'app.name'.tr(),
                 style: TextStyle(
                   fontSize: 48,
                   fontWeight: FontWeight.bold,
@@ -110,8 +111,8 @@ class WebHomePage extends StatelessWidget {
               const SizedBox(height: 16),
 
               // Subtitle
-              const Text(
-                'Courier Delivery Platform',
+              Text(
+                'tracking.courier_delivery_platform'.tr(),
                 style: TextStyle(
                   fontSize: 24,
                   color: Colors.grey,
@@ -122,8 +123,9 @@ class WebHomePage extends StatelessWidget {
               // Description
               Container(
                 constraints: const BoxConstraints(maxWidth: 600),
-                child: const Text(
-                  'Connect travelers with people who need items delivered worldwide. The future of crowdsourced delivery is here.',
+                child: Text(
+                  'travel.connect_travelers_with_people_who_need_items_deliv'
+                      .tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 18,

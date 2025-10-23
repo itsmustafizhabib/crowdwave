@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
 import 'package:sizer/sizer.dart';
@@ -332,7 +333,7 @@ class _SplashScreenState extends State<SplashScreen>
                               center: Alignment.center,
                               radius: 1.5,
                               colors: [
-                                Colors.blue.withOpacity(0.1),
+                                Color(0xFF008080).withOpacity(0.1),
                                 Colors.transparent,
                                 Colors.orange.withOpacity(0.1),
                                 Colors.transparent,
@@ -363,7 +364,7 @@ class _SplashScreenState extends State<SplashScreen>
                           decoration: BoxDecoration(
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.blue
+                                color: Color(0xFF008080)
                                     .withOpacity(0.1 * _pulseOpacity.value),
                                 blurRadius: 20,
                                 spreadRadius: 2,
@@ -377,7 +378,7 @@ class _SplashScreenState extends State<SplashScreen>
                             height: 40.w,
                             placeholderBuilder: (context) => Container(
                               decoration: BoxDecoration(
-                                color: Colors.blue,
+                                color: Color(0xFF008080),
                                 borderRadius: BorderRadius.circular(8.w),
                               ),
                               child: Center(
@@ -412,14 +413,13 @@ class _SplashScreenState extends State<SplashScreen>
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    Colors.blue[800]!,
+                                    Color(0xFF008080)!,
                                     Colors.orange[700]!,
                                   ],
                                   stops: const [0.3, 0.7],
                                 ).createShader(bounds);
                               },
-                              child: Text(
-                                'CrowdWave',
+                              child: Text('app.name'.tr(),
                                 style: TextStyle(
                                   fontSize: 10.w,
                                   fontWeight: FontWeight.w900,
@@ -441,8 +441,7 @@ class _SplashScreenState extends State<SplashScreen>
                       position: _textPosition,
                       child: FadeTransition(
                         opacity: _textOpacity,
-                        child: Text(
-                          'Deliver Together, Earn Together',
+                        child: Text('common.deliver_together_earn_together'.tr(),
                           style: TextStyle(
                             fontSize: 4.5.w,
                             fontWeight: FontWeight.w500,
@@ -471,7 +470,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 offset: const Offset(0, 2),
                               ),
                               BoxShadow(
-                                color: Colors.blue
+                                color: Color(0xFF008080)
                                     .withOpacity(0.1 * _pulseOpacity.value),
                                 blurRadius: 8,
                                 spreadRadius: 1,
@@ -486,16 +485,16 @@ class _SplashScreenState extends State<SplashScreen>
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
-                                      Colors.blue[800]!,
-                                      Colors.blue[600]!,
-                                      Colors.blue[400]!,
+                                      Color(0xFF008080)!,
+                                      Color(0xFF008080)!,
+                                      Color(0xFF008080)!,
                                     ],
                                     stops: const [0.0, 0.5, 1.0],
                                   ),
                                   borderRadius: BorderRadius.circular(10),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.blue.withOpacity(
+                                      color: Color(0xFF008080).withOpacity(
                                           0.3 + 0.1 * _pulseOpacity.value),
                                       blurRadius: 6,
                                       spreadRadius: 1,

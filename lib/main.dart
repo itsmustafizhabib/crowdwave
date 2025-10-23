@@ -9,26 +9,30 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:get/get.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'firebase_options.dart';
 
-import '../core/app_export.dart';
-import '../core/utils/status_bar_utils.dart';
-import '../widgets/custom_error_widget.dart';
-import '../widgets/auth_wrapper.dart';
-import '../widgets/permission_initializer.dart';
-import '../services/auth_state_service.dart';
-import '../services/app_initialization_service.dart';
-import '../services/onboarding_service.dart';
-import '../services/notification_service.dart';
-import '../services/presence_service.dart';
-import '../services/location_service.dart';
-import '../services/tracking_service.dart';
-import '../services/memory_management_service.dart';
-import '../services/zego_call_service.dart';
-import '../services/permission_manager_service.dart';
-import '../controllers/app_lifecycle_controller.dart';
-import '../core/config/performance_config.dart';
-import '../utils/black_screen_fix.dart';
+import 'core/app_export.dart';
+import 'core/utils/status_bar_utils.dart';
+import 'widgets/custom_error_widget.dart';
+import 'widgets/auth_wrapper.dart';
+import 'widgets/permission_initializer.dart';
+import 'widgets/locale_initializer.dart';
+import 'services/auth_state_service.dart';
+import 'services/app_initialization_service.dart';
+import 'services/onboarding_service.dart';
+import 'services/notification_service.dart';
+import 'services/presence_service.dart';
+import 'services/location_service.dart';
+import 'services/tracking_service.dart';
+import 'services/memory_management_service.dart';
+import 'services/zego_call_service.dart';
+import 'services/permission_manager_service.dart';
+import 'services/wallet_service.dart';
+import 'services/locale/locale_detection_service.dart';
+import 'controllers/app_lifecycle_controller.dart';
+import 'core/config/performance_config.dart';
+import 'utils/black_screen_fix.dart';
 
 // ✅ BACKGROUND MESSAGE HANDLER - Handle notifications when app is terminated/background
 @pragma('vm:entry-point')
@@ -66,6 +70,21 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     case 'chat_message':
       if (kDebugMode) {
         print('💬 Background chat message from: ${message.data['senderName']}');
+      }
+      break;
+    case 'deal_accepted':
+      if (kDebugMode) {
+        print('🎉 BACKGROUND DEAL ACCEPTED notification');
+        print('💰 Deal ID: ${message.data['dealId']}');
+        print('📦 Package ID: ${message.data['packageId']}');
+      }
+      break;
+    case 'offer_received':
+    case 'offer_accepted':
+    case 'offer_rejected':
+      if (kDebugMode) {
+        print('💼 Background offer notification: $type');
+        print('📦 Package ID: ${message.data['packageId']}');
       }
       break;
     case 'voice_call':
@@ -179,6 +198,12 @@ void main() async {
   // Initialize app lifecycle controller for presence management
   Get.put(AppLifecycleController());
 
+  // 💰 Initialize Wallet Service - Handle user wallet and transactions
+  Get.put(WalletService());
+
+  // 🌍 Initialize Locale Detection Service - Multi-language support
+  Get.put(LocaleDetectionService());
+
   // 🚨 INITIALIZE BLACK SCREEN FIX - Prevent navigation black screens
   BlackScreenFix.initialize();
 
@@ -193,7 +218,8 @@ void main() async {
         // You can implement a global retry mechanism here
         print('Global retry attempted for: ${details.exception}');
       },
-      retryText: 'Refresh',
+      retryText:
+          'Refresh', // Using plain text as context is not available in main()
     );
   };
 
@@ -208,20 +234,59 @@ void main() async {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   }
 
-  runApp(MyApp());
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [
+        Locale('en'),
+        Locale('de'),
+        Locale('fr'),
+        Locale('es'),
+        Locale('it'),
+        Locale('pl'),
+        Locale('lt'),
+        Locale('el'),
+        Locale('nl'),
+        Locale('pt'),
+        Locale('ro'),
+        Locale('cs'),
+        Locale('sv'),
+        Locale('bg'),
+        Locale('hr'),
+        Locale('da'),
+        Locale('et'),
+        Locale('fi'),
+        Locale('hu'),
+        Locale('ga'),
+        Locale('lv'),
+        Locale('mt'),
+        Locale('sk'),
+        Locale('sl'),
+        Locale('ka'),
+      ],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('en'),
+      startLocale: const Locale('en'),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => AuthStateService(),
       child: Sizer(builder: (context, orientation, screenType) {
         return GetMaterialApp(
-          title: 'CrowdWave',
+          onGenerateTitle: (context) => context.tr('app.name'),
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: ThemeMode.light,
+          locale: context.locale,
+          supportedLocales: context.supportedLocales,
+          localizationsDelegates: context.localizationDelegates,
           // 🚨 CRITICAL: NEVER REMOVE OR MODIFY + UNIVERSAL STATUS BAR
           builder: (context, child) {
             // Apply universal solid blue status bar globally
@@ -246,8 +311,10 @@ class MyApp extends StatelessWidget {
           },
           // 🚨 END CRITICAL SECTION
           debugShowCheckedModeBanner: false,
-          home: PermissionInitializer(
-            child: AuthWrapper(),
+          home: LocaleInitializer(
+            child: PermissionInitializer(
+              child: AuthWrapper(),
+            ),
           ),
           routes: AppRoutes.routes,
         );

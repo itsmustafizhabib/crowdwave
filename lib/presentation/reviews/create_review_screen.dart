@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/review_model.dart';
@@ -132,8 +133,8 @@ class _CreateReviewScreenState extends State<CreateReviewScreen> {
       if (mounted) {
         Navigator.of(context).pop(true); // Return true to indicate success
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Review submitted successfully!'),
+          SnackBar(
+            content: Text('reviews.submitted_successfully'.tr()),
             backgroundColor: Colors.green,
           ),
         );
@@ -199,8 +200,7 @@ class _CreateReviewScreenState extends State<CreateReviewScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
-              'Rate your experience',
+            Text('tracking.rate_experience'.tr(),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -249,8 +249,8 @@ class _CreateReviewScreenState extends State<CreateReviewScreen> {
               controller: _commentController,
               maxLines: 4,
               maxLength: 500,
-              decoration: const InputDecoration(
-                hintText: 'Tell others about your experience...',
+              decoration: InputDecoration (
+                hintText: 'common.tell_others_about_your_experience'.tr(),
                 border: OutlineInputBorder(),
                 counterText: '',
               ),
@@ -362,7 +362,7 @@ class _CreateReviewScreenState extends State<CreateReviewScreen> {
                     });
                   },
                   icon: const Icon(Icons.add_a_photo),
-                  label: const Text('Add Photos'),
+                  label: Text('post_package.add_photos'.tr()),
                 ),
               ),
 
@@ -375,7 +375,7 @@ class _CreateReviewScreenState extends State<CreateReviewScreen> {
                     child: OutlinedButton.icon(
                       onPressed: _takePhoto,
                       icon: const Icon(Icons.camera_alt),
-                      label: const Text('Camera'),
+                      label: Text('chat.camera'.tr()),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -383,7 +383,7 @@ class _CreateReviewScreenState extends State<CreateReviewScreen> {
                     child: OutlinedButton.icon(
                       onPressed: _pickImages,
                       icon: const Icon(Icons.photo_library),
-                      label: const Text('Gallery'),
+                      label: Text('chat.gallery'.tr()),
                     ),
                   ),
                 ],
@@ -483,8 +483,7 @@ class _CreateReviewScreenState extends State<CreateReviewScreen> {
                             color: Colors.green[100],
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Text(
-                            'Verified',
+                          child: Text('profile.verified'.tr(),
                             style: TextStyle(
                               fontSize: 10,
                               color: Colors.green[700],
@@ -508,7 +507,7 @@ class _CreateReviewScreenState extends State<CreateReviewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Write Review'),
+        title: Text('reviews.write_review_1'.tr()),
         elevation: 0,
       ),
       body: Form(
@@ -568,8 +567,7 @@ class _CreateReviewScreenState extends State<CreateReviewScreen> {
                                 AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
-                      : const Text(
-                          'Submit Review',
+                      : Text('reviews.submit_review'.tr(),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,

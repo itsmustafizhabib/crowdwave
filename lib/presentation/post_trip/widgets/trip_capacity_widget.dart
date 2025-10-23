@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import '../../../core/app_export.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class TripCapacityWidget extends StatelessWidget {
   final double maxWeightKg;
@@ -86,7 +87,7 @@ class TripCapacityWidget extends StatelessWidget {
                   initialValue: maxWeightKg.toString(),
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: 'Max Weight (kg)',
+                    labelText: 'trip.max_weight_kg'.tr(),
                     hintText: 'e.g., 25',
                     prefixIcon: Icon(Icons.fitness_center),
                     border: OutlineInputBorder(
@@ -105,7 +106,7 @@ class TripCapacityWidget extends StatelessWidget {
                   initialValue: maxVolumeLiters.toString(),
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: 'Max Volume (L)',
+                    labelText: 'trip.max_volume_l'.tr(),
                     hintText: 'e.g., 50',
                     prefixIcon: Icon(Icons.inventory),
                     border: OutlineInputBorder(
@@ -128,7 +129,7 @@ class TripCapacityWidget extends StatelessWidget {
             initialValue: maxPackages.toString(),
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
-              labelText: 'Maximum Number of Packages',
+              labelText: 'trip.max_packages'.tr(),
               hintText: 'e.g., 5',
               prefixIcon: Icon(Icons.inventory_2),
               border: OutlineInputBorder(

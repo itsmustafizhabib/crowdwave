@@ -199,7 +199,7 @@ class SmartMatchingController extends GetxController {
     Get.snackbar(
       'Smart Matching',
       'Advanced matching features coming soon!',
-      backgroundColor: Colors.blue.withOpacity(0.8),
+      backgroundColor: Color(0xFF008080).withOpacity(0.8),
       colorText: Colors.white,
     );
   }

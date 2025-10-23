@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:sizer/sizer.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../controllers/matching_controller.dart';
 import '../../../core/models/models.dart';
 import '../../../widgets/liquid_loading_indicator.dart';
@@ -23,7 +24,7 @@ class MatchingScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Smart Matching'),
+        title: Text('matching.title'.tr()),
         backgroundColor: Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
         actions: [
@@ -47,10 +48,18 @@ class MatchingScreen extends StatelessWidget {
             // Tab bar
             TabBar(
               tabs: [
-                Tab(text: 'Auto Matches', icon: Icon(Icons.auto_awesome)),
-                Tab(text: 'Browse Trips', icon: Icon(Icons.explore)),
-                Tab(text: 'Nearby Packages', icon: Icon(Icons.location_on)),
-                Tab(text: 'Nearby Trips', icon: Icon(Icons.directions_car)),
+                Tab(
+                    text: 'matching.auto_matches_tab'.tr(),
+                    icon: Icon(Icons.auto_awesome)),
+                Tab(
+                    text: 'matching.browse_trips_tab'.tr(),
+                    icon: Icon(Icons.explore)),
+                Tab(
+                    text: 'matching.nearby_packages_tab'.tr(),
+                    icon: Icon(Icons.location_on)),
+                Tab(
+                    text: 'matching.nearby_trips_tab'.tr(),
+                    icon: Icon(Icons.directions_car)),
               ],
               labelColor: Theme.of(context).primaryColor,
               unselectedLabelColor: Colors.grey,
@@ -73,7 +82,7 @@ class MatchingScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showNearbySearchDialog(context, controller),
         child: Icon(Icons.near_me),
-        tooltip: 'Find Nearby',
+        tooltip: 'matching.find_nearby'.tr(),
       ),
     );
   }
@@ -89,7 +98,7 @@ class MatchingScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Auto-Matching',
+                'matching.auto_matching'.tr(),
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w600,
@@ -113,11 +122,11 @@ class MatchingScreen extends StatelessWidget {
 
       if (controller.matches.isEmpty) {
         return _buildEmptyState(
-          'No Auto-Matches Found',
-          'We couldn\'t find any automatic matches for your package. Try adjusting your filters or browse trips manually.',
+          'matching.no_auto_matches_title'.tr(),
+          'matching.no_auto_matches_desc'.tr(),
           Icons.auto_awesome_motion,
           () => _triggerAutoMatch(controller),
-          'Find Matches',
+          'matching.find_matches'.tr(),
         );
       }
 
@@ -140,11 +149,11 @@ class MatchingScreen extends StatelessWidget {
 
       if (controller.potentialTrips.isEmpty) {
         return _buildEmptyState(
-          'No Trips Available',
-          'There are no trips matching your criteria at the moment. Try adjusting your filters or check back later.',
+          'matching.no_trips_title'.tr(),
+          'matching.no_trips_desc'.tr(),
           Icons.explore_off,
           () => _loadPotentialTrips(controller),
-          'Search Trips',
+          'matching.search_trips'.tr(),
         );
       }
 
@@ -167,11 +176,11 @@ class MatchingScreen extends StatelessWidget {
 
       if (controller.nearbyPackages.isEmpty) {
         return _buildEmptyState(
-          'No Nearby Packages',
-          'No packages found in your area. Enable location services and try again.',
+          'matching.no_nearby_packages_title'.tr(),
+          'matching.no_nearby_packages_desc'.tr(),
           Icons.location_off,
           () => _loadNearbyPackages(controller),
-          'Find Nearby',
+          'matching.find_nearby'.tr(),
         );
       }
 
@@ -194,11 +203,11 @@ class MatchingScreen extends StatelessWidget {
 
       if (controller.nearbyTrips.isEmpty) {
         return _buildEmptyState(
-          'No Nearby Trips',
-          'No trips found in your area. Enable location services and try again.',
+          'matching.no_nearby_trips_title'.tr(),
+          'matching.no_nearby_trips_desc'.tr(),
           Icons.location_off,
           () => _loadNearbyTrips(controller),
-          'Find Nearby',
+          'matching.find_nearby'.tr(),
         );
       }
 
@@ -300,7 +309,7 @@ class MatchingScreen extends StatelessWidget {
                     style: TextStyle(fontSize: 10.sp),
                   ),
                   backgroundColor: match.matchingType == MatchingType.auto
-                      ? Colors.blue.shade100
+                      ? Color(0xFF008080)
                       : Colors.orange.shade100,
                 ),
               ],
@@ -351,7 +360,7 @@ class MatchingScreen extends StatelessWidget {
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
                       ),
-                      child: Text('Accept'),
+                      child: Text('matching.accept'.tr()),
                     ),
                   ),
                   SizedBox(width: 2.w),
@@ -363,7 +372,7 @@ class MatchingScreen extends StatelessWidget {
                         backgroundColor: Colors.red,
                         foregroundColor: Colors.white,
                       ),
-                      child: Text('Reject'),
+                      child: Text('matching.reject'.tr()),
                     ),
                   ),
                 ],
@@ -449,7 +458,7 @@ class MatchingScreen extends StatelessWidget {
                   Icons.inventory,
                 ),
                 _buildInfoChip(
-                  '\$${trip.suggestedReward}',
+                  '€${trip.suggestedReward}',
                   Icons.attach_money,
                 ),
               ],
@@ -476,7 +485,7 @@ class MatchingScreen extends StatelessWidget {
                 backgroundColor: Theme.of(Get.context!).primaryColor,
                 foregroundColor: Colors.white,
               ),
-              child: Text('Contact Traveler'),
+              child: Text('matching.contact_traveler'.tr()),
             ),
           ],
         ),
@@ -490,13 +499,14 @@ class MatchingScreen extends StatelessWidget {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: suggestion.type == 'package'
-              ? Colors.blue.shade100
+              ? Color(0xFF008080)
               : Colors.green.shade100,
           child: Icon(
             suggestion.type == 'package'
                 ? Icons.inventory
                 : Icons.directions_car,
-            color: suggestion.type == 'package' ? Colors.blue : Colors.green,
+            color:
+                suggestion.type == 'package' ? Color(0xFF008080) : Colors.green,
           ),
         ),
         title: Text(
@@ -533,7 +543,7 @@ class MatchingScreen extends StatelessWidget {
       chips.add(Chip(
         label: Text('${factors['averageDistance'].toStringAsFixed(1)}km'),
         avatar: Icon(Icons.location_on, size: 4.w),
-        backgroundColor: Colors.blue.shade100,
+        backgroundColor: Color(0xFF008080),
       ));
     }
 
@@ -595,7 +605,7 @@ class MatchingScreen extends StatelessWidget {
       case MatchStatus.cancelled:
         return Colors.orange;
       default:
-        return Colors.blue;
+        return Color(0xFF008080);
     }
   }
 
@@ -687,27 +697,26 @@ class MatchingScreen extends StatelessWidget {
     showDialog(
       context: Get.context!,
       builder: (context) => AlertDialog(
-        title: Text('Accept Match'),
-        content: Text(
-            'Do you want to accept this match? You can negotiate the price if needed.'),
+        title: Text('matching.accept_match'.tr()),
+        content: Text('common.do_you_want_to_accept_this_match_you_can_negotiate'.tr()),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: Text('Cancel'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () {
               Get.back();
               controller.acceptMatch(match.id);
             },
-            child: Text('Accept'),
+            child: Text('matching.accept'.tr()),
           ),
           TextButton(
             onPressed: () {
               Get.back();
               _showPriceNegotiationDialog(match, controller);
             },
-            child: Text('Negotiate Price'),
+            child: Text('matching.negotiate_price'.tr()),
           ),
         ],
       ),
@@ -721,11 +730,11 @@ class MatchingScreen extends StatelessWidget {
     showDialog(
       context: Get.context!,
       builder: (context) => AlertDialog(
-        title: Text('Reject Match'),
+        title: Text('matching.reject_match'.tr()),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Why are you rejecting this match?'),
+            Text('matching.reject_reason_prompt'.tr()),
             SizedBox(height: 2.h),
             TextField(
               controller: reasonController,
@@ -740,7 +749,7 @@ class MatchingScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: Text('Cancel'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () {
@@ -752,7 +761,7 @@ class MatchingScreen extends StatelessWidget {
                     : reasonController.text,
               );
             },
-            child: Text('Reject'),
+            child: Text('matching.reject'.tr()),
           ),
         ],
       ),
@@ -766,11 +775,11 @@ class MatchingScreen extends StatelessWidget {
     showDialog(
       context: Get.context!,
       builder: (context) => AlertDialog(
-        title: Text('Negotiate Price'),
+        title: Text('matching.negotiate_price'.tr()),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Enter your preferred price for this delivery:'),
+            Text('matching.enter_preferred_price'.tr()),
             SizedBox(height: 2.h),
             TextField(
               controller: priceController,
@@ -786,7 +795,7 @@ class MatchingScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: Text('Cancel'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () {
@@ -798,7 +807,7 @@ class MatchingScreen extends StatelessWidget {
                 Get.snackbar('Error', 'Please enter a valid price');
               }
             },
-            child: Text('Accept with Price'),
+            child: Text('matching.accept_with_price'.tr()),
           ),
         ],
       ),
@@ -810,13 +819,13 @@ class MatchingScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Find Nearby'),
+        title: Text('matching.find_nearby'.tr()),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
               leading: Icon(Icons.inventory),
-              title: Text('Nearby Packages'),
+              title: Text('matching.nearby_packages'.tr()),
               onTap: () {
                 Get.back();
                 _loadNearbyPackages(controller);
@@ -824,7 +833,7 @@ class MatchingScreen extends StatelessWidget {
             ),
             ListTile(
               leading: Icon(Icons.directions_car),
-              title: Text('Nearby Trips'),
+              title: Text('matching.nearby_trips'.tr()),
               onTap: () {
                 Get.back();
                 _loadNearbyTrips(controller);
@@ -870,7 +879,7 @@ class _FilterDialogState extends State<_FilterDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Filter Matches'),
+      title: Text('matching.filter_title'.tr()),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -887,7 +896,7 @@ class _FilterDialogState extends State<_FilterDialog> {
             TextField(
               controller: _minRatingController,
               decoration: InputDecoration(
-                labelText: 'Min Traveler Rating',
+                labelText: 'travel.min_traveler_rating'.tr(),
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.number,
@@ -896,7 +905,7 @@ class _FilterDialogState extends State<_FilterDialog> {
             DropdownButtonFormField<TransportMode>(
               initialValue: _selectedTransportMode,
               decoration: InputDecoration(
-                labelText: 'Transport Mode',
+                labelText: 'detail.transport_mode'.tr(),
                 border: OutlineInputBorder(),
               ),
               items: TransportMode.values.map((mode) {
@@ -912,7 +921,7 @@ class _FilterDialogState extends State<_FilterDialog> {
             DropdownButtonFormField<PackageSize>(
               initialValue: _selectedMaxSize,
               decoration: InputDecoration(
-                labelText: 'Max Package Size',
+                labelText: 'post_package.max_package_size'.tr(),
                 border: OutlineInputBorder(),
               ),
               items: PackageSize.values.map((size) {
@@ -925,12 +934,12 @@ class _FilterDialogState extends State<_FilterDialog> {
             ),
             SizedBox(height: 2.h),
             SwitchListTile(
-              title: Text('Verified Travelers Only'),
+              title: Text('matching.verified_only'.tr()),
               value: _verifiedOnly,
               onChanged: (value) => setState(() => _verifiedOnly = value),
             ),
             SwitchListTile(
-              title: Text('Urgent Packages Only'),
+              title: Text('matching.urgent_only'.tr()),
               value: _urgentOnly,
               onChanged: (value) => setState(() => _urgentOnly = value),
             ),
@@ -940,21 +949,21 @@ class _FilterDialogState extends State<_FilterDialog> {
       actions: [
         TextButton(
           onPressed: () => Get.back(),
-          child: Text('Cancel'),
+          child: Text('common.cancel'.tr()),
         ),
         TextButton(
           onPressed: () {
             widget.controller.resetCriteria();
             Get.back();
           },
-          child: Text('Reset'),
+          child: Text('matching.reset'.tr()),
         ),
         TextButton(
           onPressed: () {
             _applyFilters();
             Get.back();
           },
-          child: Text('Apply'),
+          child: Text('matching.apply'.tr()),
         ),
       ],
     );

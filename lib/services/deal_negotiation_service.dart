@@ -1,16 +1,17 @@
 import 'dart:async';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
 import '../core/models/deal_offer.dart';
 import '../core/models/chat_message.dart';
 import '../core/models/package_request.dart';
 import '../core/models/travel_trip.dart';
 import '../core/repositories/trip_repository.dart';
-import '../controllers/chat_controller.dart';
 import 'chat_service.dart';
 import 'admin_service.dart';
+import 'notification_service.dart';
+import '../models/notification_model.dart';
 
 class DealNegotiationService {
   static final DealNegotiationService _instance =
@@ -23,6 +24,7 @@ class DealNegotiationService {
   final ChatService _chatService = ChatService();
   final AdminService _adminService = AdminService();
   final TripRepository _tripRepository = TripRepository();
+  final NotificationService _notificationService = NotificationService();
 
   // Collections
   static const String _dealsCollection = 'deals';
@@ -30,6 +32,7 @@ class DealNegotiationService {
 
   // Constants
   static const Duration _defaultOfferExpiration = Duration(hours: 24);
+  static const int maxOffersPerUserPerPackage = 2;
 
   String? get currentUserId => _auth.currentUser?.uid;
 
@@ -51,6 +54,18 @@ class DealNegotiationService {
       // Validate package exists and is available
       await _validatePackageForOffer(packageId);
 
+      // Get package owner ID
+      final packageDoc = await _firestore
+          .collection(_packageRequestsCollection)
+          .doc(packageId)
+          .get();
+
+      if (!packageDoc.exists || packageDoc.data() == null) {
+        throw Exception('Package not found');
+      }
+
+      final packageOwnerId = packageDoc.data()!['senderId'] as String;
+
       // Create deal offer
       final dealOffer = DealOffer(
         id: _generateDealId(),
@@ -59,6 +74,7 @@ class DealNegotiationService {
         travelerId: travelerId,
         senderId: currentUser.uid,
         senderName: currentUser.displayName ?? 'Unknown User',
+        packageOwnerId: packageOwnerId,
         offeredPrice: offeredPrice,
         message: message,
         status: DealStatus.pending,
@@ -85,35 +101,90 @@ class DealNegotiationService {
         },
       );
 
-      // ✅ FIX: Trigger chat refresh to ensure offer appears immediately
+      // ✅ Send notification to package owner about new offer
       try {
-        if (Get.isRegistered<ChatController>()) {
-          final chatController = Get.find<ChatController>();
-          // Small delay to allow message to be saved
-          await Future.delayed(const Duration(milliseconds: 500));
-          await chatController.refreshConversations();
+        // Get package details
+        final packageDoc = await _firestore
+            .collection(_packageRequestsCollection)
+            .doc(packageId)
+            .get();
+
+        if (packageDoc.exists && packageDoc.data() != null) {
+          final packageData = packageDoc.data()!;
+          final senderId = packageData['senderId'];
+
+          // Safely extract location names
+          String packageRoute = 'your package';
+          try {
+            final pickupLocation =
+                packageData['pickupLocation'] as Map<String, dynamic>?;
+            final deliveryLocation =
+                packageData['deliveryLocation'] as Map<String, dynamic>?;
+
+            if (pickupLocation != null && deliveryLocation != null) {
+              final pickupCity = pickupLocation['city'] ??
+                  pickupLocation['address'] ??
+                  'pickup';
+              final deliveryCity = deliveryLocation['city'] ??
+                  deliveryLocation['address'] ??
+                  'delivery';
+              packageRoute = 'your package from $pickupCity to $deliveryCity';
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('⚠️ Could not parse location data: $e');
+            }
+          }
+
+          final travelerName = currentUser.displayName ?? 'A traveler';
+
           if (kDebugMode) {
-            print('✅ Chat refreshed after sending offer');
+            print('🔔 CREATING NOTIFICATION FOR OFFER RECEIVED');
+            print('  📧 Recipient userId: $senderId');
+            print('  👤 Traveler name: $travelerName');
+            print('  💰 Offer amount: \$${offeredPrice.toStringAsFixed(2)}');
+            print('  📦 Package: $packageRoute');
+          }
+
+          await _notificationService.createNotification(
+            userId: senderId,
+            title: 'notifications.new_offer'.tr(),
+            body:
+                '$travelerName made an offer of \$${offeredPrice.toStringAsFixed(2)} for $packageRoute',
+            type: NotificationType.offerReceived,
+            relatedEntityId: packageId,
+            data: {
+              'dealId': dealOffer.id,
+              'packageId': packageId,
+              'travelerName': travelerName,
+              'offerAmount': offeredPrice,
+              'type': 'offer_received',
+            },
+          );
+
+          if (kDebugMode) {
+            print(
+                '✅ Notification creation completed for package owner: $senderId');
+            print(
+                '🔔 Check Firestore "notifications" collection for userId: $senderId');
           }
         }
       } catch (e) {
         if (kDebugMode) {
-          print('⚠️ Chat refresh failed after offer: $e');
+          print('❌ Error sending offer notification: $e');
         }
-        // Don't fail the offer if chat refresh fails
+        // Don't throw - notification failure shouldn't block the offer
       }
 
-      // Log admin event
-      await _adminService.logSystemEvent(
-        eventType: 'DEAL_OFFER_SENT',
-        description:
-            'Price offer sent for package $packageId: \$${offeredPrice.toStringAsFixed(2)}',
-        metadata: {
-          'dealId': dealOffer.id,
-          'packageId': packageId,
-          'offeredPrice': offeredPrice,
-          'travelerId': travelerId,
-        },
+      // ✅ OPTIMIZED: Fire-and-forget chat refresh (don't block user flow)
+      _refreshChatInBackground();
+
+      // ✅ OPTIMIZED: Fire-and-forget admin logging (don't block user flow)
+      _logOfferEventInBackground(
+        dealOffer: dealOffer,
+        packageId: packageId,
+        offeredPrice: offeredPrice,
+        travelerId: travelerId,
         userId: currentUser.uid,
       );
 
@@ -154,7 +225,7 @@ class DealNegotiationService {
             'Cannot respond to this offer (expired or already responded)');
       }
 
-      // Create counter offer
+      // Create counter offer (keep same packageOwnerId as original)
       final counterOffer = DealOffer(
         id: _generateDealId(),
         packageId: originalOffer.packageId,
@@ -162,6 +233,7 @@ class DealNegotiationService {
         travelerId: originalOffer.travelerId,
         senderId: currentUser.uid,
         senderName: currentUser.displayName ?? 'Unknown User',
+        packageOwnerId: originalOffer.packageOwnerId,
         offeredPrice: counterPrice,
         message: message,
         status: DealStatus.pending,
@@ -261,11 +333,17 @@ class DealNegotiationService {
         print('    - senderId: ${packageData['senderId']}');
         print('    - status: ${packageData['status']}');
         print('    - createdAt: ${packageData['createdAt']}');
+        print('    - id in packageData: ${packageData['id']}');
+        print('  - Document ID (correct): ${packageDoc.id}');
       }
+
+      // CRITICAL FIX: Remove 'id' from packageData to prevent overwriting document ID
+      final cleanedPackageData = Map<String, dynamic>.from(packageData);
+      cleanedPackageData.remove('id');
 
       final package = PackageRequest.fromJson({
         'id': packageDoc.id,
-        ...packageData,
+        ...cleanedPackageData,
       });
 
       if (kDebugMode) {
@@ -526,6 +604,69 @@ class DealNegotiationService {
         },
       );
 
+      // ✅ Send notification to the traveler who made the offer
+      try {
+        // Get package details for notification
+        final packageDoc = await _firestore
+            .collection(_packageRequestsCollection)
+            .doc(dealOffer.packageId)
+            .get();
+
+        if (packageDoc.exists && packageDoc.data() != null) {
+          final packageData = packageDoc.data()!;
+
+          // Safely extract location names
+          String packageRoute = 'the package';
+          try {
+            final pickupLocation =
+                packageData['pickupLocation'] as Map<String, dynamic>?;
+            final deliveryLocation =
+                packageData['deliveryLocation'] as Map<String, dynamic>?;
+
+            if (pickupLocation != null && deliveryLocation != null) {
+              final pickupCity = pickupLocation['city'] ??
+                  pickupLocation['address'] ??
+                  'pickup';
+              final deliveryCity = deliveryLocation['city'] ??
+                  deliveryLocation['address'] ??
+                  'delivery';
+              packageRoute = 'the package from $pickupCity to $deliveryCity';
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('⚠️ Could not parse location data: $e');
+            }
+          }
+
+          final senderName = packageData['senderName'] ?? 'Package owner';
+
+          await _notificationService.createNotification(
+            userId: dealOffer.travelerId,
+            title: 'Offer Accepted! 🎉',
+            body:
+                '$senderName accepted your offer of \$${dealOffer.offeredPrice.toStringAsFixed(2)} for $packageRoute',
+            type: NotificationType.offerAccepted,
+            relatedEntityId: dealOffer.packageId,
+            data: {
+              'dealId': dealOfferId,
+              'packageId': dealOffer.packageId,
+              'senderName': senderName,
+              'finalPrice': dealOffer.offeredPrice,
+              'type': 'offer_accepted',
+            },
+          );
+
+          if (kDebugMode) {
+            print('✅ Notification sent to traveler: ${dealOffer.travelerId}');
+          }
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('❌ Error sending acceptance notification: $e');
+        }
+        // Don't throw - notification failure shouldn't block the deal
+      }
+
       // Log admin event
       await _adminService.logSystemEvent(
         eventType: 'DEAL_ACCEPTED',
@@ -584,6 +725,68 @@ class DealNegotiationService {
           'rejectionReason': reason,
         },
       );
+
+      // ✅ Send notification to the traveler who made the offer
+      try {
+        // Get package details for notification
+        final packageDoc = await _firestore
+            .collection(_packageRequestsCollection)
+            .doc(dealOffer.packageId)
+            .get();
+
+        if (packageDoc.exists && packageDoc.data() != null) {
+          final packageData = packageDoc.data()!;
+
+          // Safely extract location names
+          String packageRoute = 'the package';
+          try {
+            final pickupLocation =
+                packageData['pickupLocation'] as Map<String, dynamic>?;
+            final deliveryLocation =
+                packageData['deliveryLocation'] as Map<String, dynamic>?;
+
+            if (pickupLocation != null && deliveryLocation != null) {
+              final pickupCity = pickupLocation['city'] ??
+                  pickupLocation['address'] ??
+                  'pickup';
+              final deliveryCity = deliveryLocation['city'] ??
+                  deliveryLocation['address'] ??
+                  'delivery';
+              packageRoute = 'the package from $pickupCity to $deliveryCity';
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('⚠️ Could not parse location data: $e');
+            }
+          }
+
+          final senderName = packageData['senderName'] ?? 'Package owner';
+
+          await _notificationService.createNotification(
+            userId: dealOffer.travelerId,
+            title: 'notifications.offer_declined'.tr(),
+            body: '$senderName declined your offer for $packageRoute',
+            type: NotificationType.offerRejected,
+            relatedEntityId: dealOffer.packageId,
+            data: {
+              'dealId': dealOfferId,
+              'packageId': dealOffer.packageId,
+              'senderName': senderName,
+              'type': 'offer_rejected',
+            },
+          );
+
+          if (kDebugMode) {
+            print(
+                '✅ Rejection notification sent to traveler: ${dealOffer.travelerId}');
+          }
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('❌ Error sending rejection notification: $e');
+        }
+        // Don't throw - notification failure shouldn't block the rejection
+      }
 
       if (kDebugMode) {
         print('Deal rejected: $dealOfferId');
@@ -673,6 +876,36 @@ class DealNegotiationService {
     return 'deal_${DateTime.now().millisecondsSinceEpoch}_${currentUserId?.substring(0, 8) ?? 'anon'}';
   }
 
+  /// Count how many offers a user has made for a specific package
+  /// Optimized: Only fetch up to max+1 documents for efficiency
+  Future<int> _getUserOfferCountForPackage({
+    required String packageId,
+    required String userId,
+  }) async {
+    try {
+      // Optimization: Only fetch what we need to make the decision
+      // If limit is 2, we only need to know if count >= 2
+      final querySnapshot = await _firestore
+          .collection(_dealsCollection)
+          .where('packageId', isEqualTo: packageId)
+          .where('travelerId', isEqualTo: userId)
+          .limit(maxOffersPerUserPerPackage + 1) // Only fetch what we need
+          .get();
+
+      if (kDebugMode) {
+        print(
+            'Found ${querySnapshot.docs.length} offers by user $userId for package $packageId');
+      }
+
+      return querySnapshot.docs.length;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error counting user offers: $e');
+      }
+      return 0; // Return 0 on error to allow the offer attempt
+    }
+  }
+
   Future<void> _validatePackageForOffer(String packageId) async {
     try {
       if (kDebugMode) {
@@ -711,6 +944,24 @@ class DealNegotiationService {
         throw Exception('This delivery request is no longer accepting offers.');
       }
 
+      // Check if user has reached the offer limit for this package
+      if (currentUserId != null) {
+        final userOfferCount = await _getUserOfferCountForPackage(
+          packageId: packageId,
+          userId: currentUserId!,
+        );
+
+        if (kDebugMode) {
+          print(
+              'User offer count: $userOfferCount/$maxOffersPerUserPerPackage');
+        }
+
+        if (userOfferCount >= maxOffersPerUserPerPackage) {
+          throw Exception(
+              'You have reached the maximum limit of $maxOffersPerUserPerPackage offers for this package.');
+        }
+      }
+
       if (kDebugMode) {
         print('✅ Package validation passed');
       }
@@ -719,7 +970,8 @@ class DealNegotiationService {
         print('❌ Package validation failed: $e');
       }
       if (e.toString().contains('No active delivery request') ||
-          e.toString().contains('no longer accepting offers')) {
+          e.toString().contains('no longer accepting offers') ||
+          e.toString().contains('maximum limit')) {
         rethrow;
       }
       throw Exception(
@@ -831,5 +1083,166 @@ class DealNegotiationService {
       }
       return true; // Default to compatible if there's an error
     }
+  }
+
+  /// Background helper: Refresh chat without blocking user flow
+  void _refreshChatInBackground() {
+    // Fire-and-forget: The chat will refresh naturally when user navigates
+    // No need to explicitly trigger refresh here, avoiding blocking operations
+    if (kDebugMode) {
+      print('⏩ Chat will refresh naturally on navigation');
+    }
+  }
+
+  /// Background helper: Log admin event without blocking user flow
+  void _logOfferEventInBackground({
+    required DealOffer dealOffer,
+    required String packageId,
+    required double offeredPrice,
+    required String travelerId,
+    required String userId,
+  }) {
+    // Fire-and-forget: Run in background, don't await
+    Future(() async {
+      try {
+        await _adminService.logSystemEvent(
+          eventType: 'DEAL_OFFER_SENT',
+          description:
+              'Price offer sent for package $packageId: \$${offeredPrice.toStringAsFixed(2)}',
+          metadata: {
+            'dealId': dealOffer.id,
+            'packageId': packageId,
+            'offeredPrice': offeredPrice,
+            'travelerId': travelerId,
+          },
+          userId: userId,
+        );
+        if (kDebugMode) {
+          print('✅ Admin event logged in background');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('⚠️ Background admin logging failed: $e');
+        }
+      }
+    });
+  }
+
+  /// Stream all offers received by current user (as package owner)
+  /// Stream all offers received by current user (as package owner)
+  Stream<List<DealOffer>> streamReceivedOffers() {
+    final userId = currentUserId;
+    if (userId == null) {
+      return Stream.value([]);
+    }
+
+    return _firestore
+        .collection(_dealsCollection)
+        .where('packageOwnerId', isEqualTo: userId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) {
+            try {
+              return DealOffer.fromMap(doc.data());
+            } catch (e) {
+              if (kDebugMode) {
+                print('Error parsing offer: $e');
+              }
+              return null;
+            }
+          })
+          .whereType<DealOffer>()
+          .toList();
+    });
+  }
+
+  /// Stream all offers sent by current user (as traveler)
+  Stream<List<DealOffer>> streamSentOffers() {
+    final userId = currentUserId;
+    if (userId == null) {
+      return Stream.value([]);
+    }
+
+    return _firestore
+        .collection(_dealsCollection)
+        .where('senderId', isEqualTo: userId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) {
+            try {
+              return DealOffer.fromMap(doc.data());
+            } catch (e) {
+              if (kDebugMode) {
+                print('Error parsing offer: $e');
+              }
+              return null;
+            }
+          })
+          .whereType<DealOffer>()
+          .toList();
+    });
+  }
+
+  /// Stream all offers for current user (both received and sent)
+  Stream<List<DealOffer>> streamAllUserOffers() {
+    final userId = currentUserId;
+    if (userId == null) {
+      return Stream.value([]);
+    }
+
+    // Query all offers where user is either traveler or sender
+    return _firestore
+        .collection(_dealsCollection)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .where((doc) {
+            final data = doc.data();
+            return data['travelerId'] == userId || data['senderId'] == userId;
+          })
+          .map((doc) {
+            try {
+              return DealOffer.fromMap(doc.data());
+            } catch (e) {
+              if (kDebugMode) {
+                print('Error parsing offer: $e');
+              }
+              return null;
+            }
+          })
+          .whereType<DealOffer>()
+          .toList();
+    });
+  }
+
+  /// Get count of unseen pending offers (received only)
+  /// Stream count of unseen offers received by current user (as package owner)
+  Stream<int> streamUnseenOffersCount() {
+    final userId = currentUserId;
+    if (userId == null) {
+      return Stream.value(0);
+    }
+
+    return _firestore
+        .collection(_dealsCollection)
+        .where('packageOwnerId', isEqualTo: userId)
+        .where('status', isEqualTo: DealStatus.pending.name)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.where((doc) {
+        try {
+          final data = doc.data();
+          // Check if offer has been seen (you can add a 'seenAt' field later)
+          return data['status'] == DealStatus.pending.name;
+        } catch (e) {
+          return false;
+        }
+      }).length;
+    });
   }
 }

@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:intl/intl.dart';
 import '../../../core/app_export.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 
 class TripDetailsWidget extends StatelessWidget {
   final TextEditingController notesController;
-  final TransportMode selectedTransportMode;
+  final TransportMode? selectedTransportMode;
   final DateTime departureDate;
   final DateTime? arrivalDate;
   final bool isFlexibleRoute;
@@ -45,7 +46,7 @@ class TripDetailsWidget extends StatelessWidget {
         // Departure Date
         _buildSectionTitle('Travel Dates'),
         _buildDateSelector(
-          title: 'Departure Date',
+          title: 'post_trip.departure_date'.tr(),
           date: departureDate,
           onTap: onDepartureDateTap,
           icon: 'flight_takeoff',
@@ -55,7 +56,7 @@ class TripDetailsWidget extends StatelessWidget {
 
         // Arrival Date (Optional)
         _buildDateSelector(
-          title: 'Arrival Date (Optional)',
+          title: 'trip.arrival_date_optional'.tr(),
           date: arrivalDate,
           onTap: onArrivalDateTap,
           icon: 'flight_land',
@@ -80,8 +81,7 @@ class TripDetailsWidget extends StatelessWidget {
               CheckboxListTile(
                 value: isFlexibleRoute,
                 onChanged: (value) => onFlexibleRouteChanged(value ?? false),
-                title: Text(
-                  'Flexible Route',
+                title: Text('common.flexible_route'.tr(),
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
@@ -92,7 +92,7 @@ class TripDetailsWidget extends StatelessWidget {
                   style: TextStyle(fontSize: 11.sp),
                 ),
                 secondary: CustomIconWidget(
-                  iconName: 'route',
+                  iconName: 'detail.route'.tr(),
                   color: AppTheme.lightTheme.primaryColor,
                   size: 24,
                 ),
@@ -105,7 +105,7 @@ class TripDetailsWidget extends StatelessWidget {
                   initialValue: maxDetourKm?.toString() ?? '',
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: 'Maximum Detour (km)',
+                    labelText: 'trip.max_detour_km'.tr(),
                     hintText: 'e.g., 15',
                     prefixIcon: Icon(Icons.alt_route),
                     border: OutlineInputBorder(
@@ -130,8 +130,7 @@ class TripDetailsWidget extends StatelessWidget {
           controller: notesController,
           maxLines: 3,
           decoration: InputDecoration(
-            hintText:
-                'Any additional information about your trip, special requirements, or preferences...',
+            hintText: 'travel.any_additional_information_about_your_trip_special'.tr(),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
             ),

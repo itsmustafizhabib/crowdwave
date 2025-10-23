@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../services/user_profile_service.dart';
 
 class AddressManagementScreen extends StatefulWidget {
@@ -78,8 +79,8 @@ class _AddressManagementScreenState extends State<AddressManagementScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Address saved successfully!'),
+          SnackBar(
+            content: Text('profile.address_saved'.tr()),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
           ),
@@ -95,7 +96,7 @@ class _AddressManagementScreenState extends State<AddressManagementScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save address: $e'),
+            content: Text('profile.failed_to_update_address'.tr() + ': $e'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
@@ -115,8 +116,8 @@ class _AddressManagementScreenState extends State<AddressManagementScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text(
-          'Address Management',
+        title: Text(
+          'profile.address_management'.tr(),
           style: TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.w600,
@@ -151,8 +152,7 @@ class _AddressManagementScreenState extends State<AddressManagementScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Update Your Address',
+                    Text('common.update_your_address'.tr(),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -224,7 +224,7 @@ class _AddressManagementScreenState extends State<AddressManagementScreen> {
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _saveAddress,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0046FF),
+                          backgroundColor: const Color(0xFF215C5C),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -233,7 +233,7 @@ class _AddressManagementScreenState extends State<AddressManagementScreen> {
                           elevation: 0,
                         ),
                         child: _isLoading
-                            ? const Row(
+                            ? Row (
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   SizedBox(
@@ -246,8 +246,7 @@ class _AddressManagementScreenState extends State<AddressManagementScreen> {
                                     ),
                                   ),
                                   SizedBox(width: 8),
-                                  Text(
-                                    'Saving...',
+                                  Text('common.saving'.tr(),
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
@@ -255,8 +254,7 @@ class _AddressManagementScreenState extends State<AddressManagementScreen> {
                                   ),
                                 ],
                               )
-                            : const Text(
-                                'Save Address',
+                            : Text('common.save_address'.tr(),
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -307,7 +305,7 @@ class _AddressManagementScreenState extends State<AddressManagementScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF0046FF), width: 2),
+        borderSide: const BorderSide(color: Color(0xFF215C5C), width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

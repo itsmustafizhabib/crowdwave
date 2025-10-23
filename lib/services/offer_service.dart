@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import '../services/notification_service.dart';
 import '../services/auth_state_service.dart';
@@ -75,7 +76,7 @@ class OfferService {
       // Send notification to traveler
       await NotificationService.instance.createNotification(
         userId: travelerId,
-        title: 'New Offer Received!',
+        title: 'notifications.new_offer'.tr(),
         body:
             '${currentUser.displayName ?? 'Someone'} made an offer of \$${offerAmount.toStringAsFixed(2)} for your trip to $tripTitle',
         type: NotificationType.offerReceived,
@@ -137,7 +138,7 @@ class OfferService {
       // Send notification to sender
       await NotificationService.instance.createNotification(
         userId: senderId,
-        title: 'Offer Accepted!',
+        title: 'common.offer_accepted'.tr(),
         body: '$travelerName accepted your offer for $tripTitle',
         type: NotificationType.offerAccepted,
         data: {
@@ -193,7 +194,7 @@ class OfferService {
       // Send notification to sender
       await NotificationService.instance.createNotification(
         userId: senderId,
-        title: 'Offer Rejected',
+        title: 'notifications.offer_rejected'.tr(),
         body: '$travelerName rejected your offer for $tripTitle',
         type: NotificationType.offerRejected,
         data: {

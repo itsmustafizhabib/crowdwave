@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:sizer/sizer.dart';
 import 'package:lottie/lottie.dart';
@@ -231,8 +232,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
             ),
           ),
           SizedBox(height: 2.h),
-          Text(
-            'Preparing experience...',
+          Text('common.preparing_experience'.tr(),
             style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
               color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
@@ -20,8 +21,7 @@ class RoleSelectionWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Title
-            Text(
-              'Choose Your Role',
+            Text('common.choose_your_role'.tr(),
               style: AppTheme.lightTheme.textTheme.headlineMedium?.copyWith(
                 color: AppTheme.lightTheme.colorScheme.onSurface,
                 fontWeight: FontWeight.w700,
@@ -32,8 +32,7 @@ class RoleSelectionWidget extends StatelessWidget {
             SizedBox(height: 2.h),
 
             // Subtitle
-            Text(
-              'How would you like to use CrowdWave?',
+            Text('common.how_would_you_like_to_use_crowdwave'.tr(),
               style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(
                 color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
               ),
@@ -49,7 +48,7 @@ class RoleSelectionWidget extends StatelessWidget {
                 _buildRoleCard(
                   context: context,
                   icon: 'local_shipping',
-                  title: 'I want to send packages',
+                  title: 'post_package.i_want_to_send_packages'.tr(),
                   description:
                       'Find travelers to deliver your packages cost-effectively',
                   onTap: () => onRoleSelected('sender'),
@@ -61,9 +60,8 @@ class RoleSelectionWidget extends StatelessWidget {
                 _buildRoleCard(
                   context: context,
                   icon: 'flight_takeoff',
-                  title: 'I want to deliver packages',
-                  description:
-                      'Earn money by delivering packages on your trips',
+                  title: 'post_package.i_want_to_deliver_packages'.tr(),
+                  description: 'post_package.earn_money_by_delivering_packages_on_your_trips'.tr(),
                   onTap: () => onRoleSelected('traveler'),
                 ),
               ],

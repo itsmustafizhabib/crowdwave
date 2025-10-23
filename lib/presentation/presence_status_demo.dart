@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import '../services/presence_service.dart';
 import '../controllers/chat_controller.dart';
 
@@ -24,8 +25,8 @@ class _PresenceStatusDemoState extends State<PresenceStatusDemo> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Presence Status Demo'),
-        backgroundColor: Colors.blue,
+        title: Text('common.presence_status_demo'.tr()),
+        backgroundColor: Color(0xFF008080),
         foregroundColor: Colors.white,
       ),
       body: Padding(
@@ -40,9 +41,9 @@ class _PresenceStatusDemoState extends State<PresenceStatusDemo> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Your Status',
-                      style: TextStyle(
+                    Text(
+                      'common.your_status'.tr(),
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -91,9 +92,9 @@ class _PresenceStatusDemoState extends State<PresenceStatusDemo> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Manual Controls',
-                      style: TextStyle(
+                    Text(
+                      'common.manual_controls'.tr(),
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -111,7 +112,7 @@ class _PresenceStatusDemoState extends State<PresenceStatusDemo> {
                               backgroundColor: Colors.green,
                               foregroundColor: Colors.white,
                             ),
-                            child: const Text('Go Online'),
+                            child: Text('common.go_online'.tr()),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -125,7 +126,7 @@ class _PresenceStatusDemoState extends State<PresenceStatusDemo> {
                               backgroundColor: Colors.red,
                               foregroundColor: Colors.white,
                             ),
-                            child: const Text('Go Offline'),
+                            child: Text('common.go_offline'.tr()),
                           ),
                         ),
                       ],
@@ -138,21 +139,21 @@ class _PresenceStatusDemoState extends State<PresenceStatusDemo> {
             const SizedBox(height: 20),
 
             // Instructions
-            const Card(
+            Card(
               child: Padding(
-                padding: EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Testing Instructions',
-                      style: TextStyle(
+                      'common.testing_instructions'.tr(),
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 10),
-                    Text(
+                    const SizedBox(height: 10),
+                    const Text(
                       '1. The status automatically updates when you lose/restore internet connection\n'
                       '2. Status changes when app goes to background/foreground\n'
                       '3. Manual controls override automatic behavior\n'
@@ -174,9 +175,9 @@ class _PresenceStatusDemoState extends State<PresenceStatusDemo> {
                   setState(() {});
                 },
                 icon: const Icon(Icons.refresh),
-                label: const Text('Refresh Status'),
+                label: Text('common.refresh_status'.tr()),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: Color(0xFF008080),
                   foregroundColor: Colors.white,
                 ),
               ),

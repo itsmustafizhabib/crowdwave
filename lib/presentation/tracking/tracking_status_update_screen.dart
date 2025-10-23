@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../widgets/liquid_loading_indicator.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sizer/sizer.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import '../../core/models/delivery_tracking.dart';
 import '../../services/tracking_service.dart';
 import '../../services/location_service.dart';
+import '../../services/geocoding_service.dart';
+import '../../routes/tracking_route_handler.dart';
+import '../../utils/toast_utils.dart';
 
 class TrackingStatusUpdateScreen extends StatefulWidget {
   final String trackingId;
@@ -61,9 +65,15 @@ class _TrackingStatusUpdateScreenState
     try {
       final position = await _locationService.getCurrentLocation();
       if (position != null) {
+        // Fetch human-readable address
+        final geocodingService = Get.find<GeocodingService>();
+        final address = await geocodingService.getAddressFromCoordinates(
+          latitude: position.latitude,
+          longitude: position.longitude,
+        );
+
         setState(() {
-          _currentLocationText =
-              'Location: ${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
+          _currentLocationText = address;
         });
       }
     } catch (e) {
@@ -82,7 +92,7 @@ class _TrackingStatusUpdateScreenState
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Update Status'),
+        title: Text('tracking.update_status'.tr()),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -137,8 +147,7 @@ class _TrackingStatusUpdateScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Current Status',
+          Text('tracking.current_status'.tr(),
             style: TextStyle(
               fontSize: 14.sp,
               color: Colors.grey[600],
@@ -189,8 +198,7 @@ class _TrackingStatusUpdateScreenState
             Icon(Icons.check_circle, color: Colors.green[600]),
             SizedBox(width: 3.w),
             Expanded(
-              child: Text(
-                'Package is already delivered or cancelled',
+              child: Text('post_package.package_is_already_delivered_or_cancelled'.tr(),
                 style: TextStyle(
                   fontSize: 14.sp,
                   color: Colors.green[700],
@@ -218,8 +226,7 @@ class _TrackingStatusUpdateScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Update to Status',
+          Text('common.update_to_status'.tr(),
             style: TextStyle(
               fontSize: 16.sp,
               fontWeight: FontWeight.bold,
@@ -300,17 +307,36 @@ class _TrackingStatusUpdateScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Photo Evidence',
-            style: TextStyle(
-              fontSize: 16.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
-            ),
+          Row(
+            children: [
+              Text('common.photo_evidence'.tr(),
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
+              ),
+              SizedBox(width: 2.w),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.5.h),
+                decoration: BoxDecoration(
+                  color: Colors.red[50],
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: Colors.red[200]!),
+                ),
+                child: Text('common.required'.tr(),
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red[700],
+                  ),
+                ),
+              ),
+            ],
           ),
           SizedBox(height: 1.h),
           Text(
-            'Add a photo to document the status update',
+            '📸 Take a clear photo to verify status update',
             style: TextStyle(
               fontSize: 13.sp,
               color: Colors.grey[600],
@@ -335,9 +361,9 @@ class _TrackingStatusUpdateScreenState
                   child: OutlinedButton.icon(
                     onPressed: _pickImage,
                     icon: const Icon(Icons.refresh),
-                    label: const Text('Change Photo'),
+                    label: Text('tracking.change_photo'.tr()),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.blue,
+                      foregroundColor: Color(0xFF008080),
                     ),
                   ),
                 ),
@@ -346,7 +372,7 @@ class _TrackingStatusUpdateScreenState
                   child: OutlinedButton.icon(
                     onPressed: () => setState(() => _selectedImage = null),
                     icon: const Icon(Icons.delete),
-                    label: const Text('Remove'),
+                    label: Text('profile.remove'.tr()),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.red,
                     ),
@@ -377,8 +403,7 @@ class _TrackingStatusUpdateScreenState
                         size: 8.w,
                       ),
                       SizedBox(height: 1.h),
-                      Text(
-                        'Tap to add photo',
+                      Text('common.tap_to_add_photo'.tr(),
                         style: TextStyle(
                           fontSize: 14.sp,
                           color: Colors.grey[600],
@@ -415,8 +440,7 @@ class _TrackingStatusUpdateScreenState
           Row(
             children: [
               Expanded(
-                child: Text(
-                  'Include Location',
+                child: Text('common.include_location'.tr(),
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
@@ -436,14 +460,14 @@ class _TrackingStatusUpdateScreenState
             Container(
               padding: EdgeInsets.all(3.w),
               decoration: BoxDecoration(
-                color: Colors.blue[50],
+                color: Color(0xFF008080),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
                   Icon(
                     Icons.location_on,
-                    color: Colors.blue[600],
+                    color: Color(0xFF008080),
                     size: 5.w,
                   ),
                   SizedBox(width: 3.w),
@@ -452,7 +476,7 @@ class _TrackingStatusUpdateScreenState
                       _currentLocationText ?? 'Loading location...',
                       style: TextStyle(
                         fontSize: 13.sp,
-                        color: Colors.blue[700],
+                        color: Color(0xFF008080),
                       ),
                     ),
                   ),
@@ -482,8 +506,7 @@ class _TrackingStatusUpdateScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Additional Notes',
+          Text('common.additional_notes'.tr(),
             style: TextStyle(
               fontSize: 16.sp,
               fontWeight: FontWeight.bold,
@@ -495,14 +518,14 @@ class _TrackingStatusUpdateScreenState
             controller: _notesController,
             maxLines: 3,
             decoration: InputDecoration(
-              hintText: 'Add any additional information about this update...',
+              hintText: 'common.add_any_additional_information_about_this_update'.tr(),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(color: Colors.grey[300]!),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Colors.blue),
+                borderSide: const BorderSide(color: Color(0xFF008080)),
               ),
             ),
           ),
@@ -512,33 +535,73 @@ class _TrackingStatusUpdateScreenState
   }
 
   Widget _buildUpdateButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 6.h,
-      child: ElevatedButton(
-        onPressed:
-            _selectedStatus != null && !_isLoading ? _updateStatus : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _selectedStatus != null
-              ? TrackingService.getStatusColor(_selectedStatus!)
-              : Colors.grey,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+    final canUpdate = _selectedImage != null && _selectedStatus != null;
+
+    return Column(
+      children: [
+        // Validation messages
+        if (_selectedStatus != null && _selectedImage == null)
+          Container(
+            padding: EdgeInsets.all(3.w),
+            margin: EdgeInsets.only(bottom: 2.h),
+            decoration: BoxDecoration(
+              color: Colors.orange[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.orange[200]!),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.warning_amber, color: Colors.orange[700], size: 5.w),
+                SizedBox(width: 3.w),
+                Expanded(
+                  child: Text(
+                    '⚠️ Photo required to prevent fraud and verify delivery',
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      color: Colors.orange[700],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        Padding(
+          padding: EdgeInsets.only(bottom: 5.h),
+          child: SizedBox(
+            width: double.infinity,
+            height: 6.h,
+            child: ElevatedButton(
+              onPressed: canUpdate && !_isLoading ? _updateStatus : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: canUpdate
+                    ? TrackingService.getStatusColor(_selectedStatus!)
+                    : Colors.grey,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                disabledBackgroundColor: Colors.grey[300],
+                disabledForegroundColor: Colors.grey[500],
+              ),
+              child: _isLoading
+                  ? SmallLiquidLoading()
+                  : Text(
+                      _selectedStatus != null && canUpdate
+                          ? 'Update to ${TrackingService.getStatusText(_selectedStatus!)}'
+                          : _selectedStatus != null
+                              ? '📸 Add Photo to Continue'
+                              : 'Status Already Final',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+            ),
           ),
         ),
-        child: _isLoading
-            ? SmallLiquidLoading()
-            : Text(
-                _selectedStatus != null
-                    ? 'Update to ${TrackingService.getStatusText(_selectedStatus!)}'
-                    : 'Status Already Final',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-      ),
+      ],
     );
   }
 
@@ -600,16 +663,13 @@ class _TrackingStatusUpdateScreenState
         // and associate it with the tracking update
       }
 
-      Get.snackbar(
-        'Status Updated',
-        'Delivery status has been updated successfully',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.TOP,
-      );
+      ToastUtils.show('Updated');
 
-      // Navigate back to tracking screen
-      Get.back(result: true);
+      // Navigate to the package tracking screen
+      TrackingRouteHandler.navigateToPackageTracking(
+        trackingId: widget.trackingId,
+        packageRequestId: null,
+      );
     } catch (e) {
       Get.snackbar(
         'Update Failed',

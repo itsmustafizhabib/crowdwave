@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../../core/constants.dart';
@@ -147,7 +148,7 @@ class _LoginViewState extends State<LoginView> {
         Padding(
           padding: const EdgeInsets.only(left: 20.0),
           child: Text(
-            'Login',
+            'auth.login'.tr(),
             style: kLoginTitleStyle(size),
           ),
         ),
@@ -164,14 +165,14 @@ class _LoginViewState extends State<LoginView> {
               ),
               children: [
                 TextSpan(
-                  text: 'Wave',
+                  text: 'common.wave'.tr(),
                   style: kLoginSubtitleStyle(size).copyWith(
-                    color: Colors.deepPurpleAccent,
+                    color: Color(0xFF008080),
                     fontWeight: FontWeight.bold,
                     shadows: [
                       Shadow(
                         blurRadius: 8.0,
-                        color: Colors.deepPurpleAccent.withOpacity(0.3),
+                        color: Color(0xFF008080).withOpacity(0.3),
                         offset: const Offset(0, 2),
                       ),
                     ],
@@ -193,10 +194,10 @@ class _LoginViewState extends State<LoginView> {
                 /// username or Gmail
                 TextFormField(
                   style: kTextFormFieldStyle(),
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.person),
-                    hintText: 'Username or Gmail',
-                    border: OutlineInputBorder(
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.person),
+                    hintText: 'common.username_or_gmail'.tr(),
+                    border: const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(15)),
                     ),
                   ),
@@ -257,7 +258,7 @@ class _LoginViewState extends State<LoginView> {
                           simpleUIController.isObscureActive();
                         },
                       ),
-                      hintText: 'Password',
+                      hintText: 'auth.password'.tr(),
                       border: const OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(15)),
                       ),
@@ -283,9 +284,9 @@ class _LoginViewState extends State<LoginView> {
                       Get.toNamed('/password-reset');
                     },
                     child: Text(
-                      'Forgot Password?',
+                      'auth.forgot_password'.tr(),
                       style: TextStyle(
-                        color: Colors.deepPurpleAccent,
+                        color: Color(0xFF008080),
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
@@ -365,7 +366,7 @@ class _LoginViewState extends State<LoginView> {
         Padding(
           padding: const EdgeInsets.only(left: 20.0),
           child: Text(
-            'Login',
+            'auth.login'.tr(),
             style: kLoginTitleStyle(size),
           ),
         ),
@@ -384,12 +385,12 @@ class _LoginViewState extends State<LoginView> {
                 TextSpan(
                   text: 'Wave',
                   style: kLoginSubtitleStyle(size).copyWith(
-                    color: Colors.deepPurpleAccent,
+                    color: Color(0xFF008080),
                     fontWeight: FontWeight.bold,
                     shadows: [
                       Shadow(
                         blurRadius: 8.0,
-                        color: Colors.deepPurpleAccent.withOpacity(0.3),
+                        color: Color(0xFF008080).withOpacity(0.3),
                         offset: const Offset(0, 2),
                       ),
                     ],
@@ -412,10 +413,10 @@ class _LoginViewState extends State<LoginView> {
                 TextFormField(
                   controller: nameController,
                   style: kTextFormFieldStyle(),
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.person),
-                    hintText: 'Username or Email',
-                    border: OutlineInputBorder(
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.person),
+                    hintText: 'common.username_or_email'.tr(),
+                    border: const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(15)),
                     ),
                   ),
@@ -451,7 +452,7 @@ class _LoginViewState extends State<LoginView> {
                               : Icons.visibility_off,
                         ),
                       ),
-                      hintText: 'Password',
+                      hintText: 'auth.password'.tr(),
                       border: const OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(15)),
                       ),
@@ -473,9 +474,9 @@ class _LoginViewState extends State<LoginView> {
                       Get.toNamed('/password-reset');
                     },
                     child: Text(
-                      'Forgot Password?',
+                      'auth.forgot_password'.tr(),
                       style: TextStyle(
-                        color: Colors.deepPurpleAccent,
+                        color: Color(0xFF008080),
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
@@ -541,7 +542,7 @@ class _LoginViewState extends State<LoginView> {
       height: 55,
       child: ElevatedButton(
         style: ButtonStyle(
-          backgroundColor: WidgetStateProperty.all(Colors.deepPurpleAccent),
+          backgroundColor: WidgetStateProperty.all(const Color(0xFF008080)),
           shape: WidgetStateProperty.all(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
@@ -604,7 +605,7 @@ class _LoginViewState extends State<LoginView> {
             }
           }
         },
-        child: const Text('Login'),
+        child: Text('auth.login'.tr()),
       ),
     );
   }
@@ -727,7 +728,7 @@ class _LoginViewState extends State<LoginView> {
       backgroundColor = Colors.red.shade600;
       iconData = Icons.error_outline;
     } else if (isInfo) {
-      backgroundColor = Colors.blue.shade600;
+      backgroundColor = const Color(0xFF008080);
       iconData = Icons.info_outline;
     } else {
       backgroundColor = Colors.green.shade600;
@@ -774,15 +775,15 @@ class _LoginViewState extends State<LoginView> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.email, color: Colors.orange),
-              SizedBox(width: 10),
+              const Icon(Icons.email, color: Color(0xFF008080)),
+              const SizedBox(width: 10),
               Text(
-                'Email Verification Required',
-                style: TextStyle(
+                'kyc.email_verification_required'.tr(),
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Colors.deepPurpleAccent,
+                  color: Color(0xFF008080),
                   fontSize: 16,
                 ),
               ),
@@ -809,9 +810,9 @@ class _LoginViewState extends State<LoginView> {
                 // Sign out the user since they can't access the app yet
                 _authService.signOut();
               },
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey),
+              child: Text(
+                'common.cancel'.tr(),
+                style: const TextStyle(color: Colors.grey),
               ),
             ),
             TextButton(
@@ -819,14 +820,14 @@ class _LoginViewState extends State<LoginView> {
                 Navigator.of(context).pop();
                 // Diagnostics functionality removed for now
               },
-              child: const Text(
-                'Diagnostics',
-                style: TextStyle(color: Colors.blue),
+              child: Text(
+                'common.diagnostics'.tr(),
+                style: const TextStyle(color: Color(0xFF008080)),
               ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
+                backgroundColor: const Color(0xFF008080),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -851,9 +852,9 @@ class _LoginViewState extends State<LoginView> {
                   );
                 }
               },
-              child: const Text(
-                'Resend Verification Email',
-                style: TextStyle(color: Colors.white),
+              child: Text(
+                'kyc.resend_verification_email'.tr(),
+                style: const TextStyle(color: Colors.white),
               ),
             ),
           ],

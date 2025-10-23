@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sizer/sizer.dart';
 
 import 'post_package/enhanced_post_package_screen.dart';
@@ -99,8 +100,8 @@ class _EnhancedUIShowcaseScreenState extends State<EnhancedUIShowcaseScreen>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    const Color(0xFF001BB7),
-                    const Color(0xFF0046FF),
+                    const Color(0xFF2D7A6E),
+                    const Color(0xFF215C5C),
                   ],
                 ),
                 borderRadius: BorderRadius.only(
@@ -129,16 +130,14 @@ class _EnhancedUIShowcaseScreenState extends State<EnhancedUIShowcaseScreen>
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Enhanced UI Showcase',
+                      Text('common.enhanced_ui_showcase'.tr(),
                         style: TextStyle(
                           fontSize: 20.sp,
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Text(
-                        'Beautiful, Interactive Components',
+                      Text('common.beautiful_interactive_components'.tr(),
                         style: TextStyle(
                           fontSize: 12.sp,
                           color: Colors.white.withOpacity(0.8),
@@ -183,8 +182,7 @@ class _EnhancedUIShowcaseScreenState extends State<EnhancedUIShowcaseScreen>
               ),
               child: Icon(Icons.add_box, color: Colors.white, size: 6.w),
             ),
-            title: Text(
-              'Enhanced Post Package',
+            title: Text('post_package.enhanced_post_package'.tr(),
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Text('Step-by-step form with smooth animations'),
@@ -211,7 +209,7 @@ class _EnhancedUIShowcaseScreenState extends State<EnhancedUIShowcaseScreen>
           children: [
             Expanded(
               child: AnimatedButton(
-                text: 'Elevated',
+                text: 'common.elevated'.tr(),
                 type: AnimatedButtonType.elevated,
                 onPressed: () => _showMessage('Elevated Button Pressed!'),
               ),
@@ -219,7 +217,7 @@ class _EnhancedUIShowcaseScreenState extends State<EnhancedUIShowcaseScreen>
             SizedBox(width: 4.w),
             Expanded(
               child: AnimatedButton(
-                text: 'Outlined',
+                text: 'common.outlined'.tr(),
                 type: AnimatedButtonType.outlined,
                 onPressed: () => _showMessage('Outlined Button Pressed!'),
               ),
@@ -234,7 +232,7 @@ class _EnhancedUIShowcaseScreenState extends State<EnhancedUIShowcaseScreen>
           children: [
             Expanded(
               child: AnimatedButton(
-                text: 'Gradient',
+                text: 'common.gradient'.tr(),
                 type: AnimatedButtonType.gradient,
                 icon: Icons.star,
                 onPressed: () => _showMessage('Gradient Button Pressed!'),
@@ -243,7 +241,7 @@ class _EnhancedUIShowcaseScreenState extends State<EnhancedUIShowcaseScreen>
             SizedBox(width: 4.w),
             Expanded(
               child: AnimatedButton(
-                text: 'Glass',
+                text: 'common.glass'.tr(),
                 type: AnimatedButtonType.glass,
                 icon: Icons.water_drop,
                 onPressed: () => _showMessage('Glass Button Pressed!'),
@@ -265,16 +263,14 @@ class _EnhancedUIShowcaseScreenState extends State<EnhancedUIShowcaseScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Enhanced Card',
+                Text('common.enhanced_card'.tr(),
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 SizedBox(height: 1.h),
-                Text(
-                  'This card has interactive hover effects and smooth animations.',
+                Text('common.this_card_has_interactive_hover_effects_and_smooth'.tr(),
                   style: TextStyle(
                     fontSize: 12.sp,
                     color: Colors.grey[600],
@@ -291,16 +287,15 @@ class _EnhancedUIShowcaseScreenState extends State<EnhancedUIShowcaseScreen>
         // Gradient Card
         GradientCardWidget(
           gradientColors: [
-            const Color(0xFF001BB7),
-            const Color(0xFF0046FF),
+            const Color(0xFF2D7A6E),
+            const Color(0xFF215C5C),
           ],
           child: Padding(
             padding: EdgeInsets.all(4.w),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Gradient Card',
+                Text('common.gradient_card'.tr(),
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
@@ -308,8 +303,7 @@ class _EnhancedUIShowcaseScreenState extends State<EnhancedUIShowcaseScreen>
                   ),
                 ),
                 SizedBox(height: 1.h),
-                Text(
-                  'Beautiful gradient backgrounds with smooth interactions.',
+                Text('common.beautiful_gradient_backgrounds_with_smooth_interac'.tr(),
                   style: TextStyle(
                     fontSize: 12.sp,
                     color: Colors.white.withOpacity(0.9),
@@ -330,16 +324,14 @@ class _EnhancedUIShowcaseScreenState extends State<EnhancedUIShowcaseScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Glass Morphism Card',
+                Text('common.glass_morphism_card'.tr(),
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 SizedBox(height: 1.h),
-                Text(
-                  'Modern glass effect with transparency and blur.',
+                Text('common.modern_glass_effect_with_transparency_and_blur'.tr(),
                   style: TextStyle(
                     fontSize: 12.sp,
                     color: Colors.grey[600],
@@ -359,7 +351,7 @@ class _EnhancedUIShowcaseScreenState extends State<EnhancedUIShowcaseScreen>
       Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF001BB7), Color(0xFF0046FF)],
+            colors: [Color(0xFF2D7A6E), Color(0xFF215C5C)],
           ),
           borderRadius: BorderRadius.circular(16),
         ),
@@ -397,7 +389,7 @@ class _EnhancedUIShowcaseScreenState extends State<EnhancedUIShowcaseScreen>
       Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFFF8040), Color(0xFFFF5722)],
+            colors: [Color(0xFF2D7A6E), Color(0xFF2D7A6E)],
           ),
           borderRadius: BorderRadius.circular(16),
         ),
@@ -466,7 +458,7 @@ class _EnhancedUIShowcaseScreenState extends State<EnhancedUIShowcaseScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: const Color(0xFF001BB7),
+        backgroundColor: const Color(0xFF2D7A6E),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),

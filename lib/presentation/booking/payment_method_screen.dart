@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import '../../core/models/booking.dart';
 import '../../core/models/transaction.dart';
 import '../../core/theme/app_colors.dart';
@@ -7,6 +7,7 @@ import '../../services/payment_service.dart';
 import '../../widgets/animated_button_widget.dart';
 import '../../widgets/booking/payment_method_widget.dart';
 import 'payment_processing_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 /// Screen for selecting payment method for booking
 class PaymentMethodScreen extends StatefulWidget {
@@ -66,7 +67,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Payment Method'),
+        title: Text('payment.method_title'.tr()),
         backgroundColor: AppColors.surface,
         elevation: 0,
         leading: IconButton(
@@ -87,7 +88,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                     const SizedBox(height: 24),
                     _buildPaymentMethodsSection(),
                     const SizedBox(height: 24),
-                    _buildSecurityInfo(),
+                    _buildSecurityInfo(context),
                     // Add bottom padding to account for bottom section
                     const SizedBox(height: 120),
                   ],
@@ -118,8 +119,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Booking Summary',
+          Text('booking.booking_summary'.tr(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -170,8 +170,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Select Payment Method',
+        Text('booking.select_payment_method'.tr(),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -201,8 +200,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
 
             if (supportedMethods.isEmpty) {
               return Center(
-                child: Text(
-                  'No payment methods available',
+                child: Text('wallet.no_payment_methods_available'.tr(),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Colors.grey,
                       ),
@@ -246,19 +244,19 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
     );
   }
 
-  Widget _buildSecurityInfo() {
+  Widget _buildSecurityInfo(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.blue.shade50,
+        color: Color(0xFF008080),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.shade200),
+        border: Border.all(color: Color(0xFF008080)),
       ),
       child: Row(
         children: [
           Icon(
             Icons.security,
-            color: Colors.blue.shade600,
+            color: Color(0xFF008080),
             size: 24,
           ),
           const SizedBox(width: 12),
@@ -266,18 +264,16 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Secure Payment',
+                Text('wallet.secure_payment'.tr(),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade800,
+                        color: Color(0xFF008080),
                       ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  'Your payment is secured by Stripe. Your card details are encrypted and never stored on our servers.',
+                Text('travel.your_payment_is_secured_by_stripe_your_card_detail'.tr(),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.blue.shade700,
+                        color: Color(0xFF008080),
                       ),
                 ),
               ],
@@ -310,7 +306,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           AnimatedButton(
-            text: 'Proceed to Payment',
+            text: 'wallet.proceed_to_payment'.tr(),
             onPressed: isButtonEnabled
                 ? () {
                     print('🔥 Button tap detected in _buildBottomSection!');
@@ -322,8 +318,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
             isLoading: _isLoading,
           ),
           const SizedBox(height: 6),
-          Text(
-            'By proceeding, you agree to our Terms of Service',
+          Text('common.by_proceeding_you_agree_to_our_terms_of_service'.tr(),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Colors.grey.shade600,
                   fontSize: 11,

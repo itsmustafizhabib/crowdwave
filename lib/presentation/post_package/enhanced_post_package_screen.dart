@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sizer/sizer.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -10,7 +11,8 @@ class EnhancedPostPackageScreen extends StatefulWidget {
   const EnhancedPostPackageScreen({Key? key}) : super(key: key);
 
   @override
-  State<EnhancedPostPackageScreen> createState() => _EnhancedPostPackageScreenState();
+  State<EnhancedPostPackageScreen> createState() =>
+      _EnhancedPostPackageScreenState();
 }
 
 class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
@@ -49,12 +51,12 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
   @override
   void initState() {
     super.initState();
-    
+
     _headerAnimationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _cardAnimationController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
@@ -123,7 +125,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
   Future<void> _pickImages() async {
     final ImagePicker picker = ImagePicker();
     final List<XFile> images = await picker.pickMultiImage();
-    
+
     if (images.isNotEmpty) {
       setState(() {
         _selectedImages = images.map((image) => File(image.path)).toList();
@@ -141,7 +143,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: const Color(0xFF001BB7),
+              primary: const Color(0xFF2D7A6E),
               onPrimary: Colors.white,
               surface: Colors.white,
               onSurface: Colors.black,
@@ -207,8 +209,8 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    const Color(0xFF001BB7),
-                    const Color(0xFF0046FF),
+                    const Color(0xFF2D7A6E),
+                    const Color(0xFF215C5C),
                   ],
                 ),
                 borderRadius: BorderRadius.only(
@@ -237,8 +239,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Post Package',
+                      Text('post_package.submit_button'.tr(),
                         style: TextStyle(
                           fontSize: 20.sp,
                           color: Colors.white,
@@ -271,7 +272,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
         children: List.generate(_totalSteps, (index) {
           bool isActive = index <= _currentStep;
           bool isCurrent = index == _currentStep;
-          
+
           return Expanded(
             child: Container(
               margin: EdgeInsets.symmetric(horizontal: 1.w),
@@ -279,14 +280,12 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
                 duration: const Duration(milliseconds: 300),
                 height: 1.h,
                 decoration: BoxDecoration(
-                  color: isActive 
-                      ? const Color(0xFF001BB7)
-                      : Colors.grey[300],
+                  color: isActive ? const Color(0xFF2D7A6E) : Colors.grey[300],
                   borderRadius: BorderRadius.circular(0.5.h),
                   boxShadow: isCurrent
                       ? [
                           BoxShadow(
-                            color: const Color(0xFF001BB7).withOpacity(0.4),
+                            color: const Color(0xFF2D7A6E).withOpacity(0.4),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -312,8 +311,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Package Information',
+                Text('post_package.package_information'.tr(),
                   style: TextStyle(
                     fontSize: 24.sp,
                     fontWeight: FontWeight.bold,
@@ -321,8 +319,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
                   ),
                 ),
                 SizedBox(height: 1.h),
-                Text(
-                  'Tell us about your package',
+                Text('post_package.tell_us_about_your_package'.tr(),
                   style: TextStyle(
                     fontSize: 14.sp,
                     color: Colors.grey[600],
@@ -334,14 +331,14 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
                     children: [
                       _buildAnimatedTextField(
                         controller: _titleController,
-                        label: 'Package Title',
+                        label: 'post_package.package_title'.tr(),
                         hint: 'e.g., MacBook Pro 16"',
                         icon: Icons.inventory_2,
                       ),
                       SizedBox(height: 3.h),
                       _buildAnimatedTextField(
                         controller: _descriptionController,
-                        label: 'Description',
+                        label: 'detail.description'.tr(),
                         hint: 'Describe your package in detail...',
                         icon: Icons.description,
                         maxLines: 4,
@@ -354,8 +351,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Package Size',
+                      Text('post_package.package_size'.tr(),
                         style: TextStyle(
                           fontSize: 16.sp,
                           fontWeight: FontWeight.w600,
@@ -390,8 +386,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
             ),
           ),
           SizedBox(height: 1.h),
-          Text(
-            'Where should your package go?',
+          Text('post_package.where_should_your_package_go'.tr(),
             style: TextStyle(
               fontSize: 14.sp,
               color: Colors.grey[600],
@@ -403,14 +398,14 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
               children: [
                 _buildAnimatedTextField(
                   controller: _fromController,
-                  label: 'Pickup Location',
+                  label: 'post_package.pickup_location'.tr(),
                   hint: 'Enter pickup address',
                   icon: Icons.location_on,
                 ),
                 SizedBox(height: 3.h),
                 _buildAnimatedTextField(
                   controller: _toController,
-                  label: 'Delivery Location',
+                  label: 'post_package.delivery_location'.tr(),
                   hint: 'Enter delivery address',
                   icon: Icons.flag,
                 ),
@@ -446,8 +441,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Package Details',
+          Text('detail.package_detail_title'.tr(),
             style: TextStyle(
               fontSize: 24.sp,
               fontWeight: FontWeight.bold,
@@ -455,8 +449,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
             ),
           ),
           SizedBox(height: 1.h),
-          Text(
-            'Additional information about your package',
+          Text('post_package.additional_information_about_your_package'.tr(),
             style: TextStyle(
               fontSize: 14.sp,
               color: Colors.grey[600],
@@ -471,7 +464,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
                     Expanded(
                       child: _buildAnimatedTextField(
                         controller: _weightController,
-                        label: 'Weight (kg)',
+                        label: 'post_package.weight_label'.tr(),
                         hint: 'e.g., 2.5',
                         icon: Icons.scale,
                         keyboardType: TextInputType.number,
@@ -497,8 +490,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Urgency Level',
+                Text('common.urgency_level'.tr(),
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
@@ -543,8 +535,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Package Photos',
+          Text('post_package.package_photos'.tr(),
             style: TextStyle(
               fontSize: 24.sp,
               fontWeight: FontWeight.bold,
@@ -552,8 +543,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
             ),
           ),
           SizedBox(height: 1.h),
-          Text(
-            'Add photos to help travelers identify your package',
+          Text('post_package.add_photos_to_help_travelers_identify_your_package'.tr(),
             style: TextStyle(
               fontSize: 14.sp,
               color: Colors.grey[600],
@@ -571,15 +561,14 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
                         Icon(
                           Icons.add_photo_alternate,
                           size: 15.w,
-                          color: const Color(0xFF001BB7),
+                          color: const Color(0xFF2D7A6E),
                         ),
                         SizedBox(height: 2.h),
-                        Text(
-                          'Tap to add photos',
+                        Text('common.tap_to_add_photos'.tr(),
                           style: TextStyle(
                             fontSize: 16.sp,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF001BB7),
+                            color: const Color(0xFF2D7A6E),
                           ),
                         ),
                         SizedBox(height: 1.h),
@@ -631,8 +620,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
             ),
           ),
           SizedBox(height: 1.h),
-          Text(
-            'Please review your package details',
+          Text('post_package.please_review_your_package_details'.tr(),
             style: TextStyle(
               fontSize: 14.sp,
               color: Colors.grey[600],
@@ -671,14 +659,14 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
           keyboardType: keyboardType,
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: Icon(icon, color: const Color(0xFF001BB7)),
+            prefixIcon: Icon(icon, color: const Color(0xFF2D7A6E)),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey[300]!),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: const Color(0xFF001BB7), width: 2),
+              borderSide: BorderSide(color: const Color(0xFF2D7A6E), width: 2),
             ),
             filled: true,
             fillColor: Colors.grey[50],
@@ -700,10 +688,10 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
             duration: const Duration(milliseconds: 200),
             padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
             decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFF001BB7) : Colors.grey[200],
+              color: isSelected ? const Color(0xFF2D7A6E) : Colors.grey[200],
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isSelected ? const Color(0xFF001BB7) : Colors.grey[300]!,
+                color: isSelected ? const Color(0xFF2D7A6E) : Colors.grey[300]!,
               ),
             ),
             child: Text(
@@ -726,7 +714,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
       children: _urgencyOptions.map((urgency) {
         bool isSelected = _selectedUrgency == urgency;
         Color color = _getUrgencyColor(urgency);
-        
+
         return GestureDetector(
           onTap: () => setState(() => _selectedUrgency = urgency),
           child: AnimatedContainer(
@@ -776,7 +764,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
               children: [
                 Icon(
                   Icons.calendar_today,
-                  color: const Color(0xFF001BB7),
+                  color: const Color(0xFF2D7A6E),
                   size: 5.w,
                 ),
                 SizedBox(width: 3.w),
@@ -805,7 +793,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
     IconData icon,
   ) {
     return ListTile(
-      leading: Icon(icon, color: const Color(0xFF001BB7)),
+      leading: Icon(icon, color: const Color(0xFF2D7A6E)),
       title: Text(
         title,
         style: TextStyle(
@@ -823,7 +811,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeThumbColor: const Color(0xFF001BB7),
+        activeThumbColor: const Color(0xFF2D7A6E),
       ),
       contentPadding: EdgeInsets.zero,
     );
@@ -835,7 +823,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
       child: Container(
         decoration: BoxDecoration(
           border: Border.all(
-            color: const Color(0xFF001BB7),
+            color: const Color(0xFF2D7A6E),
             style: BorderStyle.solid,
             width: 2,
           ),
@@ -844,7 +832,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
         child: Icon(
           Icons.add,
           size: 8.w,
-          color: const Color(0xFF001BB7),
+          color: const Color(0xFF2D7A6E),
         ),
       ),
     );
@@ -900,17 +888,17 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
           _buildReviewItem('To', _toController.text),
           _buildReviewItem('Size', _selectedSize),
           _buildReviewItem('Weight', '${_weightController.text} kg'),
-          _buildReviewItem('Price', '\$${_priceController.text}'),
+          _buildReviewItem('Price', '€${_priceController.text}'),
           _buildReviewItem('Urgency', _selectedUrgency),
           if (_pickupDate != null)
-            _buildReviewItem('Pickup Date', '${_pickupDate!.day}/${_pickupDate!.month}/${_pickupDate!.year}'),
+            _buildReviewItem('Pickup Date',
+                '${_pickupDate!.day}/${_pickupDate!.month}/${_pickupDate!.year}'),
           if (_deliveryDate != null)
-            _buildReviewItem('Delivery Date', '${_deliveryDate!.day}/${_deliveryDate!.month}/${_deliveryDate!.year}'),
+            _buildReviewItem('Delivery Date',
+                '${_deliveryDate!.day}/${_deliveryDate!.month}/${_deliveryDate!.year}'),
           _buildReviewItem('Photos', '${_selectedImages.length} added'),
-          if (_isFragile)
-            _buildReviewItem('Special', 'Fragile item'),
-          if (_requiresInsurance)
-            _buildReviewItem('Insurance', 'Required'),
+          if (_isFragile) _buildReviewItem('Special', 'Fragile item'),
+          if (_requiresInsurance) _buildReviewItem('Insurance', 'Required'),
         ],
       ),
     );
@@ -918,7 +906,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
 
   Widget _buildReviewItem(String label, String value) {
     if (value.isEmpty) return SizedBox.shrink();
-    
+
     return Padding(
       padding: EdgeInsets.only(bottom: 2.h),
       child: Row(
@@ -967,7 +955,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
           if (_currentStep > 0)
             Expanded(
               child: AnimatedButton(
-                text: 'Previous',
+                text: 'common.previous'.tr(),
                 type: AnimatedButtonType.outlined,
                 onPressed: _previousStep,
               ),
@@ -977,7 +965,8 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
             child: AnimatedButton(
               text: _currentStep == _totalSteps - 1 ? 'Submit Package' : 'Next',
               type: AnimatedButtonType.gradient,
-              onPressed: _currentStep == _totalSteps - 1 ? _submitPackage : _nextStep,
+              onPressed:
+                  _currentStep == _totalSteps - 1 ? _submitPackage : _nextStep,
             ),
           ),
         ],
@@ -992,7 +981,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
       case 'high':
         return Colors.orange;
       case 'medium':
-        return Colors.blue;
+        return Color(0xFF008080);
       case 'low':
         return Colors.green;
       default:
@@ -1017,8 +1006,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
               size: 20.w,
             ),
             SizedBox(height: 2.h),
-            Text(
-              'Package Posted Successfully!',
+            Text('common.package_posted_successfully'.tr(),
               style: TextStyle(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
@@ -1026,8 +1014,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 1.h),
-            Text(
-              'Your package has been posted and travelers will start seeing it shortly.',
+            Text('post_package.your_package_has_been_posted_and_travelers_will_st'.tr(),
               style: TextStyle(
                 fontSize: 12.sp,
                 color: Colors.grey[600],
@@ -1038,7 +1025,7 @@ class _EnhancedPostPackageScreenState extends State<EnhancedPostPackageScreen>
         ),
         actions: [
           AnimatedButton(
-            text: 'Done',
+            text: 'common.done'.tr(),
             type: AnimatedButtonType.gradient,
             onPressed: () {
               Navigator.of(context).pop();

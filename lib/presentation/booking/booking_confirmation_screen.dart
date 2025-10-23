@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import '../../core/models/deal_offer.dart';
 import '../../core/models/package_request.dart';
 import '../../core/models/travel_trip.dart';
+import '../../core/models/booking.dart';
 import '../../services/booking_service.dart';
 import '../../widgets/booking/booking_summary_widget.dart';
 import '../../widgets/booking/terms_agreement_widget.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import 'payment_method_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 /// 📝 Booking Confirmation Screen - Phase 2.1
 /// Handles booking confirmation flow after deal acceptance
@@ -120,22 +122,13 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen>
 
       if (kDebugMode) {
         print('✅ Booking created successfully: ${booking.id}');
+        print('   Status: ${booking.status}');
       }
 
       // Navigate to payment method screen
       if (mounted) {
         // Navigate to payment method screen
         Get.to(() => PaymentMethodScreen(booking: booking));
-
-        // Show success message
-        Get.snackbar(
-          'Booking Created!',
-          'Please select your payment method to complete the booking.',
-          backgroundColor: AppColors.success,
-          colorText: AppColors.surface,
-          icon: Icon(Icons.check_circle, color: AppColors.surface),
-          duration: Duration(seconds: 3),
-        );
       }
     } catch (e) {
       if (kDebugMode) {
@@ -154,8 +147,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(
-          'Confirm Booking',
+        title: Text('booking.confirm_booking'.tr(),
           style: AppTextStyles.h2.copyWith(color: AppColors.textPrimary),
         ),
         backgroundColor: AppColors.surface,
@@ -283,7 +275,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen>
                               .copyWith(color: AppColors.textPrimary),
                         ),
                         Text(
-                          '\$${(widget.acceptedDeal.offeredPrice + (widget.acceptedDeal.offeredPrice * 0.1)).toStringAsFixed(2)}',
+                          '€${(widget.acceptedDeal.offeredPrice + (widget.acceptedDeal.offeredPrice * 0.1)).toStringAsFixed(2)}',
                           style: AppTextStyles.h2
                               .copyWith(color: AppColors.primary),
                         ),
@@ -316,8 +308,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen>
                                     AppColors.surface),
                               ),
                             )
-                          : Text(
-                              'Proceed to Payment',
+                          : Text('wallet.proceed_to_payment'.tr(),
                               style: AppTextStyles.button,
                             ),
                     ),
@@ -345,7 +336,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen>
           // Step 1 - Confirmation (current)
           _buildProgressStep(
             number: '1',
-            title: 'Confirmation',
+            title: 'booking.confirmation_step'.tr(),
             isActive: true,
             isCompleted: false,
           ),
@@ -362,7 +353,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen>
           // Step 2 - Payment
           _buildProgressStep(
             number: '2',
-            title: 'Payment',
+            title: 'booking.payment_step'.tr(),
             isActive: false,
             isCompleted: false,
           ),
@@ -379,7 +370,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen>
           // Step 3 - Complete
           _buildProgressStep(
             number: '3',
-            title: 'Complete',
+            title: 'booking.complete_step'.tr(),
             isActive: false,
             isCompleted: false,
           ),
@@ -450,8 +441,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen>
             children: [
               Icon(Icons.note_alt_outlined, color: AppColors.primary, size: 20),
               const SizedBox(width: 8),
-              Text(
-                'Special Instructions',
+              Text('detail.special_instructions'.tr(),
                 style: AppTextStyles.h3.copyWith(color: AppColors.textPrimary),
               ),
             ],
@@ -505,8 +495,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen>
               Icon(Icons.contact_phone_outlined,
                   color: AppColors.primary, size: 20),
               const SizedBox(width: 8),
-              Text(
-                'Contact Information',
+              Text('kyc.contact_information'.tr(),
                 style: AppTextStyles.h3.copyWith(color: AppColors.textPrimary),
               ),
             ],
@@ -525,8 +514,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen>
                     Icon(Icons.info_outline, color: AppColors.info, size: 16),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(
-                        'Contact details will be shared after payment confirmation',
+                      child: Text('wallet.contact_details_will_be_shared_after_payment_confi'.tr(),
                         style: AppTextStyles.caption
                             .copyWith(color: AppColors.info),
                       ),
@@ -539,8 +527,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen>
                     Icon(Icons.security, color: AppColors.success, size: 16),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(
-                        'Your information is protected and secure',
+                      child: Text('common.your_information_is_protected_and_secure'.tr(),
                         style: AppTextStyles.caption
                             .copyWith(color: AppColors.success),
                       ),

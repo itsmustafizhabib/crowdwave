@@ -1,5 +1,6 @@
 import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../core/constants/api_constants.dart';
 
 /// 🚨 Centralized Error Handling Service
@@ -18,7 +19,7 @@ class ErrorHandlingService {
       FlutterError.onError = (errorDetails) {
         developer.log(
           'Flutter Fatal Error: ${errorDetails.exception}',
-          name: 'CrowdWave.Fatal',
+          name: 'common.crowdwavefatal'.tr(),
           level: 1200,
           error: errorDetails.exception,
           stackTrace: errorDetails.stack,

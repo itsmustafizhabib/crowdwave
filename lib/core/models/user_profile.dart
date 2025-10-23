@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class UserProfile {
   final String uid;
   final String email;
@@ -73,30 +75,73 @@ class UserProfile {
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
-      uid: json['uid'],
-      email: json['email'],
-      fullName: json['fullName'],
-      username: json['username'],
-      phoneNumber: json['phoneNumber'],
-      photoUrl: json['photoUrl'],
-      dateOfBirth: DateTime.parse(json['dateOfBirth']),
-      role: UserRole.values.firstWhere((e) => e.name == json['role']),
-      verificationStatus:
-          VerificationStatus.fromJson(json['verificationStatus']),
-      ratings: UserRatings.fromJson(json['ratings']),
-      stats: UserStats.fromJson(json['stats']),
-      preferences: UserPreferences.fromJson(json['preferences']),
+      uid: json['uid'] as String,
+      email: json['email'] as String? ?? '',
+      fullName: json['fullName'] as String? ?? 'User',
+      username: json['username'] as String?,
+      phoneNumber: json['phoneNumber'] as String?,
+      photoUrl: json['photoUrl'] as String?,
+      dateOfBirth: json['dateOfBirth'] != null
+          ? _parseDateTime(json['dateOfBirth'])
+          : DateTime.now().subtract(const Duration(days: 365 * 18)),
+      role: json['role'] != null
+          ? UserRole.values.firstWhere(
+              (e) => e.name == json['role'],
+              orElse: () => UserRole.sender,
+            )
+          : UserRole.sender,
+      verificationStatus: json['verificationStatus'] != null
+          ? VerificationStatus.fromJson(
+              json['verificationStatus'] as Map<String, dynamic>)
+          : VerificationStatus(),
+      ratings: json['ratings'] != null
+          ? UserRatings.fromJson(json['ratings'] as Map<String, dynamic>)
+          : UserRatings(),
+      stats: json['stats'] != null
+          ? UserStats.fromJson(json['stats'] as Map<String, dynamic>)
+          : UserStats(),
+      preferences: json['preferences'] != null
+          ? UserPreferences.fromJson(
+              json['preferences'] as Map<String, dynamic>)
+          : UserPreferences(),
       verificationDocuments:
           List<String>.from(json['verificationDocuments'] ?? []),
-      createdAt: DateTime.parse(json['createdAt']),
-      lastActiveAt: DateTime.parse(json['lastActiveAt']),
-      isOnline: json['isOnline'] ?? false,
-      stripeAccountId: json['stripeAccountId'],
-      isBlocked: json['isBlocked'] ?? false,
-      address: json['address'],
-      city: json['city'],
-      country: json['country'],
+      createdAt: json['createdAt'] != null
+          ? _parseDateTime(json['createdAt'])
+          : DateTime.now(),
+      lastActiveAt: json['lastActiveAt'] != null
+          ? _parseDateTime(json['lastActiveAt'])
+          : DateTime.now(),
+      isOnline: json['isOnline'] as bool? ?? false,
+      stripeAccountId: json['stripeAccountId'] as String?,
+      isBlocked: json['isBlocked'] as bool? ?? false,
+      address: json['address'] as String?,
+      city: json['city'] as String?,
+      country: json['country'] as String?,
     );
+  }
+
+  // Helper method to parse DateTime from either Timestamp or String
+  static DateTime _parseDateTime(dynamic value) {
+    if (value == null) return DateTime.now();
+
+    // If it's a Firestore Timestamp
+    if (value is Timestamp) {
+      return value.toDate();
+    }
+
+    // If it's already a DateTime
+    if (value is DateTime) {
+      return value;
+    }
+
+    // If it's a String
+    if (value is String) {
+      return DateTime.parse(value);
+    }
+
+    // Fallback
+    return DateTime.now();
   }
 
   UserProfile copyWith({
@@ -186,10 +231,10 @@ class VerificationStatus {
       phoneVerified: json['phoneVerified'] ?? false,
       identityVerified: json['identityVerified'] ?? false,
       identitySubmittedAt: json['identitySubmittedAt'] != null
-          ? DateTime.parse(json['identitySubmittedAt'])
+          ? UserProfile._parseDateTime(json['identitySubmittedAt'])
           : null,
       identityVerifiedAt: json['identityVerifiedAt'] != null
-          ? DateTime.parse(json['identityVerifiedAt'])
+          ? UserProfile._parseDateTime(json['identityVerifiedAt'])
           : null,
       rejectionReason: json['rejectionReason'],
       submittedDocuments: List<String>.from(json['submittedDocuments'] ?? []),
@@ -286,7 +331,7 @@ class UserReview {
       reviewerPhotoUrl: json['reviewerPhotoUrl'],
       rating: json['rating'].toDouble(),
       comment: json['comment'],
-      createdAt: DateTime.parse(json['createdAt']),
+      createdAt: UserProfile._parseDateTime(json['createdAt']),
       transactionId: json['transactionId'],
     );
   }
@@ -340,7 +385,7 @@ class UserStats {
       onTimeDeliveries: json['onTimeDeliveries'] ?? 0,
       lateDeliveries: json['lateDeliveries'] ?? 0,
       lastDelivery: json['lastDelivery'] != null
-          ? DateTime.parse(json['lastDelivery'])
+          ? UserProfile._parseDateTime(json['lastDelivery'])
           : null,
     );
   }
@@ -361,7 +406,7 @@ class UserPreferences {
     this.allowsEmailMarketing = false,
     this.allowsSMSNotifications = true,
     this.preferredLanguage = 'en',
-    this.preferredCurrency = 'USD',
+    this.preferredCurrency = 'EUR',
     this.preferredTransportModes = const [],
     this.maxDetourKm = 10.0,
     this.autoAcceptMatches = false,
@@ -386,7 +431,7 @@ class UserPreferences {
       allowsEmailMarketing: json['allowsEmailMarketing'] ?? false,
       allowsSMSNotifications: json['allowsSMSNotifications'] ?? true,
       preferredLanguage: json['preferredLanguage'] ?? 'en',
-      preferredCurrency: json['preferredCurrency'] ?? 'USD',
+      preferredCurrency: json['preferredCurrency'] ?? 'EUR',
       preferredTransportModes:
           List<String>.from(json['preferredTransportModes'] ?? []),
       maxDetourKm: (json['maxDetourKm'] ?? 10.0).toDouble(),

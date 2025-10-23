@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/models/booking.dart';
@@ -8,6 +9,7 @@ import '../../core/models/transaction.dart' show PaymentMethod;
 import '../../core/models/payment_details.dart' as payment_models;
 import '../../services/payment_service.dart';
 import '../../services/booking_service.dart';
+import '../../services/tracking_service.dart';
 import '../../widgets/booking/payment_status_widget.dart' as status_widget;
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -118,7 +120,7 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
       // Step 1: Create payment intent
       final paymentIntentData = await _paymentService.createPaymentIntent(
         amount: widget.booking.totalAmount,
-        currency: 'usd',
+        currency: 'eur',
         bookingId: widget.booking.id,
         metadata: {
           'booking_id': widget.booking.id,
@@ -213,7 +215,7 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
         paymentMethod: widget.selectedMethod,
         status: payment_models.PaymentStatus.succeeded,
         amount: widget.booking.totalAmount,
-        currency: 'USD',
+        currency: 'EUR',
         processedAt: DateTime.now(),
         metadata: {
           'backend_confirmed': backendConfirmed,
@@ -225,6 +227,24 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
         bookingId: widget.booking.id,
         paymentDetails: paymentDetails,
       );
+
+      // 🔥 CRITICAL FIX: Create tracking if backend confirmation failed
+      if (!backendConfirmed) {
+        print('⚠️ Backend confirmation failed - creating tracking via app...');
+        try {
+          final trackingService = Get.find<TrackingService>();
+          final trackingId = await trackingService.createTracking(
+            packageRequestId: widget.booking.packageId,
+            travelerId: widget.booking.travelerId,
+            senderId: widget.booking.senderId,
+            notes: 'Booking confirmed - ready for pickup',
+          );
+          print('✅ Tracking created successfully: $trackingId');
+        } catch (trackingError) {
+          print('❌ Failed to create tracking: $trackingError');
+          // Don't fail the payment flow if tracking creation fails
+        }
+      }
 
       setState(() => _paymentStatus = PaymentUIStatus.success);
 
@@ -292,8 +312,7 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
                     Get.back(); // Close snackbar
                     Get.offAllNamed('/login'); // Navigate to login screen
                   },
-                  child: Text(
-                    'SIGN IN',
+                  child: Text('auth.sign_in'.tr(),
                     style: TextStyle(
                         color: Colors.white, fontWeight: FontWeight.bold),
                   ),
@@ -355,8 +374,7 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
-          title: const Text(
-            'Processing Payment',
+          title: Text('booking.processing_payment'.tr(),
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w600,
@@ -405,8 +423,7 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
 
                     // Progress Bar (only show during processing)
                     if (_paymentStatus == PaymentUIStatus.processing) ...[
-                      Text(
-                        'Processing your payment...',
+                      Text('wallet.processing_your_payment'.tr(),
                         style: AppTextStyles.h3,
                         textAlign: TextAlign.center,
                       ),
@@ -456,8 +473,7 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text(
-                            'Retry Payment',
+                          child: Text('payment.retry_payment'.tr(),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -471,8 +487,7 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
                         width: double.infinity,
                         child: TextButton(
                           onPressed: () => Get.back(),
-                          child: Text(
-                            'Choose Different Payment Method',
+                          child: Text('wallet.choose_different_payment_method'.tr(),
                             style: TextStyle(
                               color: AppColors.primary,
                               fontSize: 16,
@@ -488,15 +503,15 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
+                        color: Color(0xFF008080),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.blue.shade200),
+                        border: Border.all(color: Color(0xFF008080)),
                       ),
                       child: Row(
                         children: [
                           Icon(
                             Icons.security,
-                            color: Colors.blue.shade600,
+                            color: Color(0xFF008080),
                             size: 20,
                           ),
                           const SizedBox(width: 12),
@@ -505,7 +520,7 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
                               'Your payment is secured by Stripe\'s industry-leading encryption',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.blue.shade700,
+                                color: Color(0xFF008080),
                               ),
                             ),
                           ),
@@ -552,31 +567,29 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Payment Details',
+          Text('booking.payment_details'.tr(),
             style: AppTextStyles.h3.copyWith(
               color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 16),
           _buildDetailRow(
-              'Amount', '\$${widget.booking.totalAmount.toStringAsFixed(2)}'),
+              'Amount', '€${widget.booking.totalAmount.toStringAsFixed(2)}'),
           _buildDetailRow('Platform Fee',
-              '\$${widget.booking.platformFee.toStringAsFixed(2)}'),
+              '€${widget.booking.platformFee.toStringAsFixed(2)}'),
           _buildDetailRow('Payment Method', _getPaymentMethodName()),
           _buildDetailRow('Booking ID', widget.booking.id),
           const Divider(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Total',
+              Text('common.total'.tr(),
                 style: AppTextStyles.h3.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Text(
-                '\$${widget.booking.totalAmount.toStringAsFixed(2)}',
+                '€${widget.booking.totalAmount.toStringAsFixed(2)}',
                 style: AppTextStyles.h3.copyWith(
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,

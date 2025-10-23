@@ -1,12 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
+import 'package:rxdart/rxdart.dart' hide Rx;
 import '../core/models/delivery_tracking.dart';
 import '../core/models/package_request.dart';
 import '../models/notification_model.dart';
 import '../services/location_service.dart';
 import '../services/notification_service.dart';
+import '../services/geocoding_service.dart';
+import '../services/payment_service.dart';
+import '../services/custom_email_service.dart';
 
 class TrackingService extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -14,6 +19,7 @@ class TrackingService extends GetxController {
   final LocationService _locationService = Get.find<LocationService>();
   final NotificationService _notificationService =
       Get.find<NotificationService>();
+  final CustomEmailService _emailService = CustomEmailService();
 
   // Collection names
   static const String _trackingCollection = 'deliveryTracking';
@@ -32,6 +38,7 @@ class TrackingService extends GetxController {
   Future<String> createTracking({
     required String packageRequestId,
     required String travelerId,
+    required String senderId, // Added senderId parameter
     String? notes,
   }) async {
     try {
@@ -44,6 +51,7 @@ class TrackingService extends GetxController {
         id: trackingId,
         packageRequestId: packageRequestId,
         travelerId: travelerId,
+        senderId: senderId, // Added senderId argument
         status: DeliveryStatus.pending,
         trackingPoints: [],
         createdAt: now,
@@ -69,8 +77,8 @@ class TrackingService extends GetxController {
       // Send notification to sender
       await _notificationService.createNotification(
         userId: '', // Will be populated from package data when available
-        title: '📦 Tracking Started',
-        body: 'Your package delivery tracking has been activated',
+        title: 'notifications.tracking_started'.tr(),
+        body: 'post_package.your_package_delivery_tracking_has_been_activated'.tr(),
         type: NotificationType.packageUpdate,
         relatedEntityId: packageRequestId,
         data: {
@@ -121,20 +129,27 @@ class TrackingService extends GetxController {
       if (updateLocation) {
         final locationData = await _locationService.getCurrentLocation();
         if (locationData != null) {
+          // Fetch human-readable address
+          final geocodingService = Get.find<GeocodingService>();
+          final address = await geocodingService.getAddressFromCoordinates(
+            latitude: locationData.latitude,
+            longitude: locationData.longitude,
+          );
+
           final locationPoint = LocationPoint(
             latitude: locationData.latitude,
             longitude: locationData.longitude,
-            address:
-                'Location: ${locationData.latitude.toStringAsFixed(4)}, ${locationData.longitude.toStringAsFixed(4)}',
+            address: address,
           );
 
           updateData['currentLocation'] = locationPoint.toMap();
 
-          // Add to tracking points
+          // Add to tracking points with current timestamp
+          final now = DateTime.now();
           updateData['trackingPoints'] = FieldValue.arrayUnion([
             {
               ...locationPoint.toMap(),
-              'timestamp': FieldValue.serverTimestamp(),
+              'timestamp': Timestamp.fromDate(now),
               'status': status.name,
             }
           ]);
@@ -197,39 +212,97 @@ class TrackingService extends GetxController {
 
     print('🔍 Starting tracking stream for user: $currentUserId');
 
-    // For now, let's start with just traveler trackings to avoid complexity
-    // We can enhance this later once the basic functionality works
-    return _firestore
+    // Create combined stream for both traveler and sender trackings
+    final travelerStream = _firestore
         .collection(_trackingCollection)
         .where('travelerId', isEqualTo: currentUserId)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .handleError((error) {
-      print('❌ Error in tracking stream: $error');
-      return [];
-    }).map((snapshot) {
-      try {
-        final travelerTrackings = snapshot.docs
-            .map((doc) {
-              try {
-                return DeliveryTracking.fromMap(doc.data());
-              } catch (e) {
-                print('❌ Error parsing tracking document ${doc.id}: $e');
-                return null;
-              }
-            })
-            .where((tracking) => tracking != null)
-            .cast<DeliveryTracking>()
-            .toList();
+        .snapshots();
 
-        print(
-            '✅ Loaded ${travelerTrackings.length} tracking records as traveler');
-        _userTrackings.value = travelerTrackings;
-        return travelerTrackings;
-      } catch (e) {
-        print('❌ Error processing tracking snapshot: $e');
-        return <DeliveryTracking>[];
-      }
+    final senderStream = _firestore
+        .collection(_trackingCollection)
+        .where('senderId', isEqualTo: currentUserId)
+        .snapshots();
+
+    // Use CombineLatestStream to combine both streams
+    return CombineLatestStream.combine2(
+      travelerStream,
+      senderStream,
+      (QuerySnapshot travelerSnapshot, QuerySnapshot senderSnapshot) {
+        try {
+          // Parse traveler trackings
+          final travelerTrackings = travelerSnapshot.docs
+              .map((doc) {
+                try {
+                  final data = doc.data() as Map<String, dynamic>;
+                  print('📄 STREAM Traveler tracking doc ${doc.id}:');
+                  print('   - status: ${data['status']}');
+                  print('   - packageRequestId: ${data['packageRequestId']}');
+                  print('   - senderId: ${data['senderId']}');
+                  print('   - travelerId: ${data['travelerId']}');
+                  return DeliveryTracking.fromMap(data);
+                } catch (e) {
+                  print(
+                      '❌ Error parsing traveler tracking document ${doc.id}: $e');
+                  return null;
+                }
+              })
+              .where((tracking) => tracking != null)
+              .cast<DeliveryTracking>()
+              .toList();
+
+          // Parse sender trackings
+          final senderTrackings = senderSnapshot.docs
+              .map((doc) {
+                try {
+                  final data = doc.data() as Map<String, dynamic>;
+                  print('📄 STREAM Sender tracking doc ${doc.id}:');
+                  print('   - status: ${data['status']}');
+                  print('   - packageRequestId: ${data['packageRequestId']}');
+                  print('   - senderId: ${data['senderId']}');
+                  print('   - travelerId: ${data['travelerId']}');
+                  return DeliveryTracking.fromMap(data);
+                } catch (e) {
+                  print(
+                      '❌ Error parsing sender tracking document ${doc.id}: $e');
+                  return null;
+                }
+              })
+              .where((tracking) => tracking != null)
+              .cast<DeliveryTracking>()
+              .toList();
+
+          // Combine and deduplicate
+          final allTrackings = <String, DeliveryTracking>{};
+          for (final tracking in travelerTrackings) {
+            allTrackings[tracking.id] = tracking;
+          }
+          for (final tracking in senderTrackings) {
+            allTrackings[tracking.id] = tracking;
+          }
+
+          final combinedTrackings = allTrackings.values.toList();
+          combinedTrackings.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+          print('✅ STREAM Loaded ${combinedTrackings.length} tracking records '
+              '(${travelerTrackings.length} as traveler, ${senderTrackings.length} as sender)');
+
+          // Debug: Print status of each tracking
+          for (var tracking in combinedTrackings) {
+            print(
+                '  📦 STREAM Tracking ${tracking.id}: status=${tracking.status.name}, packageRequestId=${tracking.packageRequestId}');
+          }
+          ;
+
+          _userTrackings.value = combinedTrackings;
+          return combinedTrackings;
+        } catch (e) {
+          print('❌ Error processing tracking snapshot: $e');
+          return <DeliveryTracking>[];
+        }
+      },
+    ).handleError((error) {
+      print('❌ Error in tracking stream: $error');
+      return <DeliveryTracking>[];
     });
   }
 
@@ -254,6 +327,7 @@ class TrackingService extends GetxController {
       final travelerTrackings = travelerQuery.docs
           .map((doc) {
             try {
+              print('📄 Traveler tracking doc ${doc.id}: ${doc.data()}');
               return DeliveryTracking.fromMap(doc.data());
             } catch (e) {
               print('❌ Error parsing traveler tracking document ${doc.id}: $e');
@@ -264,42 +338,25 @@ class TrackingService extends GetxController {
           .cast<DeliveryTracking>()
           .toList();
 
-      // Get packages where user is the sender
-      final packageQuery = await _firestore
-          .collection(_packagesCollection)
+      // Get trackings where user is the sender - SIMPLIFIED QUERY
+      final senderQuery = await _firestore
+          .collection(_trackingCollection)
           .where('senderId', isEqualTo: currentUserId)
           .get();
 
-      final packageIds = packageQuery.docs.map((doc) => doc.id).toList();
-
-      List<DeliveryTracking> senderTrackings = [];
-
-      if (packageIds.isNotEmpty) {
-        // Process in chunks of 10 to handle Firestore limitations
-        for (int i = 0; i < packageIds.length; i += 10) {
-          final chunk = packageIds.skip(i).take(10).toList();
-          final trackingQuery = await _firestore
-              .collection(_trackingCollection)
-              .where('packageRequestId', whereIn: chunk)
-              .get();
-
-          final chunkTrackings = trackingQuery.docs
-              .map((doc) {
-                try {
-                  return DeliveryTracking.fromMap(doc.data());
-                } catch (e) {
-                  print(
-                      '❌ Error parsing sender tracking document ${doc.id}: $e');
-                  return null;
-                }
-              })
-              .where((tracking) => tracking != null)
-              .cast<DeliveryTracking>()
-              .toList();
-
-          senderTrackings.addAll(chunkTrackings);
-        }
-      }
+      final senderTrackings = senderQuery.docs
+          .map((doc) {
+            try {
+              print('📄 Sender tracking doc ${doc.id}: ${doc.data()}');
+              return DeliveryTracking.fromMap(doc.data());
+            } catch (e) {
+              print('❌ Error parsing sender tracking document ${doc.id}: $e');
+              return null;
+            }
+          })
+          .where((tracking) => tracking != null)
+          .cast<DeliveryTracking>()
+          .toList();
 
       // Combine and remove duplicates
       final allTrackings = <String, DeliveryTracking>{};
@@ -315,82 +372,17 @@ class TrackingService extends GetxController {
 
       print(
           '✅ Loaded ${combinedTrackings.length} total tracking records (${travelerTrackings.length} as traveler, ${senderTrackings.length} as sender)');
+
+      // Debug: Print status of each tracking
+      for (var tracking in combinedTrackings) {
+        print(
+            '  📦 Tracking ${tracking.id}: status=${tracking.status.name}, packageRequestId=${tracking.packageRequestId}');
+      }
+
       return combinedTrackings;
     } catch (e) {
       print('❌ Error getting complete tracking history: $e');
       return [];
-    }
-  }
-
-  /// DEBUG: Create test tracking data for testing
-  Future<void> createTestTrackingData() async {
-    final currentUserId = _auth.currentUser?.uid;
-    if (currentUserId == null) {
-      print('⚠️ No current user for test data creation');
-      return;
-    }
-
-    try {
-      print('🧪 Creating test tracking data...');
-
-      // Create a test package request first
-      final packageId = _firestore.collection(_packagesCollection).doc().id;
-      await _firestore.collection(_packagesCollection).doc(packageId).set({
-        'id': packageId,
-        'senderId': currentUserId,
-        'senderName': 'Test User',
-        'senderPhotoUrl': '',
-        'status': 'confirmed',
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-        'assignedTravelerId': currentUserId,
-        'compensationOffer': 50.0,
-        'pickupLocation': {
-          'latitude': 37.7749,
-          'longitude': -122.4194,
-          'address': 'Test Pickup Location',
-        },
-        'destinationLocation': {
-          'latitude': 37.7849,
-          'longitude': -122.4094,
-          'address': 'Test Destination Location',
-        },
-        'packageDetails': {
-          'description': 'Test Package',
-          'weight': 1.0,
-          'dimensions': '10x10x10',
-        },
-        'preferredDeliveryDate':
-            DateTime.now().add(Duration(days: 1)).toIso8601String(),
-        'insuranceRequired': false,
-        'photoUrls': [],
-        'isUrgent': false,
-        'preferredTransportModes': [],
-      });
-
-      // Create a test tracking record
-      final trackingId = _firestore.collection(_trackingCollection).doc().id;
-      final testTracking = DeliveryTracking(
-        id: trackingId,
-        packageRequestId: packageId,
-        travelerId: currentUserId,
-        status: DeliveryStatus.pending,
-        trackingPoints: [],
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        notes: 'Test tracking record',
-      );
-
-      await _firestore
-          .collection(_trackingCollection)
-          .doc(trackingId)
-          .set(testTracking.toMap());
-
-      print('✅ Test tracking data created successfully');
-      print('📦 Package ID: $packageId');
-      print('🚚 Tracking ID: $trackingId');
-    } catch (e) {
-      print('❌ Error creating test data: $e');
     }
   }
 
@@ -425,12 +417,19 @@ class TrackingService extends GetxController {
         throw Exception('Unable to get current location');
       }
 
+      // Fetch human-readable address using GeocodingService
+      final geocodingService = Get.find<GeocodingService>();
+      final address = await geocodingService.getAddressFromCoordinates(
+        latitude: locationData.latitude,
+        longitude: locationData.longitude,
+      );
+
+      final now = DateTime.now();
       final locationPoint = {
         'latitude': locationData.latitude,
         'longitude': locationData.longitude,
-        'address':
-            'Location: ${locationData.latitude.toStringAsFixed(4)}, ${locationData.longitude.toStringAsFixed(4)}',
-        'timestamp': FieldValue.serverTimestamp(),
+        'address': address,
+        'timestamp': Timestamp.fromDate(now),
         'notes': notes,
       };
 
@@ -439,7 +438,7 @@ class TrackingService extends GetxController {
         'currentLocation': {
           'latitude': locationData.latitude,
           'longitude': locationData.longitude,
-          'address': locationPoint['address'],
+          'address': address,
         },
         'updatedAt': FieldValue.serverTimestamp(),
       });
@@ -473,6 +472,187 @@ class TrackingService extends GetxController {
     }
   }
 
+  /// Mark as delivered by traveler with photo proof
+  Future<void> markAsDeliveredByTraveler({
+    required String trackingId,
+    required String photoUrl,
+    String? notes,
+  }) async {
+    try {
+      _isLoading.value = true;
+
+      final trackingRef =
+          _firestore.collection(_trackingCollection).doc(trackingId);
+
+      // Get current location for delivery checkpoint
+      final locationData = await _locationService.getCurrentLocation();
+      final updateData = <String, dynamic>{
+        'status': DeliveryStatus.delivered.name,
+        'deliveryTime': FieldValue.serverTimestamp(),
+        'deliveryPhotoUrl': photoUrl,
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      if (notes != null) {
+        updateData['notes'] = notes;
+      }
+
+      // Add location if available
+      if (locationData != null) {
+        final geocodingService = Get.find<GeocodingService>();
+        final address = await geocodingService.getAddressFromCoordinates(
+          latitude: locationData.latitude,
+          longitude: locationData.longitude,
+        );
+
+        final locationPoint = LocationPoint(
+          latitude: locationData.latitude,
+          longitude: locationData.longitude,
+          address: address,
+        );
+
+        updateData['currentLocation'] = locationPoint.toMap();
+
+        // Add to tracking points
+        final now = DateTime.now();
+        updateData['trackingPoints'] = FieldValue.arrayUnion([
+          {
+            ...locationPoint.toMap(),
+            'timestamp': Timestamp.fromDate(now),
+            'status': DeliveryStatus.delivered.name,
+          }
+        ]);
+      }
+
+      await trackingRef.update(updateData);
+
+      // Get tracking data to notify sender
+      final tracking = await getTracking(trackingId);
+      if (tracking != null) {
+        // Send in-app notification to sender to confirm delivery
+        await _notificationService.createNotification(
+          userId: tracking.senderId,
+          title: '📦 Package Delivered!',
+          body: 'post_package.your_package_has_been_delivered_please_confirm_to_'.tr(),
+          type: NotificationType.packageUpdate,
+          relatedEntityId: trackingId,
+          data: {
+            'trackingId': trackingId,
+            'packageRequestId': tracking.packageRequestId,
+            'photoUrl': photoUrl,
+            'action': 'confirm_delivery',
+          },
+        );
+
+        // Send email notification to sender
+        await _sendEmailNotification(
+          trackingId: trackingId,
+          tracking: tracking,
+          status: 'delivered',
+          title: '📦 Package Delivered!',
+          body:
+              'Your package has been delivered. Please confirm to release payment.',
+        );
+      }
+
+      print('✅ Package marked as delivered by traveler');
+    } catch (e) {
+      print('❌ Error marking as delivered by traveler: $e');
+      rethrow;
+    } finally {
+      _isLoading.value = false;
+    }
+  }
+
+  /// Confirm delivery as sender
+  Future<void> confirmDeliveryAsSender({
+    required String trackingId,
+    String? notes,
+  }) async {
+    try {
+      _isLoading.value = true;
+
+      final trackingRef =
+          _firestore.collection(_trackingCollection).doc(trackingId);
+
+      final updateData = <String, dynamic>{
+        'senderConfirmed': true,
+        'senderConfirmedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      if (notes != null) {
+        updateData['senderFeedback'] = notes;
+      }
+
+      await trackingRef.update(updateData);
+
+      // Get tracking data to process payment release
+      final tracking = await getTracking(trackingId);
+      if (tracking != null) {
+        // Find the booking associated with this package
+        final bookingsSnapshot = await _firestore
+            .collection('bookings')
+            .where('packageId', isEqualTo: tracking.packageRequestId)
+            .where('travelerId', isEqualTo: tracking.travelerId)
+            .limit(1)
+            .get();
+
+        if (bookingsSnapshot.docs.isNotEmpty) {
+          final bookingDoc = bookingsSnapshot.docs.first;
+          final bookingData = bookingDoc.data();
+
+          // Release payment to traveler
+          try {
+            final PaymentService paymentService = PaymentService();
+            await paymentService.releasePayment(
+              bookingId: bookingDoc.id,
+              travelerId: tracking.travelerId,
+              amount: (bookingData['travelerPayout'] ?? 0.0).toDouble(),
+              reason: 'delivery_confirmed',
+            );
+
+            // Update booking payment status
+            await _firestore.collection('bookings').doc(bookingDoc.id).update({
+              'paymentHoldStatus': 'released',
+              'paymentReleasedAt': FieldValue.serverTimestamp(),
+              'paymentReleaseReason': 'Sender confirmed delivery',
+              'status': 'completed',
+              'completedAt': FieldValue.serverTimestamp(),
+            });
+
+            print('✅ Payment released successfully');
+          } catch (paymentError) {
+            print('⚠️ Failed to release payment: $paymentError');
+            // Don't fail the confirmation if payment release fails
+            // Payment can be released manually later
+          }
+        }
+
+        // Notify traveler that payment has been released
+        await _notificationService.createNotification(
+          userId: tracking.travelerId,
+          title: 'notifications.payment_released'.tr(),
+          body: 'common.the_sender_confirmed_delivery_payment_has_been_rel'.tr(),
+          type: NotificationType.general,
+          relatedEntityId: trackingId,
+          data: {
+            'trackingId': trackingId,
+            'packageRequestId': tracking.packageRequestId,
+            'action': 'payment_released',
+          },
+        );
+      }
+
+      print('✅ Delivery confirmed by sender');
+    } catch (e) {
+      print('❌ Error confirming delivery as sender: $e');
+      rethrow;
+    } finally {
+      _isLoading.value = false;
+    }
+  }
+
   /// Send status notification
   Future<void> _sendStatusNotification(
       String trackingId, DeliveryStatus status) async {
@@ -482,41 +662,131 @@ class TrackingService extends GetxController {
 
       String title;
       String body;
+      String emailStatus;
 
       switch (status) {
         case DeliveryStatus.picked_up:
           title = '📦 Package Picked Up';
           body = 'Your package has been picked up and is on its way!';
+          emailStatus = 'picked_up';
           break;
         case DeliveryStatus.in_transit:
           title = '🚚 Package In Transit';
           body = 'Your package is currently in transit';
+          emailStatus = 'in_transit';
           break;
         case DeliveryStatus.delivered:
           title = '✅ Package Delivered';
           body = 'Your package has been successfully delivered!';
+          emailStatus = 'delivered';
           break;
         case DeliveryStatus.cancelled:
           title = '❌ Delivery Cancelled';
           body = 'The delivery has been cancelled';
+          emailStatus = 'cancelled';
           break;
         default:
           return;
       }
 
-      await _notificationService.createNotification(
-        userId: '', // Will be populated from tracking data when available
-        title: title,
-        body: body,
-        type: NotificationType.packageUpdate,
-        relatedEntityId: tracking.packageRequestId,
-        data: {
-          'trackingId': trackingId,
-          'status': status.name,
-        },
-      );
+      // Send in-app notification to the sender
+      if (tracking.senderId.isNotEmpty) {
+        await _notificationService.createNotification(
+          userId: tracking.senderId,
+          title: title,
+          body: body,
+          type: NotificationType.packageUpdate,
+          relatedEntityId: tracking.packageRequestId,
+          data: {
+            'trackingId': trackingId,
+            'status': status.name,
+          },
+        );
+        print('✅ In-app notification sent to sender: ${tracking.senderId}');
+
+        // Send email notification to sender
+        await _sendEmailNotification(
+          trackingId: trackingId,
+          tracking: tracking,
+          status: emailStatus,
+          title: title,
+          body: body,
+        );
+      } else {
+        print('⚠️ No sender ID found in tracking data');
+      }
     } catch (e) {
       print('❌ Error sending status notification: $e');
+    }
+  }
+
+  /// Send email notification for tracking updates
+  Future<void> _sendEmailNotification({
+    required String trackingId,
+    required DeliveryTracking tracking,
+    required String status,
+    required String title,
+    required String body,
+  }) async {
+    try {
+      // Get sender's email from Firestore
+      final senderDoc =
+          await _firestore.collection('users').doc(tracking.senderId).get();
+
+      if (!senderDoc.exists) {
+        print('⚠️ Sender user document not found');
+        return;
+      }
+
+      final senderData = senderDoc.data();
+      final senderEmail = senderData?['email'] as String?;
+
+      if (senderEmail == null || senderEmail.isEmpty) {
+        print('⚠️ Sender email not found');
+        return;
+      }
+
+      // Get package details
+      final packageDoc = await _firestore
+          .collection(_packagesCollection)
+          .doc(tracking.packageRequestId)
+          .get();
+
+      if (!packageDoc.exists) {
+        print('⚠️ Package document not found');
+        return;
+      }
+
+      final packageData = packageDoc.data()!;
+
+      // Prepare package details for email
+      final packageDetails = {
+        'packageId': tracking.packageRequestId,
+        'trackingNumber': trackingId,
+        'from': packageData['fromLocation']?['city'] ?? 'Unknown',
+        'to': packageData['toLocation']?['city'] ?? 'Unknown',
+        'description': packageData['description'] ?? 'Package',
+        'weight': packageData['weight']?.toString() ?? 'N/A',
+      };
+
+      // Create tracking URL (adjust to your app's deep link or web URL)
+      final trackingUrl = 'https://crowdwave.eu/track/$trackingId';
+
+      // Send email via Cloud Function
+      print('📧 Sending email notification to: $senderEmail');
+      print('📦 Status: $status');
+
+      await _emailService.sendDeliveryUpdateEmail(
+        recipientEmail: senderEmail,
+        packageDetails: packageDetails,
+        status: status,
+        trackingUrl: trackingUrl,
+      );
+
+      print('✅ Email notification sent successfully to: $senderEmail');
+    } catch (e) {
+      print('❌ Error sending email notification: $e');
+      // Don't throw - we don't want email failures to break the app
     }
   }
 
@@ -526,7 +796,7 @@ class TrackingService extends GetxController {
       case DeliveryStatus.pending:
         return Colors.orange;
       case DeliveryStatus.picked_up:
-        return Colors.blue;
+        return Color(0xFF008080);
       case DeliveryStatus.in_transit:
         return Colors.purple;
       case DeliveryStatus.delivered:

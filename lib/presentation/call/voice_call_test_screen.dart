@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../call/voice_call_screen.dart';
 import '../call/incoming_call_screen.dart';
 import '../call/test_fcm_notification_screen.dart';
@@ -11,8 +12,8 @@ class VoiceCallTestScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Voice Call Test'),
-        backgroundColor: const Color(0xFF0046FF),
+        title: Text('common.voice_call_test'.tr()),
+        backgroundColor: const Color(0xFF215C5C),
         foregroundColor: Colors.white,
       ),
       body: Padding(
@@ -23,19 +24,17 @@ class VoiceCallTestScreen extends StatelessWidget {
             const Icon(
               Icons.phone,
               size: 80,
-              color: Color(0xFF0046FF),
+              color: Color(0xFF215C5C),
             ),
             const SizedBox(height: 30),
-            const Text(
-              'Voice Call Test',
+            Text('common.voice_call_test'.tr(),
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Test the voice call UI and functionality',
+            Text('common.test_the_voice_call_ui_and_functionality'.tr(),
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey,
@@ -59,8 +58,7 @@ class VoiceCallTestScreen extends StatelessWidget {
                 );
               },
               icon: const Icon(Icons.phone, color: Colors.white),
-              label: const Text(
-                'Test Voice Call UI',
+              label: Text('common.test_voice_call_ui'.tr(),
                 style: TextStyle(fontSize: 18),
               ),
               style: ElevatedButton.styleFrom(
@@ -91,12 +89,11 @@ class VoiceCallTestScreen extends StatelessWidget {
                 );
               },
               icon: const Icon(Icons.call_received, color: Colors.white),
-              label: const Text(
-                'Test Incoming Call UI',
+              label: Text('common.test_incoming_call_ui'.tr(),
                 style: TextStyle(fontSize: 18),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0046FF),
+                backgroundColor: const Color(0xFF215C5C),
                 foregroundColor: Colors.white,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
@@ -117,8 +114,7 @@ class VoiceCallTestScreen extends StatelessWidget {
               },
               icon:
                   const Icon(Icons.notification_important, color: Colors.white),
-              label: const Text(
-                'Test FCM Notifications',
+              label: Text('notifications.test_fcm_notifications'.tr(),
                 style: TextStyle(fontSize: 18),
               ),
               style: ElevatedButton.styleFrom(

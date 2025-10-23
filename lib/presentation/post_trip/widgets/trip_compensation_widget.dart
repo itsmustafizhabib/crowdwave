@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sizer/sizer.dart';
 import '../../../core/app_export.dart';
 
@@ -59,7 +60,7 @@ class TripCompensationWidget extends StatelessWidget {
           Row(
             children: [
               Text(
-                '\$${suggestedReward.toStringAsFixed(0)}',
+                '€${suggestedReward.toStringAsFixed(0)}',
                 style: TextStyle(
                   fontSize: 24.sp,
                   fontWeight: FontWeight.bold,
@@ -80,11 +81,11 @@ class TripCompensationWidget extends StatelessWidget {
           SizedBox(height: 2.h),
 
           Slider(
-            value: suggestedReward,
+            value: suggestedReward.clamp(5.0, 200.0),
             min: 5.0,
             max: 200.0,
             divisions: 39,
-            label: '\$${suggestedReward.toStringAsFixed(0)}',
+            label: '€${suggestedReward.toStringAsFixed(0)}',
             onChanged: onRewardChanged,
           ),
 
@@ -92,7 +93,7 @@ class TripCompensationWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '\$5',
+                '€5',
                 style: TextStyle(
                   fontSize: 12.sp,
                   color: AppTheme.lightTheme.colorScheme.onSurface
@@ -100,7 +101,7 @@ class TripCompensationWidget extends StatelessWidget {
                 ),
               ),
               Text(
-                '\$200',
+                '€200',
                 style: TextStyle(
                   fontSize: 12.sp,
                   color: AppTheme.lightTheme.colorScheme.onSurface
@@ -133,7 +134,7 @@ class TripCompensationWidget extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    '\$$amount',
+                    '€$amount',
                     style: TextStyle(
                       fontSize: 12.sp,
                       fontWeight: FontWeight.w500,
@@ -172,8 +173,7 @@ class TripCompensationWidget extends StatelessWidget {
                 size: 20,
               ),
               SizedBox(width: 2.w),
-              Text(
-                'How Rewards Work',
+              Text('common.how_rewards_work'.tr(),
                 style: TextStyle(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,

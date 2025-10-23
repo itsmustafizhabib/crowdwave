@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
@@ -259,8 +260,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        'Incoming call',
+                      Text('notifications.incoming_call'.tr(),
                         style: TextStyle(
                           color: Colors.white70,
                           fontSize: 16,
@@ -286,7 +286,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF0046FF)
+                                    color: const Color(0xFF215C5C)
                                         .withOpacity(0.4),
                                     blurRadius: 20,
                                     spreadRadius: 5,
@@ -295,7 +295,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                               ),
                               child: CircleAvatar(
                                 radius: 80,
-                                backgroundColor: const Color(0xFF0046FF),
+                                backgroundColor: const Color(0xFF215C5C),
                                 backgroundImage: (widget.callerAvatar != null &&
                                         widget.callerAvatar!.isNotEmpty &&
                                         widget.callerAvatar!.startsWith('http'))
@@ -338,8 +338,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                       const SizedBox(height: 8),
 
                       // Call type
-                      const Text(
-                        'Voice call',
+                      Text('calls.voice_call'.tr(),
                         style: TextStyle(
                           color: Colors.white60,
                           fontSize: 16,

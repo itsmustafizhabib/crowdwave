@@ -4,7 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:get/get.dart';
 import '../core/error_handler.dart';
+import 'wallet_service.dart';
 
 class EnhancedFirebaseAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -19,6 +21,33 @@ class EnhancedFirebaseAuthService {
 
   // Auth state changes stream
   Stream<User?> get authStateChanges => _auth.authStateChanges();
+
+  // Helper method to ensure wallet exists for user
+  Future<void> _ensureWalletExists(User user, {bool isNewUser = false}) async {
+    try {
+      final walletService = Get.find<WalletService>();
+      final wallet = await walletService.getWallet(user.uid);
+
+      if (wallet == null) {
+        await walletService.createWallet(
+          user.uid,
+          currency: 'EUR', // Default to EUR
+        );
+        if (kDebugMode) {
+          print('✅ Wallet created for user: ${user.uid}');
+        }
+      } else if (isNewUser) {
+        if (kDebugMode) {
+          print('ℹ️ Wallet already exists for user: ${user.uid}');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('⚠️ Failed to create/check wallet: $e');
+      }
+      // Don't fail auth flow if wallet operations fail
+    }
+  }
 
   // Sign in with email and password
   Future<User?> signInWithEmailAndPassword(
@@ -42,6 +71,12 @@ class EnhancedFirebaseAuthService {
         email: email,
         password: password,
       );
+
+      // Create wallet for new user
+      if (result.user != null) {
+        await _ensureWalletExists(result.user!, isNewUser: true);
+      }
+
       return result.user;
     } on FirebaseAuthException catch (e) {
       throw Exception(_handleAuthException(e));
@@ -285,6 +320,13 @@ class EnhancedFirebaseAuthService {
 
       final UserCredential result =
           await _auth.signInWithCredential(credential);
+
+      // Ensure wallet exists (will create if new user)
+      if (result.user != null) {
+        await _ensureWalletExists(result.user!,
+            isNewUser: result.additionalUserInfo?.isNewUser ?? false);
+      }
+
       return result.user;
     } on FirebaseAuthException catch (e) {
       throw Exception(_handleAuthException(e));
@@ -307,6 +349,13 @@ class EnhancedFirebaseAuthService {
 
         final UserCredential result =
             await _auth.signInWithCredential(facebookAuthCredential);
+
+        // Ensure wallet exists (will create if new user)
+        if (result.user != null) {
+          await _ensureWalletExists(result.user!,
+              isNewUser: result.additionalUserInfo?.isNewUser ?? false);
+        }
+
         return result.user;
       }
 
@@ -326,6 +375,12 @@ class EnhancedFirebaseAuthService {
           AppleIDAuthorizationScopes.email,
           AppleIDAuthorizationScopes.fullName,
         ],
+        webAuthenticationOptions: WebAuthenticationOptions(
+          clientId: 'com.crowdwave.service',
+          redirectUri: Uri.parse(
+            'https://crowdwave-93d4d.firebaseapp.com/__/auth/handler',
+          ),
+        ),
       );
 
       final oauthCredential = OAuthProvider("apple.com").credential(
@@ -335,6 +390,13 @@ class EnhancedFirebaseAuthService {
 
       final UserCredential result =
           await _auth.signInWithCredential(oauthCredential);
+
+      // Ensure wallet exists (will create if new user)
+      if (result.user != null) {
+        await _ensureWalletExists(result.user!,
+            isNewUser: result.additionalUserInfo?.isNewUser ?? false);
+      }
+
       return result.user;
     } on SignInWithAppleAuthorizationException catch (e) {
       if (e.code == AuthorizationErrorCode.canceled) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../core/models/transaction.dart';
 import '../../core/theme/app_colors.dart';
 
@@ -95,8 +96,7 @@ class PaymentMethodWidget extends StatelessWidget {
                   color: Colors.grey.shade200,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(
-                  'Coming Soon',
+                child: Text('profile.coming_soon'.tr(),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.grey.shade600,
                         fontSize: 10,
@@ -130,13 +130,13 @@ class PaymentMethodWidget extends StatelessWidget {
     switch (method) {
       case PaymentMethod.creditCard:
       case PaymentMethod.debitCard:
-        return Colors.blue;
+        return Color(0xFF008080);
       case PaymentMethod.applePay:
         return Colors.black;
       case PaymentMethod.googlePay:
         return Colors.green;
       case PaymentMethod.paypal:
-        return Colors.blue.shade700;
+        return Color(0xFF008080);
       case PaymentMethod.bankTransfer:
         return Colors.purple;
     }

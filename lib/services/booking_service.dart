@@ -2,12 +2,15 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import '../core/models/booking.dart';
 import '../core/models/deal_offer.dart';
 import '../core/models/package_request.dart';
 import '../core/models/travel_trip.dart';
 import '../core/models/cancellation.dart';
 import '../core/models/payment_details.dart';
+import '../core/models/wallet.dart';
+import 'wallet_service.dart';
 
 /// 🚀 PRODUCTION-READY Booking Service - CrowdWave
 /// Handles all booking operations, confirmations, and lifecycle management
@@ -18,6 +21,13 @@ class BookingService {
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  // Lazy initialization of WalletService
+  WalletService? _walletService;
+  WalletService get walletService {
+    _walletService ??= Get.find<WalletService>();
+    return _walletService!;
+  }
 
   // Collection references
   final String _bookingsCollection = 'bookings';
@@ -87,26 +97,127 @@ class BookingService {
       final totalAmount = acceptedDeal.offeredPrice +
           platformFee; // Customer pays service fee + platform fee
 
-      // Create booking with default terms
+      // 💰 WALLET INTEGRATION: Check sender's balance before creating booking
+      if (kDebugMode) {
+        print('💰 Checking sender wallet balance...');
+      }
+
+      bool hasSufficientBalance = false;
+      Wallet? senderWallet;
+
+      try {
+        senderWallet = await walletService.getWallet(package.senderId);
+
+        if (senderWallet == null) {
+          if (kDebugMode) {
+            print('⚠️ Sender wallet not found - will require Stripe payment');
+          }
+          hasSufficientBalance = false;
+        } else {
+          hasSufficientBalance = senderWallet.hasSufficientBalance(totalAmount);
+
+          if (kDebugMode) {
+            if (hasSufficientBalance) {
+              print('✅ Sender has sufficient balance');
+              print('   Required: €${totalAmount.toStringAsFixed(2)}');
+              print(
+                  '   Available: €${senderWallet.balance.toStringAsFixed(2)}');
+            } else {
+              print(
+                  '⚠️ Insufficient wallet balance - will require Stripe payment');
+              print('   Required: €${totalAmount.toStringAsFixed(2)}');
+              print(
+                  '   Available: €${senderWallet.balance.toStringAsFixed(2)}');
+            }
+          }
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('❌ Wallet balance check error: $e');
+          print('⚠️ Will proceed with Stripe payment requirement');
+        }
+        hasSufficientBalance = false;
+      }
+
+      // Create booking with appropriate status based on wallet balance
+      // If insufficient balance, create with paymentPending status to allow Stripe payment
       final booking = Booking(
         id: '', // Will be set by Firestore
         packageId: package.id,
         travelerId: trip.travelerId,
         senderId: package.senderId,
         dealId: acceptedDeal.id,
-        status: BookingStatus.pending,
+        status: hasSufficientBalance
+            ? BookingStatus.pending
+            : BookingStatus.paymentPending,
         createdAt: DateTime.now(),
         totalAmount: totalAmount,
         platformFee: platformFee,
         travelerPayout: travelerPayout,
         specialInstructions: specialInstructions,
         terms: BookingTerms.defaultTerms(),
+        paymentHoldStatus: PaymentHoldStatus.held,
+        paymentHeldAt: DateTime.now(),
       );
 
       // Add to Firestore
       final docRef = await _firestore
           .collection(_bookingsCollection)
           .add(booking.toFirestore());
+
+      final bookingId = docRef.id;
+
+      // 💰 WALLET INTEGRATION: Process payment only if sufficient balance
+      if (hasSufficientBalance) {
+        if (kDebugMode) {
+          print('💰 Processing wallet payment for booking: $bookingId');
+        }
+
+        try {
+          // 1. Deduct from sender's wallet
+          await walletService.addSpending(
+            userId: package.senderId,
+            amount: totalAmount,
+            bookingId: bookingId,
+            description: 'Payment for booking #$bookingId',
+          );
+
+          if (kDebugMode) {
+            print(
+                '✅ Deducted €${totalAmount.toStringAsFixed(2)} from sender wallet');
+          }
+
+          // 2. Hold payment in traveler's pending balance
+          await walletService.holdPayment(
+            userId: trip.travelerId,
+            amount: travelerPayout,
+            bookingId: bookingId,
+            description: 'Payment held for booking #$bookingId',
+          );
+
+          if (kDebugMode) {
+            print(
+                '✅ Held €${travelerPayout.toStringAsFixed(2)} in traveler pending balance');
+          }
+        } catch (walletError) {
+          // If wallet transaction fails, delete booking and rethrow
+          if (kDebugMode) {
+            print('❌ Wallet transaction failed: $walletError');
+            print('⚠️ Rolling back booking creation...');
+          }
+
+          await docRef.delete();
+          throw Exception('Payment processing failed: $walletError');
+        }
+      } else {
+        // Insufficient balance - booking created with paymentPending status
+        // User will be directed to Stripe payment
+        if (kDebugMode) {
+          print('💳 Booking created with paymentPending status');
+          print(
+              '   User will be directed to Stripe payment for €${totalAmount.toStringAsFixed(2)}');
+        }
+      }
 
       // Update package and trip status only if not skipping validation
       // (because if we skip validation, the documents might not exist in Firestore)
@@ -122,7 +233,7 @@ class BookingService {
         }
       }
 
-      final createdBooking = booking.copyWith(id: docRef.id);
+      final createdBooking = booking.copyWith(id: bookingId);
 
       if (kDebugMode) {
         print('✅ Booking created: ${createdBooking.id}');
@@ -245,6 +356,69 @@ class BookingService {
         updateData['status'] = BookingStatus.paymentPending.name;
       } else if (paymentDetails.status == PaymentStatus.succeeded) {
         updateData['status'] = BookingStatus.paymentCompleted.name;
+
+        // 🔥 FIX: Create wallet transaction for Stripe payments
+        // This ensures the payment appears in transaction history
+        if (kDebugMode) {
+          print('💰 Payment succeeded - creating wallet transaction...');
+          print('   Booking ID: $bookingId');
+        }
+
+        try {
+          // Get booking details to extract sender ID and amount
+          final bookingDoc = await _firestore
+              .collection(_bookingsCollection)
+              .doc(bookingId)
+              .get();
+
+          if (kDebugMode) {
+            print('📄 Booking document exists: ${bookingDoc.exists}');
+          }
+
+          if (bookingDoc.exists) {
+            final bookingData = bookingDoc.data()!;
+            final senderId = bookingData['senderId'] as String?;
+            final totalAmount = (bookingData['totalAmount'] ?? 0.0) as double;
+
+            if (kDebugMode) {
+              print('👤 Sender ID: $senderId');
+              print('💵 Total Amount: €${totalAmount.toStringAsFixed(2)}');
+            }
+
+            if (senderId != null && totalAmount > 0) {
+              // Record the spending transaction in wallet
+              if (kDebugMode) {
+                print('💳 Creating wallet spending transaction...');
+              }
+
+              await walletService.addSpendingTransaction(
+                userId: senderId,
+                amount: totalAmount,
+                bookingId: bookingId,
+                description: 'Payment via Stripe for booking #$bookingId',
+              );
+
+              if (kDebugMode) {
+                print('✅ Wallet transaction recorded successfully!');
+                print('   User: $senderId');
+                print('   Amount: €${totalAmount.toStringAsFixed(2)}');
+                print('   Booking: $bookingId');
+              }
+            } else {
+              if (kDebugMode) {
+                print(
+                    '⚠️ Missing sender ID or invalid amount - transaction NOT created');
+              }
+            }
+          }
+        } catch (walletError) {
+          // Don't fail the payment update if wallet transaction fails
+          // Just log it for monitoring
+          if (kDebugMode) {
+            print('❌ Failed to create wallet transaction: $walletError');
+            print('   Stack trace: ${StackTrace.current}');
+          }
+        }
       }
 
       await _firestore

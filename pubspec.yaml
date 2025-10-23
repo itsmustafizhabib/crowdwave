@@ -2,7 +2,7 @@ name: crowdwave
 description: "CrowdWave - Peer-to-peer delivery marketplace connecting travelers with people who need packages delivered. Safe, convenient, and cost-effective worldwide delivery service."
 publish_to: 'none'
 
-version: 1.0.5+10
+version: 1.0.5+11
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -77,10 +77,15 @@ dependencies:
   cached_network_image: ^3.3.1
 
   # Utilities
-  intl: ^0.19.0
+  intl: ^0.20.2
   uuid: ^4.3.3
   url_launcher: ^6.2.2
   share_plus: ^10.1.1
+  
+  # Localization
+  easy_localization: ^3.0.7
+  flutter_localizations:
+    sdk: flutter
   
   # Web compatibility
   universal_html: ^2.2.4
@@ -107,6 +112,11 @@ flutter:
     - assets/icons8-google-color/
     - assets/icons8-apple-ios-17-outlined/
     - assets/images/logo.svg
+    - assets/translations/
+    - assets/thin.png
+    - assets/courier.gif
+    - assets/package.png
+    - assets/bg_header.png
 
 flutter_icons:
   android: true

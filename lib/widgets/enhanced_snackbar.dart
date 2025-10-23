@@ -119,7 +119,7 @@ class EnhancedSnackBar {
           ),
         ],
       ),
-      backgroundColor: Colors.blue.shade600,
+      backgroundColor: Color(0xFF008080),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -159,7 +159,7 @@ class EnhancedSnackBar {
           ),
         ],
       ),
-      backgroundColor: Colors.orange.shade600,
+      backgroundColor: Colors.amber.shade600,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),

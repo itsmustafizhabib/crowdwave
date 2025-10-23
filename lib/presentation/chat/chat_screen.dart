@@ -2,7 +2,7 @@ import '../../widgets/liquid_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:intl/intl.dart';
 import 'dart:async';
 import 'package:lottie/lottie.dart';
@@ -10,6 +10,7 @@ import '../../controllers/chat_controller.dart';
 import '../../core/models/chat_conversation.dart';
 import '../../core/models/chat_message.dart';
 import 'individual_chat_screen.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({Key? key}) : super(key: key);
@@ -33,11 +34,22 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   Future<void> _initializeController() async {
     try {
-      // ✅ FIX: Use Get.putAsync for safe controller initialization
-      _chatController = await Get.putAsync<ChatController>(
-        () async => ChatController(), // Controller auto-inits in onInit
-        permanent: true,
-      );
+      // ✅ FIX: Try to find existing controller first, only create if not exists
+      if (Get.isRegistered<ChatController>()) {
+        _chatController = Get.find<ChatController>();
+        if (kDebugMode) {
+          print('♻️ Reusing existing ChatController');
+        }
+      } else {
+        // ✅ FIX: Use Get.putAsync for safe controller initialization
+        _chatController = await Get.putAsync<ChatController>(
+          () async => ChatController(), // Controller auto-inits in onInit
+          permanent: true,
+        );
+        if (kDebugMode) {
+          print('🆕 Created new permanent ChatController');
+        }
+      }
 
       setState(() {
         _isControllerReady = true;
@@ -74,25 +86,38 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
       _chatController.setOnlineStatus(true);
 
-      // ✅ FIX: Use completer to ensure load completes
-      final completer = Completer<void>();
-      final subscription = _chatController.isLoading.listen((isLoading) {
-        if (!isLoading && !completer.isCompleted) {
-          completer.complete();
+      // ✅ OPTIMIZATION: Only refresh if this is truly the first load
+      // The controller already loads conversations on initialization
+      if (_isFirstLoad && _chatController.conversations.isEmpty) {
+        if (kDebugMode) {
+          print('🔄 First load - refreshing conversations...');
         }
-      });
 
-      // Set timeout for the load operation
-      final timeout = Future.delayed(const Duration(seconds: 5));
+        // ✅ FIX: Use completer to ensure load completes
+        final completer = Completer<void>();
+        final subscription = _chatController.isLoading.listen((isLoading) {
+          if (!isLoading && !completer.isCompleted) {
+            completer.complete();
+          }
+        });
 
-      _chatController.refreshConversations();
+        // Set timeout for the load operation
+        final timeout = Future.delayed(const Duration(seconds: 5));
 
-      await Future.any([completer.future, timeout]);
-      subscription.cancel();
+        _chatController.refreshConversations();
 
-      if (kDebugMode) {
-        print('✅ Initial load completed');
-        print('   - Conversations: ${_chatController.conversations.length}');
+        await Future.any([completer.future, timeout]);
+        subscription.cancel();
+
+        if (kDebugMode) {
+          print('✅ Initial load completed');
+          print('   - Conversations: ${_chatController.conversations.length}');
+        }
+      } else {
+        if (kDebugMode) {
+          print(
+              '✅ Conversations already loaded (${_chatController.conversations.length}) - skipping refresh');
+        }
       }
     } catch (e) {
       if (kDebugMode) {
@@ -147,14 +172,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       return Scaffold(
         backgroundColor: const Color(0xFFE9E9E9),
         appBar: AppBar(
-          title: const Text(
-            'Chats',
+          title: Text('chat.chats'.tr(),
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w600,
             ),
           ),
-          backgroundColor: const Color(0xFF0046FF),
+          backgroundColor: const Color(0xFF215C5C),
           elevation: 0,
           centerTitle: true,
         ),
@@ -167,14 +191,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     return Scaffold(
       backgroundColor: const Color(0xFFE9E9E9),
       appBar: AppBar(
-        title: const Text(
-          'Chats',
+        title: Text('chat.chats'.tr(),
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: const Color(0xFF0046FF),
+        backgroundColor: const Color(0xFF215C5C),
         elevation: 0,
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
@@ -202,7 +225,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search conversations...',
+                hintText: 'chat.search_conversations_hint'.tr(),
                 prefixIcon: const Icon(Icons.search, color: Colors.grey),
                 suffixIcon: Obx(() {
                   return _chatController.searchQuery.value.isNotEmpty
@@ -317,8 +340,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         children: [
           const Icon(Icons.error_outline, size: 64, color: Colors.grey),
           const SizedBox(height: 16),
-          Text(
-            'Error loading chats',
+          Text('error_messages.error_loading_chats'.tr(),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -341,13 +363,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           ElevatedButton(
             onPressed: _retryLoading,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0046FF),
+              backgroundColor: const Color(0xFF215C5C),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('Retry'),
+            child: Text('common.retry'.tr()),
           ),
         ],
       ),
@@ -361,8 +383,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         children: [
           const Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey),
           const SizedBox(height: 16),
-          Text(
-            'No chats yet',
+          Text('chat.no_chats_yet'.tr(),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -370,8 +391,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            'Start a conversation with someone',
+          Text('common.start_a_conversation_with_someone'.tr(),
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[500],
@@ -389,8 +409,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         children: [
           const Icon(Icons.search_off, size: 64, color: Colors.grey),
           const SizedBox(height: 16),
-          Text(
-            'No conversations found',
+          Text('common.no_conversations_found'.tr(),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -398,8 +417,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            'Try searching for something else',
+          Text('common.try_searching_for_something_else'.tr(),
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[500],
@@ -417,8 +435,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         children: [
           const Icon(Icons.refresh, size: 64, color: Colors.grey),
           const SizedBox(height: 16),
-          Text(
-            'Something went wrong',
+          Text('error_messages.something_went_wrong'.tr(),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -426,21 +443,20 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Please try refreshing the chat',
+          Text('chat.please_try_refreshing_the_chat'.tr(),
             style: TextStyle(fontSize: 14, color: Colors.grey),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _retryLoading,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0046FF),
+              backgroundColor: const Color(0xFF215C5C),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('Refresh'),
+            child: Text('common.refresh'.tr()),
           ),
         ],
       ),
@@ -488,12 +504,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           children: [
             CircleAvatar(
               radius: 25,
-              backgroundColor: const Color(0xFF0046FF).withOpacity(0.1),
+              backgroundColor: const Color(0xFF215C5C).withOpacity(0.1),
               backgroundImage: otherUserAvatar != null
                   ? NetworkImage(otherUserAvatar)
                   : null,
               child: otherUserAvatar == null
-                  ? const Icon(Icons.person, color: Color(0xFF0046FF))
+                  ? const Icon(Icons.person, color: Color(0xFF215C5C))
                   : null,
             ),
             if (otherUserId != null)
@@ -547,7 +563,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   constraints:
                       const BoxConstraints(minWidth: 16, minHeight: 16),
                   decoration: const BoxDecoration(
-                    color: Color(0xFFFF8040),
+                    color: Color(
+                        0xFF10B981), // Green color matching verification badge in home screen
                     borderRadius: BorderRadius.all(Radius.circular(8)),
                   ),
                   child: Text(
@@ -563,19 +580,27 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             ],
           ),
         ),
-        onTap: () {
+        onTap: () async {
           if (conversation.id.isNotEmpty && otherUserId?.isNotEmpty == true) {
-            Get.to(() => IndividualChatScreen(
-                  conversationId: conversation.id,
+            final conversationId = conversation.id;
+
+            await Get.to(() => IndividualChatScreen(
+                  conversationId: conversationId,
                   otherUserName: otherUserName ?? 'Unknown User',
                   otherUserId: otherUserId!,
                   otherUserAvatar: otherUserAvatar,
-                ))?.then((_) {
-              // ✅ FIX: Refresh when returning from individual chat
-              if (mounted) {
-                _chatController.refreshConversations();
-              }
-            });
+                ));
+
+            // ✅ FIX: Optimistically clear badge and refresh to update from server
+            if (mounted) {
+              // Immediately clear the unread count locally for instant feedback
+              _chatController.clearUnreadCountOptimistically(conversationId);
+
+              // Give Firestore a moment to process the read status update
+              // and propagate to server before refreshing
+              await Future.delayed(const Duration(milliseconds: 500));
+              _chatController.refreshConversations();
+            }
           }
         },
       ),
@@ -630,7 +655,7 @@ class _LoaderAnimation extends StatelessWidget {
       height: size,
       width: size,
       child: Semantics(
-        label: 'Loading chats',
+        label: 'chat.loading_chats'.tr(),
         child: Lottie.asset(
           'assets/animations/liquid loader 01.json',
           repeat: true,

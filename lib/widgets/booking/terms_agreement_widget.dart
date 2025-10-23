@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 
@@ -144,7 +145,7 @@ class _TermsAgreementWidgetState extends State<TermsAgreementWidget> {
                         ),
                         const TextSpan(text: ' and '),
                         TextSpan(
-                          text: 'Privacy Policy',
+                          text: 'settings.privacy_policy'.tr(),
                           style: AppTextStyles.body2.copyWith(
                             color: AppColors.primary,
                             fontWeight: FontWeight.w600,

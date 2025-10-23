@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../widgets/liquid_loading_indicator.dart';
 import '../models/review_model.dart';
 import '../services/review_service.dart';
@@ -79,8 +80,8 @@ class _CommentSystemWidgetState extends State<CommentSystemWidget> {
       await _refreshReview();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Comment added successfully!'),
+        SnackBar(
+          content: Text('comments.added_successfully'.tr()),
           backgroundColor: Colors.green,
         ),
       );
@@ -171,7 +172,7 @@ class _CommentSystemWidgetState extends State<CommentSystemWidget> {
                       _replyToName = null;
                     });
                   },
-                  child: const Text('Cancel'),
+                  child: Text('common.cancel'.tr()),
                 ),
               ],
             ),
@@ -342,7 +343,7 @@ class _CommentSystemWidgetState extends State<CommentSystemWidget> {
                               });
                             },
                             child: Text(
-                              'Reply',
+                              'common.reply'.tr(),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey[600],
@@ -357,9 +358,9 @@ class _CommentSystemWidgetState extends State<CommentSystemWidget> {
                         // Report Button
                         PopupMenuButton<String>(
                           itemBuilder: (context) => [
-                            const PopupMenuItem(
+                            PopupMenuItem(
                               value: 'report',
-                              child: Text('Report'),
+                              child: Text('comments.report'.tr()),
                             ),
                           ],
                           onSelected: (value) {
@@ -431,8 +432,8 @@ class _CommentSystemWidgetState extends State<CommentSystemWidget> {
 
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Comment reported successfully'),
+                SnackBar(
+                  content: Text('comments.reported_successfully'.tr()),
                   backgroundColor: Colors.orange,
                 ),
               );
@@ -498,7 +499,7 @@ class _CommentSystemWidgetState extends State<CommentSystemWidget> {
                   });
                 },
                 icon: const Icon(Icons.add_comment),
-                label: const Text('Add Comment'),
+                label: Text('comments.add_comment'.tr()),
               ),
             ),
           ),
@@ -551,12 +552,12 @@ class _ReportCommentDialogState extends State<ReportCommentDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Report Comment'),
+      title: Text('comments.report_title'.tr()),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Why are you reporting this comment?'),
+          Text('comments.report_prompt'.tr()),
           const SizedBox(height: 16),
 
           // Comment Preview
@@ -602,8 +603,8 @@ class _ReportCommentDialogState extends State<ReportCommentDialog> {
             const SizedBox(height: 8),
             TextField(
               controller: _customReasonController,
-              decoration: const InputDecoration(
-                hintText: 'Please specify...',
+              decoration: InputDecoration(
+                hintText: 'common.please_specify'.tr(),
                 border: OutlineInputBorder(),
               ),
               maxLines: 2,
@@ -615,7 +616,7 @@ class _ReportCommentDialogState extends State<ReportCommentDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text('common.cancel'.tr()),
         ),
         ElevatedButton(
           onPressed: _selectedReason != null
@@ -630,7 +631,7 @@ class _ReportCommentDialogState extends State<ReportCommentDialog> {
                   }
                 }
               : null,
-          child: const Text('Report'),
+          child: Text('reviews.report'.tr()),
         ),
       ],
     );

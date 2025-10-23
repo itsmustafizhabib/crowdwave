@@ -40,6 +40,7 @@ class DeliveryTracking {
   final String id;
   final String packageRequestId;
   final String travelerId;
+  final String senderId; // Added senderId field
   final DeliveryStatus status;
   final List<LocationPoint> trackingPoints;
   final DateTime? pickupTime;
@@ -49,10 +50,18 @@ class DeliveryTracking {
   final String? notes;
   final LocationPoint? currentLocation;
 
+  // New fields for delivery confirmation system
+  final bool senderConfirmed; // Sender confirmed delivery
+  final DateTime? senderConfirmedAt; // When sender confirmed
+  final String? deliveryPhotoUrl; // Photo proof from traveler
+  final String? senderFeedback; // Feedback from sender
+  final double? senderRating; // Rating from sender (1-5)
+
   DeliveryTracking({
     required this.id,
     required this.packageRequestId,
     required this.travelerId,
+    required this.senderId, // Added senderId parameter
     required this.status,
     required this.trackingPoints,
     this.pickupTime,
@@ -61,6 +70,11 @@ class DeliveryTracking {
     required this.updatedAt,
     this.notes,
     this.currentLocation,
+    this.senderConfirmed = false,
+    this.senderConfirmedAt,
+    this.deliveryPhotoUrl,
+    this.senderFeedback,
+    this.senderRating,
   });
 
   Map<String, dynamic> toMap() {
@@ -68,14 +82,23 @@ class DeliveryTracking {
       'id': id,
       'packageRequestId': packageRequestId,
       'travelerId': travelerId,
+      'senderId': senderId, // Added senderId to map
       'status': status.name,
       'trackingPoints': trackingPoints.map((point) => point.toMap()).toList(),
       'pickupTime': pickupTime != null ? Timestamp.fromDate(pickupTime!) : null,
-      'deliveryTime': deliveryTime != null ? Timestamp.fromDate(deliveryTime!) : null,
+      'deliveryTime':
+          deliveryTime != null ? Timestamp.fromDate(deliveryTime!) : null,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
       'notes': notes,
       'currentLocation': currentLocation?.toMap(),
+      'senderConfirmed': senderConfirmed,
+      'senderConfirmedAt': senderConfirmedAt != null
+          ? Timestamp.fromDate(senderConfirmedAt!)
+          : null,
+      'deliveryPhotoUrl': deliveryPhotoUrl,
+      'senderFeedback': senderFeedback,
+      'senderRating': senderRating,
     };
   }
 
@@ -84,21 +107,30 @@ class DeliveryTracking {
       id: map['id'] ?? '',
       packageRequestId: map['packageRequestId'] ?? '',
       travelerId: map['travelerId'] ?? '',
+      senderId: map['senderId'] ?? '', // Added senderId from map
       status: DeliveryStatus.values.firstWhere(
         (e) => e.name == map['status'],
         orElse: () => DeliveryStatus.pending,
       ),
       trackingPoints: (map['trackingPoints'] as List<dynamic>?)
-          ?.map((point) => LocationPoint.fromMap(point as Map<String, dynamic>))
-          .toList() ?? [],
+              ?.map((point) =>
+                  LocationPoint.fromMap(point as Map<String, dynamic>))
+              .toList() ??
+          [],
       pickupTime: (map['pickupTime'] as Timestamp?)?.toDate(),
       deliveryTime: (map['deliveryTime'] as Timestamp?)?.toDate(),
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (map['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       notes: map['notes'],
-      currentLocation: map['currentLocation'] != null 
-          ? LocationPoint.fromMap(map['currentLocation'] as Map<String, dynamic>)
+      currentLocation: map['currentLocation'] != null
+          ? LocationPoint.fromMap(
+              map['currentLocation'] as Map<String, dynamic>)
           : null,
+      senderConfirmed: map['senderConfirmed'] ?? false,
+      senderConfirmedAt: (map['senderConfirmedAt'] as Timestamp?)?.toDate(),
+      deliveryPhotoUrl: map['deliveryPhotoUrl'],
+      senderFeedback: map['senderFeedback'],
+      senderRating: map['senderRating']?.toDouble(),
     );
   }
 
@@ -106,6 +138,7 @@ class DeliveryTracking {
     String? id,
     String? packageRequestId,
     String? travelerId,
+    String? senderId, // Added senderId parameter
     DeliveryStatus? status,
     List<LocationPoint>? trackingPoints,
     DateTime? pickupTime,
@@ -114,11 +147,17 @@ class DeliveryTracking {
     DateTime? updatedAt,
     String? notes,
     LocationPoint? currentLocation,
+    bool? senderConfirmed,
+    DateTime? senderConfirmedAt,
+    String? deliveryPhotoUrl,
+    String? senderFeedback,
+    double? senderRating,
   }) {
     return DeliveryTracking(
       id: id ?? this.id,
       packageRequestId: packageRequestId ?? this.packageRequestId,
       travelerId: travelerId ?? this.travelerId,
+      senderId: senderId ?? this.senderId, // Added senderId assignment
       status: status ?? this.status,
       trackingPoints: trackingPoints ?? this.trackingPoints,
       pickupTime: pickupTime ?? this.pickupTime,
@@ -127,14 +166,19 @@ class DeliveryTracking {
       updatedAt: updatedAt ?? this.updatedAt,
       notes: notes ?? this.notes,
       currentLocation: currentLocation ?? this.currentLocation,
+      senderConfirmed: senderConfirmed ?? this.senderConfirmed,
+      senderConfirmedAt: senderConfirmedAt ?? this.senderConfirmedAt,
+      deliveryPhotoUrl: deliveryPhotoUrl ?? this.deliveryPhotoUrl,
+      senderFeedback: senderFeedback ?? this.senderFeedback,
+      senderRating: senderRating ?? this.senderRating,
     );
   }
 
   // Helper methods
   bool get isInProgress => [
-    DeliveryStatus.picked_up,
-    DeliveryStatus.in_transit,
-  ].contains(status);
+        DeliveryStatus.picked_up,
+        DeliveryStatus.in_transit,
+      ].contains(status);
 
   bool get isCompleted => status == DeliveryStatus.delivered;
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import '../../core/models/booking.dart';
 import '../../core/models/transaction.dart' show PaymentMethod;
 import '../../core/theme/app_colors.dart';
@@ -184,7 +185,7 @@ class _PaymentFailureScreenState extends State<PaymentFailureScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Payment Failed'),
+        title: Text('payment.failed_title'.tr()),
         backgroundColor: AppColors.error,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -253,8 +254,7 @@ class _PaymentFailureScreenState extends State<PaymentFailureScreen>
               const SizedBox(height: 24),
 
               // Error Title
-              Text(
-                'Payment Failed',
+              Text('payment.failed_title'.tr(),
                 style: AppTextStyles.h1.copyWith(
                   color: AppColors.error,
                   fontWeight: FontWeight.bold,
@@ -304,8 +304,7 @@ class _PaymentFailureScreenState extends State<PaymentFailureScreen>
                 size: 24,
               ),
               const SizedBox(width: 12),
-              Text(
-                'Error Details',
+              Text('error_messages.error_details'.tr(),
                 style: AppTextStyles.h3.copyWith(
                   color: AppColors.textPrimary,
                   fontWeight: FontWeight.bold,
@@ -363,8 +362,7 @@ class _PaymentFailureScreenState extends State<PaymentFailureScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Booking Summary',
+          Text('booking.booking_summary'.tr(),
             style: AppTextStyles.h3.copyWith(
               color: AppColors.textPrimary,
               fontWeight: FontWeight.bold,
@@ -373,7 +371,7 @@ class _PaymentFailureScreenState extends State<PaymentFailureScreen>
           const SizedBox(height: 16),
           _buildDetailRow('Booking ID', widget.booking.id),
           _buildDetailRow(
-              'Amount', '\$${widget.booking.totalAmount.toStringAsFixed(2)}'),
+              'Amount', '€${widget.booking.totalAmount.toStringAsFixed(2)}'),
           _buildDetailRow('Payment Method', _getPaymentMethodName()),
           _buildDetailRow('Status', 'Payment Pending'),
           const SizedBox(height: 16),
@@ -425,8 +423,7 @@ class _PaymentFailureScreenState extends State<PaymentFailureScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Suggested Solutions',
+          Text('common.suggested_solutions'.tr(),
             style: AppTextStyles.h3.copyWith(
               color: AppColors.textPrimary,
               fontWeight: FontWeight.bold,
@@ -492,7 +489,7 @@ class _PaymentFailureScreenState extends State<PaymentFailureScreen>
           child: ElevatedButton.icon(
             onPressed: _retryPayment,
             icon: const Icon(Icons.refresh, size: 20),
-            label: const Text('Retry Payment'),
+            label: Text('payment.retry_payment'.tr()),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
@@ -513,7 +510,7 @@ class _PaymentFailureScreenState extends State<PaymentFailureScreen>
               child: OutlinedButton.icon(
                 onPressed: _chooseDifferentMethod,
                 icon: const Icon(Icons.payment, size: 18),
-                label: const Text('Different Method'),
+                label: Text('payment.different_method'.tr()),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -529,7 +526,7 @@ class _PaymentFailureScreenState extends State<PaymentFailureScreen>
               child: OutlinedButton.icon(
                 onPressed: _contactSupport,
                 icon: const Icon(Icons.support_agent, size: 18),
-                label: const Text('Get Help'),
+                label: Text('payment.get_help'.tr()),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.info,
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -549,7 +546,7 @@ class _PaymentFailureScreenState extends State<PaymentFailureScreen>
         TextButton.icon(
           onPressed: _cancelAndGoHome,
           icon: const Icon(Icons.home, size: 18),
-          label: const Text('Cancel & Go Home'),
+          label: Text('payment.cancel_go_home'.tr()),
           style: TextButton.styleFrom(
             foregroundColor: AppColors.textSecondary,
           ),

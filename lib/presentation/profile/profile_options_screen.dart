@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'dart:io';
 import 'dart:convert';
 import '../../services/auth_state_service.dart';
@@ -253,8 +254,8 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
     return Scaffold(
       backgroundColor: AppTheme.primaryVariantLight, // Changed from red to blue
       appBar: AppBar(
-        title: const Text(
-          'Profile',
+        title: Text(
+          'profile.title'.tr(),
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,
@@ -361,34 +362,15 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
                           // Address Section
                           _buildProfileOption(
                             icon: Icons.location_on_outlined,
-                            title: 'Address',
+                            title: 'profile.address'.tr(),
                             subtitle: _userProfile?.address != null &&
                                     _userProfile!.address!.isNotEmpty
                                 ? '${_userProfile!.address}, ${_userProfile!.city ?? ''}, ${_userProfile!.country ?? ''}'
                                     .replaceAll(RegExp(r',\s*,'), ',')
                                     .replaceAll(RegExp(r',\s*$'), '')
-                                : 'Not set',
-                            actionText: 'Update',
+                                : 'profile.not_set'.tr(),
+                            actionText: 'profile.update'.tr(),
                             onTap: () => _showAddressUpdateDialog(),
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // Mobile Number Section
-                          _buildProfileOption(
-                            icon: Icons.phone_outlined,
-                            title: 'Mobile Number',
-                            subtitle: _userProfile
-                                        ?.verificationStatus.phoneVerified ==
-                                    true
-                                ? 'Verified'
-                                : 'Unverified',
-                            actionText: 'Change',
-                            onTap: () => _showComingSoonDialog(
-                                'Phone Number Management'),
-                            isVerified: _userProfile
-                                    ?.verificationStatus.phoneVerified ==
-                                true,
                           ),
 
                           const SizedBox(height: 20),
@@ -396,82 +378,26 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
                           // Identity Verification Section
                           _buildProfileOption(
                             icon: Icons.badge_outlined,
-                            title: 'Identity',
-                            subtitle: _userProfile
-                                        ?.verificationStatus.identityVerified ==
-                                    true
-                                ? 'Verified'
-                                : 'Unverified',
-                            actionText: 'Verify Now',
+                            title: 'profile.identity'.tr(),
+                            subtitle: _getIdentityVerificationStatus(),
+                            actionText: _getIdentityVerificationActionText(),
                             onTap: _userProfile
                                         ?.verificationStatus.identityVerified ==
                                     true
                                 ? null
-                                : () => Navigator.pushNamed(
-                                    context, AppRoutes.kycCompletion),
+                                : () async {
+                                    await Navigator.pushNamed(
+                                        context, AppRoutes.kycCompletion);
+                                    // Reload profile after KYC submission
+                                    await _loadUserProfile();
+                                  },
                             isVerified: _userProfile
                                     ?.verificationStatus.identityVerified ==
                                 true,
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // Email Verification Section
-                          _buildProfileOption(
-                            icon: Icons.email_outlined,
-                            title: 'Email',
-                            subtitle: _userProfile
-                                        ?.verificationStatus.emailVerified ==
-                                    true
-                                ? 'Verified'
-                                : 'Unverified',
-                            actionText: _userProfile
-                                        ?.verificationStatus.emailVerified ==
-                                    true
-                                ? 'Refresh'
-                                : 'Verify',
-                            onTap: _userProfile
-                                        ?.verificationStatus.emailVerified ==
-                                    true
-                                ? () => _refreshEmailVerificationStatus()
-                                : () => _showEmailVerificationOptions(),
-                            isVerified: _userProfile
-                                    ?.verificationStatus.emailVerified ==
-                                true,
+                            statusColor: _getIdentityVerificationColor(),
                           ),
 
                           const SizedBox(height: 40),
-
-                          // Additional Options
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[50],
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              children: [
-                                _buildSimpleOption(
-                                  Icons.settings_outlined,
-                                  'Settings',
-                                  () => _showComingSoonDialog('Settings'),
-                                ),
-                                const Divider(),
-                                _buildSimpleOption(
-                                  Icons.help_outline,
-                                  'Help & Support',
-                                  () => _showComingSoonDialog('Help & Support'),
-                                ),
-                                const Divider(),
-                                _buildSimpleOption(
-                                  Icons.logout,
-                                  'Sign Out',
-                                  () => _showSignOutDialog(),
-                                  isDestructive: true,
-                                ),
-                              ],
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -572,6 +498,7 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
     required String actionText,
     required VoidCallback? onTap,
     bool isVerified = false,
+    Color? statusColor,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -616,7 +543,8 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
                         subtitle,
                         style: TextStyle(
                           fontSize: 14,
-                          color: isVerified ? Colors.green : Colors.grey[600],
+                          color: statusColor ??
+                              (isVerified ? Colors.green : Colors.grey[600]),
                           fontWeight:
                               isVerified ? FontWeight.w500 : FontWeight.normal,
                         ),
@@ -655,32 +583,6 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
     );
   }
 
-  Widget _buildSimpleOption(IconData icon, String title, VoidCallback onTap,
-      {bool isDestructive = false}) {
-    return ListTile(
-      leading: Icon(
-        icon,
-        color: isDestructive ? Colors.red : Colors.grey[600],
-        size: 24,
-      ),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: isDestructive ? Colors.red : Colors.black87,
-        ),
-      ),
-      trailing: Icon(
-        Icons.chevron_right,
-        color: Colors.grey[400],
-        size: 20,
-      ),
-      onTap: onTap,
-      contentPadding: EdgeInsets.zero,
-    );
-  }
-
   String _getInitials(String name) {
     final parts = name.trim().split(' ');
     if (parts.length >= 2) {
@@ -691,91 +593,82 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
     return 'U';
   }
 
-  void _showComingSoonDialog(String feature) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: const Text(
-          'Coming Soon',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        content: Text(
-          '$feature is coming soon in the next update!',
-          style: const TextStyle(
-            color: Colors.black54,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'OK',
-              style: TextStyle(
-                color: AppTheme.primaryVariantLight, // Changed from red to blue
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  // Get identity verification status text
+  String _getIdentityVerificationStatus() {
+    if (_userProfile == null) return 'profile.unverified'.tr();
+
+    final verification = _userProfile!.verificationStatus;
+
+    // Check if verified
+    if (verification.identityVerified) {
+      return 'profile.verified'.tr();
+    }
+
+    // Check if rejected
+    if (verification.rejectionReason != null &&
+        verification.rejectionReason!.isNotEmpty) {
+      return 'Rejected: ${verification.rejectionReason}';
+    }
+
+    // Check if submitted (waiting for review)
+    if (verification.identitySubmittedAt != null) {
+      return 'Submitted - Under Review';
+    }
+
+    // Not submitted yet
+    return 'profile.unverified'.tr();
   }
 
-  void _showSignOutDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: const Text(
-          'Sign Out',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        content: const Text(
-          'Are you sure you want to sign out?',
-          style: TextStyle(
-            color: Colors.black54,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(
-                color: Colors.grey,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await Provider.of<AuthStateService>(context, listen: false)
-                  .signOut();
-              Navigator.pushReplacementNamed(context, AppRoutes.login);
-            },
-            child: const Text(
-              'Sign Out',
-              style: TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  // Get identity verification action text
+  String _getIdentityVerificationActionText() {
+    if (_userProfile == null) return 'profile.verify_identity'.tr();
+
+    final verification = _userProfile!.verificationStatus;
+
+    // If verified, no action needed
+    if (verification.identityVerified) {
+      return '';
+    }
+
+    // If rejected, allow resubmission
+    if (verification.rejectionReason != null &&
+        verification.rejectionReason!.isNotEmpty) {
+      return 'Resubmit';
+    }
+
+    // If submitted, show view option
+    if (verification.identitySubmittedAt != null) {
+      return 'View Status';
+    }
+
+    // Not submitted yet
+    return 'profile.verify_identity'.tr();
+  }
+
+  // Get color for identity verification status
+  Color _getIdentityVerificationColor() {
+    if (_userProfile == null) return Colors.grey.shade600;
+
+    final verification = _userProfile!.verificationStatus;
+
+    // Verified - green
+    if (verification.identityVerified) {
+      return Colors.green;
+    }
+
+    // Rejected - red
+    if (verification.rejectionReason != null &&
+        verification.rejectionReason!.isNotEmpty) {
+      return Colors.red;
+    }
+
+    // Submitted - orange/amber
+    if (verification.identitySubmittedAt != null) {
+      return Colors.orange;
+    }
+
+    // Not submitted - grey
+    return Colors.grey.shade600;
   }
 
   void _showAddressUpdateDialog() {
@@ -809,10 +702,9 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
                 ),
               ),
               // Title
-              const Padding(
+              Padding (
                 padding: EdgeInsets.all(16),
-                child: Text(
-                  'Update Address',
+                child: Text('common.update_address'.tr(),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -828,8 +720,8 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Country Selection
-                      const Text(
-                        'Country',
+                      Text(
+                        'profile.country'.tr(),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -847,7 +739,7 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: selectedCountry,
-                            hint: const Text('Select Country'),
+                            hint: Text('profile.select_country'.tr()),
                             isExpanded: true,
                             items: _countries.map((country) {
                               return DropdownMenuItem<String>(
@@ -885,8 +777,8 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
                       const SizedBox(height: 8),
 
                       // City Selection
-                      const Text(
-                        'City',
+                      Text(
+                        'profile.city'.tr(),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -904,7 +796,7 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: selectedCity,
-                            hint: const Text('Select City'),
+                            hint: Text('profile.select_city'.tr()),
                             isExpanded: true,
                             items: selectedCountry != null &&
                                     _citiesByCountry[selectedCountry] != null
@@ -980,15 +872,13 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
                                   ),
                                 )
                               : const Icon(Icons.my_location, size: 16),
-                          label: Flexible(
-                            child: Text(
-                              _isLoadingLocation
-                                  ? 'Getting Location...'
-                                  : 'Use Current Location',
-                              style: const TextStyle(fontSize: 12),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            ),
+                          label: Text(
+                            _isLoadingLocation
+                                ? 'Getting Location...'
+                                : 'Use Current Location',
+                            style: const TextStyle(fontSize: 12),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor:
@@ -1003,8 +893,8 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
                       const SizedBox(height: 8),
 
                       // Street Address
-                      const Text(
-                        'Street Address',
+                      Text(
+                        'profile.street_address'.tr(),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -1015,7 +905,7 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
                       TextField(
                         controller: addressController,
                         decoration: InputDecoration(
-                          hintText: 'Enter your street address',
+                          hintText: 'common.enter_your_street_address'.tr(),
                           hintStyle: const TextStyle(fontSize: 14),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -1042,8 +932,8 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
                                   side: BorderSide(color: Colors.grey.shade300),
                                 ),
                               ),
-                              child: const Text(
-                                'Cancel',
+                              child: Text(
+                                'common.cancel'.tr(),
                                 style: TextStyle(
                                   color: Colors.grey,
                                   fontWeight: FontWeight.w600,
@@ -1060,9 +950,8 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
                                     selectedCity == null ||
                                     addressController.text.trim().isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                          'Please fill in all address fields'),
+                                    SnackBar(
+                                      content: Text('common.please_fill_in_all_address_fields'.tr()),
                                       backgroundColor: Colors.red,
                                     ),
                                   );
@@ -1084,8 +973,8 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
-                              child: const Text(
-                                'Update',
+                              child: Text(
+                                'profile.update'.tr(),
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,
@@ -1182,8 +1071,8 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Address updated successfully!'),
+        SnackBar(
+          content: Text('profile.address_updated'.tr()),
           backgroundColor: Colors.green,
         ),
       );
@@ -1194,7 +1083,7 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to update address: $e'),
+          content: Text('profile.failed_to_update_address'.tr() + ': $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -1221,8 +1110,7 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Update Profile Photo',
+            Text('profile.update_profile_photo'.tr(),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -1235,7 +1123,7 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
               children: [
                 _buildPhotoOption(
                   icon: Icons.camera_alt,
-                  label: 'Camera',
+                  label: 'chat.camera'.tr(),
                   onTap: () {
                     Navigator.pop(context);
                     _pickImage(ImageSource.camera);
@@ -1243,7 +1131,7 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
                 ),
                 _buildPhotoOption(
                   icon: Icons.photo_library,
-                  label: 'Gallery',
+                  label: 'chat.gallery'.tr(),
                   onTap: () {
                     Navigator.pop(context);
                     _pickImage(ImageSource.gallery);
@@ -1251,7 +1139,7 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
                 ),
                 _buildPhotoOption(
                   icon: Icons.delete_outline,
-                  label: 'Remove',
+                  label: 'profile.remove'.tr(),
                   onTap: () {
                     Navigator.pop(context);
                     _removeProfilePhoto();
@@ -1320,7 +1208,7 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to pick image: $e'),
+          content: Text('profile.failed_to_pick_image'.tr() + ': $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -1333,13 +1221,13 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const AlertDialog(
+        builder: (context) => AlertDialog(
           content: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               CircularProgressIndicator(),
               SizedBox(width: 16),
-              Text('Processing photo...'),
+              Text('profile.processing_photo'.tr()),
             ],
           ),
         ),
@@ -1380,7 +1268,7 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('Profile photo updated successfully!'),
+                    Text('profile.profile_photo_updated'.tr()),
                     Text(
                       'Saved ${imageInfo['fileSizeMB']} MB to Firestore (FREE!)',
                       style:
@@ -1428,7 +1316,7 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 4),
           action: SnackBarAction(
-            label: 'Retry',
+            label: 'common.retry'.tr(),
             textColor: Colors.white,
             onPressed: () => _uploadAndUpdatePhoto(imageFile),
           ),
@@ -1441,30 +1329,33 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
     try {
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
+        builder: (dialogContext) => AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: const Text('Remove Profile Photo'),
-          content:
-              const Text('Are you sure you want to remove your profile photo?'),
+          title: Text('profile.remove_profile_photo'.tr()),
+          content: Text('profile.remove_photo_confirmation'.tr()),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'Cancel',
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                'common.cancel'.tr(),
                 style: TextStyle(color: Colors.grey),
               ),
             ),
             TextButton(
               onPressed: () async {
-                Navigator.pop(context);
+                // Close the confirmation dialog using dialogContext
+                Navigator.pop(dialogContext);
 
-                // Show loading
+                // Check if widget is still mounted before showing dialog
+                if (!mounted) return;
+
+                // Show loading using the main screen context
                 showDialog(
                   context: context,
                   barrierDismissible: false,
-                  builder: (context) => const Center(
+                  builder: (loadingContext) => const Center(
                     child: CircularProgressIndicator(),
                   ),
                 );
@@ -1473,21 +1364,33 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
                   // Update profile with null photo URL
                   await _userProfileService.updateUserProfile(photoUrl: '');
 
+                  // Check if widget is still mounted before closing dialog
+                  if (!mounted) return;
+
                   // Close loading dialog
-                  Navigator.pop(context);
+                  Navigator.of(context).pop();
 
                   // Refresh profile
                   await _loadUserProfile();
 
+                  // Check if widget is still mounted before showing snackbar
+                  if (!mounted) return;
+
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Profile photo removed successfully!'),
+                    SnackBar(
+                      content: Text('profile.profile_photo_removed'.tr()),
                       backgroundColor: Colors.green,
                     ),
                   );
                 } catch (e) {
+                  // Check if widget is still mounted before closing dialog
+                  if (!mounted) return;
+
                   // Close loading dialog
-                  Navigator.pop(context);
+                  Navigator.of(context).pop();
+
+                  // Check if widget is still mounted before showing snackbar
+                  if (!mounted) return;
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -1497,8 +1400,8 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
                   );
                 }
               },
-              child: const Text(
-                'Remove',
+              child: Text(
+                'profile.remove'.tr(),
                 style: TextStyle(color: Colors.red),
               ),
             ),
@@ -1506,6 +1409,7 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
         ),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: $e'),
@@ -1513,371 +1417,5 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
         ),
       );
     }
-  }
-
-  // Handle email verification
-  Future<void> _handleEmailVerification() async {
-    try {
-      // Get the auth state service
-      final authStateService =
-          Provider.of<AuthStateService>(context, listen: false);
-      final currentUser = authStateService.currentUser;
-
-      // Check if user is logged in
-      if (currentUser == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please log in to verify your email'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-
-      // Check if email is already verified
-      if (currentUser.emailVerified) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Email is already verified!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        await _loadUserProfile(); // Refresh the UI
-        return;
-      }
-
-      print('Sending verification email to: ${currentUser.email}');
-
-      // Show loading dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const AlertDialog(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Sending verification email...'),
-            ],
-          ),
-        ),
-      );
-
-      // Send email verification
-      bool success = await authStateService.sendEmailVerification();
-
-      // Close loading dialog
-      Navigator.pop(context);
-
-      if (success) {
-        // Show success dialog with refresh option
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Verification Email Sent'),
-            content: Text(
-              'A verification email has been sent to ${currentUser.email}.\n\nPlease check your inbox (and spam folder) and click the verification link to verify your email.\n\nAfter verifying, you can tap "Check Status" to refresh your verification status.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  await _refreshEmailVerificationStatus();
-                },
-                child: const Text('Check Status'),
-              ),
-            ],
-          ),
-        );
-
-        // Optionally refresh the user profile to check verification status
-        _loadUserProfile();
-      } else {
-        // Show error message with more details
-        String errorMsg = authStateService.error ?? 'Unknown error occurred';
-        print('Email verification failed: $errorMsg');
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to send verification email: $errorMsg'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-          ),
-        );
-      }
-    } catch (e) {
-      print('Exception in email verification: $e');
-
-      // Close loading dialog if still open
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context);
-      }
-
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error sending verification email: $e'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 5),
-        ),
-      );
-    }
-  }
-
-  // Show email verification options
-  Future<void> _showEmailVerificationOptions() async {
-    final authStateService =
-        Provider.of<AuthStateService>(context, listen: false);
-    final currentUser = authStateService.currentUser;
-
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Email Verification',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (currentUser != null) ...[
-              Text(
-                'Email: ${currentUser.email}',
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-              Text(
-                'Status: ${currentUser.emailVerified ? "Verified" : "Not Verified"}',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: currentUser.emailVerified ? Colors.green : Colors.red,
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
-
-            // Send/Resend Email Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _handleEmailVerification();
-                },
-                child: const Text('Send Verification Email'),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Check Status Button
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _refreshEmailVerificationStatus();
-                },
-                child: const Text('Check Verification Status'),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Debug Info Button
-            SizedBox(
-              width: double.infinity,
-              child: TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _showDebugInfo();
-                },
-                child: const Text('Debug Info'),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            const Text(
-              'Troubleshooting Tips:\n'
-              '• Check your spam/junk folder\n'
-              '• Wait a few minutes for the email to arrive\n'
-              '• Make sure your email address is correct\n'
-              '• Try clicking "Check Status" after opening the email link\n'
-              '• Check if emails from crowdwave.eu are blocked\n'
-              '• Try with a different email address for testing',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Show debug information
-  Future<void> _showDebugInfo() async {
-    final authStateService =
-        Provider.of<AuthStateService>(context, listen: false);
-    final currentUser = authStateService.currentUser;
-
-    String debugInfo = '''
-Debug Information:
-━━━━━━━━━━━━━━━━━━━━━━
-
-User Info:
-• Logged in: ${currentUser != null ? 'Yes' : 'No'}
-• Email: ${currentUser?.email ?? 'N/A'}
-• UID: ${currentUser?.uid ?? 'N/A'}
-• Email Verified: ${currentUser?.emailVerified ?? false}
-• Created: ${currentUser?.metadata.creationTime ?? 'N/A'}
-
-Profile Info:
-• Profile Loaded: ${_userProfile != null ? 'Yes' : 'No'}
-• Profile Email Verified: ${_userProfile?.verificationStatus.emailVerified ?? false}
-
-Firebase Project: crowdwave-93d4d
-Auth Domain: crowdwave-93d4d.firebaseapp.com
-SMTP: Zoho Mail
-
-Zoho SMTP Troubleshooting:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-1. CHECK ZOHO MAIL SETTINGS:
-   • Login to Zoho Mail Admin Console
-   • Check if SMTP is enabled for your domain
-   • Verify SMTP authentication credentials
-
-2. FIREBASE CONSOLE CHECKS:
-   • Go to Authentication > Templates
-   • Check if email verification template is configured
-   • Verify SMTP settings under Templates > SMTP
-
-3. EMAIL DELIVERY ISSUES:
-   • Zoho might be filtering/blocking emails
-   • Check Zoho Mail Sent folder
-   • Check Zoho SMTP logs/reports
-   • Verify recipient email in allowed list
-
-4. DOMAIN AUTHENTICATION:
-   • Ensure SPF record includes Zoho
-   • Verify DKIM is set up correctly
-   • Check DMARC policy
-
-5. RATE LIMITING:
-   • Zoho has sending limits
-   • Try waiting 15-30 minutes between attempts
-   • Check Zoho account sending quotas
-
-Common Solutions:
-• Add your email to Zoho whitelist
-• Check Zoho spam/quarantine
-• Verify domain DNS settings
-• Use different test email address
-''';
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Zoho SMTP Debug Info'),
-        content: SingleChildScrollView(
-          child: Text(
-            debugInfo,
-            style: const TextStyle(
-              fontFamily: 'monospace',
-              fontSize: 11,
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-          TextButton(
-            onPressed: () {
-              // Copy to clipboard would be nice but needs additional package
-              print(debugInfo);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Debug info printed to console')),
-              );
-              Navigator.pop(context);
-            },
-            child: const Text('Print to Console'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _showZohoTroubleshootingSteps();
-            },
-            child: const Text('Zoho Steps'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Show specific Zoho troubleshooting steps
-  Future<void> _showZohoTroubleshootingSteps() async {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Zoho SMTP Troubleshooting'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Step 1: Check Firebase Console',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const Text(
-                  '• Go to Firebase Console > Authentication > Templates'),
-              const Text('• Check "Email address verification" template'),
-              const Text('• Verify SMTP settings are configured for Zoho'),
-              const SizedBox(height: 16),
-              const Text(
-                'Step 2: Zoho Mail Admin',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const Text('• Login to Zoho Mail Admin Console'),
-              const Text('• Check SMTP settings and authentication'),
-              const Text('• Verify sending limits and quotas'),
-              const SizedBox(height: 16),
-              const Text(
-                'Step 3: Email Delivery',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const Text('• Check Zoho Mail Sent folder'),
-              const Text('• Look in recipient\'s spam/junk folder'),
-              const Text('• Check Zoho delivery reports'),
-              const SizedBox(height: 16),
-              const Text(
-                'Step 4: DNS & Domain',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const Text('• Verify SPF record includes Zoho'),
-              const Text('• Check DKIM configuration'),
-              const Text('• Ensure domain is properly authenticated'),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
   }
 }

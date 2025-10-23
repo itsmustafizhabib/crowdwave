@@ -22,7 +22,7 @@ class StarRatingWidget extends StatefulWidget {
     this.size = 24.0,
     this.allowHalfRating = true,
     this.isReadOnly = false,
-    this.filledColor = const Color(0xFFFF8040),
+    this.filledColor = const Color(0xFF2D7A6E),
     this.unfilledColor = Colors.grey,
     this.borderColor = Colors.grey,
     this.filledIcon = Icons.star,
@@ -193,7 +193,7 @@ class CompactStarRating extends StatelessWidget {
     required this.rating,
     this.reviewCount = 0,
     this.size = 14.0,
-    this.starColor = const Color(0xFFFF8040),
+    this.starColor = const Color(0xFF2D7A6E),
     this.textStyle,
     this.showReviewCount = true,
   }) : super(key: key);
@@ -247,7 +247,7 @@ class RatingDistributionWidget extends StatelessWidget {
     required this.distribution,
     required this.totalReviews,
     this.height = 8.0,
-    this.barColor = const Color(0xFFFF8040),
+    this.barColor = const Color(0xFF2D7A6E),
     this.onStarTap,
   }) : super(key: key);
 
@@ -281,7 +281,7 @@ class RatingDistributionWidget extends StatelessWidget {
                 const Icon(
                   Icons.star,
                   size: 12,
-                  color: Color(0xFFFF8040),
+                  color: Color(0xFF2D7A6E),
                 ),
                 const SizedBox(width: 8),
 

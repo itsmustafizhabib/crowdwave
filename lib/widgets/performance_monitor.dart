@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -174,7 +175,7 @@ class _MemoryMonitorState extends State<MemoryMonitor> {
       LoggingService().logEvent(
         event: LogEvent.performance,
         level: LogLevel.info,
-        message: 'Memory usage checkpoint',
+        message: 'common.memory_usage_checkpoint'.tr(),
         data: {
           'timestamp': timeStamp.inMilliseconds,
           'checkpoint': 'periodic_memory_check',

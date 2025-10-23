@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:matrix4_transform/matrix4_transform.dart';
 
 // Animation constants
 const Color kInactiveGradientStartColor = Colors.grey;
 const Color kInactiveGradientEndColor = Colors.grey;
 
-const Color kActiveGradientStartColor = Color(0xFF0046FF);
-const Color kActiveGradientEndColor = Color(0xFFFF8040);
+const Color kActiveGradientStartColor = Color(0xFF215C5C);
+const Color kActiveGradientEndColor = Color(0xFF2D7A6E);
 
 const double kActiveOpacity = 1.0;
 const double kInactiveOpacity = 0.3;
@@ -80,7 +81,7 @@ class _AnimatedCardStackState extends State<AnimatedCardStack> {
 
   void _initializeCards() {
     cardModels.clear();
-    
+
     for (int i = widget.cards.length - 1; i >= 0; i--) {
       cardModels.add(
         CardModel(
@@ -90,7 +91,7 @@ class _AnimatedCardStackState extends State<AnimatedCardStack> {
         ),
       );
     }
-    
+
     if (mounted) {
       setState(() {});
     }
@@ -98,14 +99,14 @@ class _AnimatedCardStackState extends State<AnimatedCardStack> {
 
   void _nextCard() {
     if (cardModels.isEmpty) return;
-    
+
     // Find the current active card
     int activeIndex = cardModels.indexWhere((card) => card.activeState);
     if (activeIndex == -1) return;
-    
+
     // Animate current card out (right swipe)
     _animateCardOut(cardModels[activeIndex], isRightSwipe: true);
-    
+
     // Activate next card after delay
     if (activeIndex > 0) {
       Future.delayed(const Duration(milliseconds: 200), () {
@@ -120,14 +121,14 @@ class _AnimatedCardStackState extends State<AnimatedCardStack> {
 
   void _previousCard() {
     if (cardModels.isEmpty) return;
-    
+
     // Find the current active card
     int activeIndex = cardModels.indexWhere((card) => card.activeState);
     if (activeIndex == -1) return;
-    
+
     // Animate current card out (left swipe)
     _animateCardOut(cardModels[activeIndex], isRightSwipe: false);
-    
+
     // Activate next card after delay
     if (activeIndex > 0) {
       Future.delayed(const Duration(milliseconds: 200), () {
@@ -144,18 +145,16 @@ class _AnimatedCardStackState extends State<AnimatedCardStack> {
     setState(() {
       card.activeState = false;
       card.rotation = isRightSwipe ? 45 : -45;
-      card.rotationOffset = isRightSwipe 
-          ? Offset(kActiveWidth, kActiveHeight) 
+      card.rotationOffset = isRightSwipe
+          ? Offset(kActiveWidth, kActiveHeight)
           : Offset(0, kActiveHeight);
       card.opacity = 0;
     });
 
     // Notify parent about card action
     if (widget.onCardAction != null) {
-      widget.onCardAction!(
-        card.cardId, 
-        isRightSwipe ? widget.rightActionIcon : widget.leftActionIcon
-      );
+      widget.onCardAction!(card.cardId,
+          isRightSwipe ? widget.rightActionIcon : widget.leftActionIcon);
     }
   }
 
@@ -178,8 +177,7 @@ class _AnimatedCardStackState extends State<AnimatedCardStack> {
                 color: Colors.grey[400],
               ),
               SizedBox(height: 16),
-              Text(
-                'No more cards',
+              Text('common.no_more_cards'.tr(),
                 style: TextStyle(
                   fontSize: 18,
                   color: Colors.grey[600],
@@ -190,9 +188,9 @@ class _AnimatedCardStackState extends State<AnimatedCardStack> {
               ElevatedButton.icon(
                 onPressed: _resetCards,
                 icon: Icon(Icons.refresh),
-                label: Text('Reset Cards'),
+                label: Text('common.reset_cards'.tr()),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF0046FF),
+                  backgroundColor: Color(0xFF215C5C),
                   foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
@@ -223,7 +221,7 @@ class _AnimatedCardStackState extends State<AnimatedCardStack> {
               ),
             );
           }).toList(),
-          
+
           // Navigation dots (optional)
           if (cardModels.length > 1)
             Positioned(
@@ -240,8 +238,8 @@ class _AnimatedCardStackState extends State<AnimatedCardStack> {
                     margin: EdgeInsets.symmetric(horizontal: 4),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: card.activeState 
-                          ? Color(0xFF0046FF) 
+                      color: card.activeState
+                          ? Color(0xFF215C5C)
                           : Colors.grey[300],
                     ),
                   );
@@ -323,12 +321,15 @@ class AnimatedCardWidget extends StatelessWidget {
                     child: cardModel.cardContent,
                   ),
                 ),
-                
+
                 // Action buttons overlay (only show on active card)
-                if (cardModel.activeState && (onLeftAction != null || onRightAction != null))
+                if (cardModel.activeState &&
+                    (onLeftAction != null || onRightAction != null))
                   Positioned.fill(
                     child: AnimatedOpacity(
-                      opacity: cardModel.activeState ? kActiveOpacity : kInactiveOpacity,
+                      opacity: cardModel.activeState
+                          ? kActiveOpacity
+                          : kInactiveOpacity,
                       duration: Duration(milliseconds: 600),
                       child: IgnorePointer(
                         ignoring: !cardModel.activeState,
@@ -360,7 +361,8 @@ class AnimatedCardWidget extends StatelessWidget {
                                         shape: BoxShape.circle,
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.black.withOpacity(0.1),
+                                            color:
+                                                Colors.black.withOpacity(0.1),
                                             blurRadius: 8,
                                             offset: Offset(0, 2),
                                           ),
@@ -386,7 +388,8 @@ class AnimatedCardWidget extends StatelessWidget {
                                         shape: BoxShape.circle,
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.black.withOpacity(0.1),
+                                            color:
+                                                Colors.black.withOpacity(0.1),
                                             blurRadius: 8,
                                             offset: Offset(0, 2),
                                           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../../core/app_export.dart';
 import '../../services/firebase_auth_service.dart';
@@ -8,6 +9,7 @@ import '../post_package/widgets/location_picker_widget.dart';
 import './widgets/trip_details_widget.dart';
 import './widgets/trip_capacity_widget.dart';
 import './widgets/trip_compensation_widget.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class PostTripScreen extends StatefulWidget {
   const PostTripScreen({Key? key}) : super(key: key);
@@ -37,24 +39,21 @@ class _PostTripScreenState extends State<PostTripScreen>
 
   // Step 2: Trip Details
   final TextEditingController _notesController = TextEditingController();
-  TransportMode _selectedTransportMode = TransportMode.flight;
+  TransportMode? _selectedTransportMode;
   DateTime _departureDate = DateTime.now().add(Duration(days: 1));
   DateTime? _arrivalDate;
   bool _isFlexibleRoute = false;
   double? _maxDetourKm;
 
   // Step 3: Capacity
-  double _maxWeightKg = 10.0;
-  double _maxVolumeLiters = 20.0;
-  int _maxPackages = 3;
-  List<PackageSize> _acceptedSizes = [PackageSize.small, PackageSize.medium];
-  List<PackageType> _acceptedItemTypes = [
-    PackageType.documents,
-    PackageType.electronics
-  ];
+  double _maxWeightKg = 0.1;
+  double _maxVolumeLiters = 0.1;
+  int _maxPackages = 1;
+  List<PackageSize> _acceptedSizes = [];
+  List<PackageType> _acceptedItemTypes = [];
 
   // Step 4: Compensation
-  double _suggestedReward = 25.0;
+  double _suggestedReward = 5.0;
 
   // State
   bool _isLoading = false;
@@ -133,8 +132,7 @@ class _PostTripScreenState extends State<PostTripScreen>
         icon: Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () => Navigator.of(context).pop(),
       ),
-      title: Text(
-        'Post a Trip',
+      title: Text('post_trip.title'.tr(),
         style: TextStyle(
           fontSize: 18.sp,
           fontWeight: FontWeight.w600,
@@ -194,8 +192,8 @@ class _PostTripScreenState extends State<PostTripScreen>
         children: [
           // Departure Location
           LocationPickerWidget(
-            title: 'Departure Location',
-            subtitle: 'Where are you starting your journey?',
+            title: 'post_trip.departure_location'.tr(),
+            subtitle: 'trip.departure_subtitle'.tr(),
             location: _departureLocation,
             onLocationSelected: (location) =>
                 setState(() => _departureLocation = location),
@@ -206,8 +204,8 @@ class _PostTripScreenState extends State<PostTripScreen>
 
           // Destination Location
           LocationPickerWidget(
-            title: 'Destination Location',
-            subtitle: 'Where are you going?',
+            title: 'post_trip.destination_location'.tr(),
+            subtitle: 'trip.destination_subtitle'.tr(),
             location: _destinationLocation,
             onLocationSelected: (location) =>
                 setState(() => _destinationLocation = location),
@@ -292,13 +290,12 @@ class _PostTripScreenState extends State<PostTripScreen>
               child: OutlinedButton(
                 onPressed: _previousStep,
                 style: OutlinedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 3.h),
+                  padding: EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text(
-                  'Back',
+                child: Text('common.back'.tr(),
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
@@ -317,7 +314,7 @@ class _PostTripScreenState extends State<PostTripScreen>
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.lightTheme.primaryColor,
                 foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 3.h),
+                padding: EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -375,14 +372,51 @@ class _PostTripScreenState extends State<PostTripScreen>
               'Please select both departure and destination locations');
           return false;
         }
+        // Check if departure and destination are the same
+        if (_departureLocation!.latitude == _destinationLocation!.latitude &&
+            _departureLocation!.longitude == _destinationLocation!.longitude) {
+          _showErrorSnackBar(
+              'Departure and destination locations cannot be the same');
+          return false;
+        }
+        // Check if distance is too small (less than 100 meters)
+        final distance = Geolocator.distanceBetween(
+              _departureLocation!.latitude,
+              _departureLocation!.longitude,
+              _destinationLocation!.latitude,
+              _destinationLocation!.longitude,
+            ) /
+            1000; // Convert to kilometers
+        if (distance < 0.1) {
+          // 0.1 km = 100 meters
+          _showErrorSnackBar(
+              'Departure and destination locations are too close. Please select different locations.');
+          return false;
+        }
         return true;
       case 1:
+        if (_selectedTransportMode == null) {
+          _showErrorSnackBar('Please select a transportation mode');
+          return false;
+        }
         if (_departureDate.isBefore(DateTime.now())) {
           _showErrorSnackBar('Departure date cannot be in the past');
           return false;
         }
         return true;
       case 2:
+        if (_maxWeightKg < 0.1) {
+          _showErrorSnackBar('Please set a valid maximum weight');
+          return false;
+        }
+        if (_maxVolumeLiters < 0.1) {
+          _showErrorSnackBar('Please set a valid maximum volume');
+          return false;
+        }
+        if (_maxPackages < 1) {
+          _showErrorSnackBar('Please set a valid maximum number of packages');
+          return false;
+        }
         if (_acceptedSizes.isEmpty) {
           _showErrorSnackBar(
               'Please select at least one accepted package size');
@@ -394,8 +428,8 @@ class _PostTripScreenState extends State<PostTripScreen>
         }
         return true;
       case 3:
-        if (_suggestedReward <= 0) {
-          _showErrorSnackBar('Please set a valid reward amount');
+        if (_suggestedReward < 5.0) {
+          _showErrorSnackBar('Minimum reward is \$5.00');
           return false;
         }
         return true;
@@ -470,7 +504,7 @@ class _PostTripScreenState extends State<PostTripScreen>
         destinationLocation: _destinationLocation!,
         departureDate: _departureDate,
         arrivalDate: _arrivalDate,
-        transportMode: _selectedTransportMode,
+        transportMode: _selectedTransportMode!,
         capacity: TripCapacity(
           maxWeightKg: _maxWeightKg,
           maxVolumeLiters: _maxVolumeLiters,
@@ -495,7 +529,7 @@ class _PostTripScreenState extends State<PostTripScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Trip posted successfully!'),
+            content: Text('trip.success_message'.tr()),
             backgroundColor: Colors.green,
           ),
         );

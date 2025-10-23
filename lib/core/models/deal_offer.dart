@@ -13,6 +13,7 @@ class DealOffer {
   final String travelerId;
   final String senderId;
   final String senderName;
+  final String packageOwnerId; // ID of the package owner who receives the offer
   final double offeredPrice;
   final String? message;
   final DealStatus status;
@@ -29,6 +30,7 @@ class DealOffer {
     required this.travelerId,
     required this.senderId,
     required this.senderName,
+    required this.packageOwnerId,
     required this.offeredPrice,
     this.message,
     required this.status,
@@ -47,6 +49,7 @@ class DealOffer {
       'travelerId': travelerId,
       'senderId': senderId,
       'senderName': senderName,
+      'packageOwnerId': packageOwnerId,
       'offeredPrice': offeredPrice,
       'message': message,
       'status': status.name,
@@ -66,6 +69,7 @@ class DealOffer {
       travelerId: map['travelerId'] ?? '',
       senderId: map['senderId'] ?? '',
       senderName: map['senderName'] ?? '',
+      packageOwnerId: map['packageOwnerId'] ?? '',
       offeredPrice: (map['offeredPrice'] ?? 0.0).toDouble(),
       message: map['message'],
       status: DealStatus.values.firstWhere(
@@ -90,6 +94,7 @@ class DealOffer {
     String? travelerId,
     String? senderId,
     String? senderName,
+    String? packageOwnerId,
     double? offeredPrice,
     String? message,
     DealStatus? status,
@@ -106,6 +111,7 @@ class DealOffer {
       travelerId: travelerId ?? this.travelerId,
       senderId: senderId ?? this.senderId,
       senderName: senderName ?? this.senderName,
+      packageOwnerId: packageOwnerId ?? this.packageOwnerId,
       offeredPrice: offeredPrice ?? this.offeredPrice,
       message: message ?? this.message,
       status: status ?? this.status,

@@ -100,8 +100,8 @@ class ApiConstants {
   // Business Logic Constants
   static const double platformFeePercentage = 0.1; // 10% platform fee
   static const int maxPackagesPerTrip = 10;
-  static const double minCompensationUSD = 1.0;
-  static const double maxCompensationUSD = 1000.0;
+  static const double minCompensationEUR = 1.0;
+  static const double maxCompensationEUR = 1000.0;
 
   // Notification Settings
   static const bool enablePushNotifications = true;

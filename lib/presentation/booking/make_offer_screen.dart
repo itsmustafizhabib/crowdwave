@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import '../../core/models/models.dart';
 import '../../services/auth_state_service.dart';
 import '../../services/offer_service.dart';
@@ -8,6 +8,7 @@ import '../../services/deal_negotiation_service.dart';
 import '../../controllers/chat_controller.dart';
 import '../../utils/toast_utils.dart';
 import '../chat/individual_chat_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class MakeOfferScreen extends StatefulWidget {
   final TravelTrip? trip;
@@ -59,10 +60,9 @@ class _MakeOfferScreenState extends State<MakeOfferScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFE9E9E9),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0046FF),
+        backgroundColor: const Color(0xFF215C5C),
         elevation: 0,
-        title: const Text(
-          'Make Offer',
+        title: Text('detail.make_offer'.tr(),
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,
@@ -90,8 +90,7 @@ class _MakeOfferScreenState extends State<MakeOfferScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Your Offer',
+                  Text('booking.your_offer'.tr(),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -116,8 +115,7 @@ class _MakeOfferScreenState extends State<MakeOfferScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Offer Price',
+                        Text('common.offer_price'.tr(),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -130,14 +128,14 @@ class _MakeOfferScreenState extends State<MakeOfferScreen> {
                               TextInputType.numberWithOptions(decimal: true),
                           decoration: InputDecoration(
                             prefixText: '€',
-                            hintText: 'Enter your offer price',
+                            hintText: 'booking.enter_offer_price_hint'.tr(),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                               borderSide:
-                                  const BorderSide(color: Color(0xFF0046FF)),
+                                  const BorderSide(color: Color(0xFF215C5C)),
                             ),
                           ),
                           validator: (value) {
@@ -194,15 +192,14 @@ class _MakeOfferScreenState extends State<MakeOfferScreen> {
                           controller: _notesController,
                           maxLines: 3,
                           decoration: InputDecoration(
-                            hintText:
-                                'Add any special requirements or notes...',
+                            hintText: 'common.add_any_special_requirements_or_notes'.tr(),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                               borderSide:
-                                  const BorderSide(color: Color(0xFF0046FF)),
+                                  const BorderSide(color: Color(0xFF215C5C)),
                             ),
                           ),
                         ),
@@ -218,7 +215,7 @@ class _MakeOfferScreenState extends State<MakeOfferScreen> {
                     child: ElevatedButton(
                       onPressed: _isSubmitting ? null : _submitOffer,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF8040),
+                        backgroundColor: const Color(0xFF2D7A6E),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -234,8 +231,7 @@ class _MakeOfferScreenState extends State<MakeOfferScreen> {
                                 strokeWidth: 2,
                               ),
                             )
-                          : const Text(
-                              'Submit Offer',
+                          : Text('common.submit_offer'.tr(),
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -284,7 +280,7 @@ class _MakeOfferScreenState extends State<MakeOfferScreen> {
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundColor: const Color(0xFF0046FF).withOpacity(0.1),
+                backgroundColor: const Color(0xFF215C5C).withOpacity(0.1),
                 child: trip.travelerPhotoUrl.isNotEmpty
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(20),
@@ -297,7 +293,7 @@ class _MakeOfferScreenState extends State<MakeOfferScreen> {
                       )
                     : const Icon(
                         Icons.person,
-                        color: Color(0xFF0046FF),
+                        color: Color(0xFF215C5C),
                         size: 20,
                       ),
               ),
@@ -376,7 +372,7 @@ class _MakeOfferScreenState extends State<MakeOfferScreen> {
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundColor: const Color(0xFF0046FF).withOpacity(0.1),
+                backgroundColor: const Color(0xFF215C5C).withOpacity(0.1),
                 child: package.senderPhotoUrl.isNotEmpty
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(20),
@@ -389,7 +385,7 @@ class _MakeOfferScreenState extends State<MakeOfferScreen> {
                       )
                     : const Icon(
                         Icons.person,
-                        color: Color(0xFF0046FF),
+                        color: Color(0xFF215C5C),
                         size: 20,
                       ),
               ),
@@ -542,8 +538,7 @@ class _MakeOfferScreenState extends State<MakeOfferScreen> {
         // Show mobile-appropriate success toast
         ToastUtils.show('Submitted');
 
-        // Navigate to chat after sending offer
-        await Future.delayed(Duration(milliseconds: 500));
+        // Navigate to chat immediately (removed artificial delay for better UX)
         Get.to(() => IndividualChatScreen(
               conversationId: conversationId,
               otherUserName: widget.package!.senderName,
@@ -576,6 +571,8 @@ class _MakeOfferScreenState extends State<MakeOfferScreen> {
       return 'Please log in again to continue.';
     } else if (error.contains('not available')) {
       return 'This trip is no longer accepting offers.';
+    } else if (error.contains('maximum limit')) {
+      return 'You have already submitted 2 offers for this package. Please wait for a response from the sender.';
     } else if (error.contains('network')) {
       return 'Network error. Please check your connection and try again.';
     } else if (error.contains('Invalid trip')) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../widgets/enhanced_snackbar.dart';
 import '../core/error_handler.dart';
 
@@ -30,7 +31,7 @@ class ErrorRecoveryHelper {
       context,
       'Check your internet connection and try again',
       onRetry: onRetry,
-      retryText: 'Retry',
+      retryText: 'common.retry'.tr(),
     );
   }
 
@@ -43,7 +44,7 @@ class ErrorRecoveryHelper {
       context,
       'Please sign in to continue',
       onRetry: onSignIn,
-      retryText: 'Sign In',
+      retryText: 'auth.sign_in'.tr(),
     );
   }
 
@@ -57,7 +58,7 @@ class ErrorRecoveryHelper {
       context,
       'Permission required for $permission. Please enable in settings.',
       onRetry: onOpenSettings,
-      retryText: 'Settings',
+      retryText: 'drawer.settings'.tr(),
     );
   }
 
@@ -76,7 +77,7 @@ class ErrorRecoveryHelper {
         context,
         message,
         onRetry: onRetry,
-        retryText: 'Try Again',
+        retryText: 'booking.try_again'.tr(),
       );
     } else {
       EnhancedSnackBar.showError(context, message);
@@ -92,7 +93,7 @@ class ErrorRecoveryHelper {
       context,
       'Unable to load content. Please try refreshing.',
       onRetry: onRefresh,
-      retryText: 'Refresh',
+      retryText: 'common.refresh'.tr(),
     );
   }
 
@@ -110,7 +111,7 @@ class ErrorRecoveryHelper {
       context,
       message,
       onRetry: onRetry,
-      retryText: 'Try Again',
+      retryText: 'booking.try_again'.tr(),
     );
   }
 }

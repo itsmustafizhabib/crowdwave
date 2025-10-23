@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../core/app_export.dart';
 import '../presentation/trip_detail/trip_detail_screen.dart';
@@ -50,7 +51,7 @@ class TripCardWidget extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: const Color(0xFF0046FF).withOpacity(0.2),
+            color: const Color(0xFF215C5C).withOpacity(0.2),
             width: 1,
           ),
           boxShadow: [
@@ -73,7 +74,7 @@ class TripCardWidget extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0046FF).withOpacity(0.1),
+                      color: const Color(0xFF215C5C).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: trip.travelerPhotoUrl.isNotEmpty
@@ -87,14 +88,14 @@ class TripCardWidget extends StatelessWidget {
                               errorBuilder: (context, error, stackTrace) =>
                                   Icon(
                                 _getTransportModeIcon(trip.transportMode),
-                                color: const Color(0xFF0046FF),
+                                color: const Color(0xFF215C5C),
                                 size: 20,
                               ),
                             ),
                           )
                         : Icon(
                             _getTransportModeIcon(trip.transportMode),
-                            color: const Color(0xFF0046FF),
+                            color: const Color(0xFF215C5C),
                             size: 20,
                           ),
                   ),
@@ -118,7 +119,7 @@ class TripCardWidget extends StatelessWidget {
                             children: [
                               const Icon(
                                 Icons.star,
-                                color: Color(0xFFFF8040),
+                                color: Color(0xFF2D7A6E),
                                 size: 14,
                               ),
                               const SizedBox(width: 4),
@@ -179,7 +180,7 @@ class TripCardWidget extends StatelessWidget {
                             horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: trip.isVerified == true
-                              ? const Color(0xFF0046FF).withOpacity(0.1)
+                              ? const Color(0xFF215C5C).withOpacity(0.1)
                               : Colors.grey.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -187,7 +188,7 @@ class TripCardWidget extends StatelessWidget {
                           trip.isVerified == true ? 'Verified' : 'Unverified',
                           style: TextStyle(
                             color: trip.isVerified == true
-                                ? const Color(0xFF0046FF)
+                                ? const Color(0xFF215C5C)
                                 : Colors.grey,
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -252,9 +253,9 @@ class TripCardWidget extends StatelessWidget {
                   Text(
                     trip.pricePerKg != null
                         ? '€${trip.pricePerKg!.toStringAsFixed(2)}/kg'
-                        : '\$${trip.suggestedReward}+',
+                        : '€${trip.suggestedReward}+',
                     style: const TextStyle(
-                      color: Color(0xFF0046FF),
+                      color: Color(0xFF215C5C),
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
@@ -287,7 +288,7 @@ class TripCardWidget extends StatelessWidget {
                               barrierDismissible: false,
                               builder: (context) => const Center(
                                 child: CircularProgressIndicator(
-                                  color: Color(0xFF0046FF),
+                                  color: Color(0xFF215C5C),
                                 ),
                               ),
                             );
@@ -319,9 +320,8 @@ class TripCardWidget extends StatelessWidget {
                             } else {
                               // Show error message
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                      'Failed to start chat. Please try again.'),
+                                SnackBar(
+                                  content: Text('chat.start_failed'.tr()),
                                   backgroundColor: Colors.red,
                                 ),
                               );
@@ -342,16 +342,15 @@ class TripCardWidget extends StatelessWidget {
                           }
                         },
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFF0046FF)),
+                          side: const BorderSide(color: Color(0xFF215C5C)),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        child: const Text(
-                          'Chat Now',
+                        child: Text('detail.chat_now'.tr(),
                           style: TextStyle(
-                            color: Color(0xFF0046FF),
+                            color: Color(0xFF215C5C),
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -370,15 +369,14 @@ class TripCardWidget extends StatelessWidget {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF8040),
+                          backgroundColor: const Color(0xFF2D7A6E),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        child: const Text(
-                          'Make Offer',
+                        child: Text('detail.make_offer'.tr(),
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -423,14 +421,31 @@ class TripCardWidget extends StatelessWidget {
     final now = DateTime.now();
     final difference = date.difference(now).inDays;
 
+    // Format the full date as DD-MMM-YYYY (e.g., 22-Oct-2025)
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    final fullDate = '${date.day}-${months[date.month - 1]}-${date.year}';
+
     if (difference == 0) {
-      return 'Today';
+      return 'Today, $fullDate';
     } else if (difference == 1) {
-      return 'Tomorrow';
+      return 'Tomorrow, $fullDate';
     } else if (difference < 7) {
-      return 'In $difference days';
+      return 'In $difference days, $fullDate';
     } else {
-      return '${date.day}/${date.month}/${date.year}';
+      return fullDate;
     }
   }
 }

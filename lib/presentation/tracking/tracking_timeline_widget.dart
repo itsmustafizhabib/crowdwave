@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sizer/sizer.dart';
 import '../../core/models/delivery_tracking.dart';
+import '../../core/models/travel_trip.dart';
 
 class TrackingTimelineWidget extends StatelessWidget {
   final DeliveryTracking tracking;
+  final TransportMode? transportMode;
 
   const TrackingTimelineWidget({
     Key? key,
     required this.tracking,
+    this.transportMode,
   }) : super(key: key);
 
   @override
@@ -28,8 +32,7 @@ class TrackingTimelineWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Delivery Timeline',
+          Text('tracking.delivery_timeline'.tr(),
             style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.bold,
@@ -69,38 +72,63 @@ class TrackingTimelineWidget extends StatelessWidget {
   List<TimelineStep> _getTimelineSteps() {
     return [
       TimelineStep(
-        title: 'Package Confirmed',
-        subtitle: 'Ready for pickup',
+        title: 'tracking.package_confirmed'.tr(),
+        subtitle: 'tracking.ready_for_pickup'.tr(),
         icon: Icons.check_circle_outline,
         isCompleted: true,
         isActive: false,
         timestamp: tracking.createdAt,
       ),
       TimelineStep(
-        title: 'Picked Up',
-        subtitle: 'Package collected by traveler',
-        icon: Icons.flight_takeoff,
+        title: 'tracking.picked_up_label'.tr(),
+        subtitle: 'tracking.collected_by_traveler'.tr(),
+        imagePath: 'assets/thin.png',
         isCompleted: tracking.status.index >= DeliveryStatus.picked_up.index,
         isActive: tracking.status == DeliveryStatus.picked_up,
         timestamp: tracking.pickupTime,
       ),
       TimelineStep(
-        title: 'In Transit',
-        subtitle: 'Package is on the way',
-        icon: Icons.local_shipping,
+        title: 'tracking.in_transit'.tr(),
+        subtitle: 'tracking.package_on_the_way'.tr(),
+        icon: _getTransportIcon(),
         isCompleted: tracking.status.index >= DeliveryStatus.in_transit.index,
         isActive: tracking.status == DeliveryStatus.in_transit,
         timestamp: null, // Will be set when status changes
       ),
       TimelineStep(
-        title: 'Delivered',
-        subtitle: 'Package successfully delivered',
+        title: 'tracking.delivered_label'.tr(),
+        subtitle: 'tracking.package_delivered_successfully'.tr(),
         icon: Icons.check_circle,
         isCompleted: tracking.status == DeliveryStatus.delivered,
         isActive: false,
         timestamp: tracking.deliveryTime,
       ),
     ];
+  }
+
+  IconData _getTransportIcon() {
+    if (transportMode == null) {
+      return Icons.local_shipping; // Default icon
+    }
+
+    switch (transportMode!) {
+      case TransportMode.flight:
+        return Icons.flight;
+      case TransportMode.train:
+        return Icons.train;
+      case TransportMode.bus:
+        return Icons.directions_bus;
+      case TransportMode.car:
+        return Icons.directions_car;
+      case TransportMode.ship:
+        return Icons.directions_boat;
+      case TransportMode.motorcycle:
+        return Icons.motorcycle;
+      case TransportMode.bicycle:
+        return Icons.directions_bike;
+      case TransportMode.walking:
+        return Icons.directions_walk;
+    }
   }
 
   Widget _buildTimelineStep({
@@ -112,7 +140,7 @@ class TrackingTimelineWidget extends StatelessWidget {
     final color = isCompleted
         ? Colors.green
         : isActive
-            ? Colors.blue
+            ? Color(0xFF008080)
             : Colors.grey[400]!;
 
     return Row(
@@ -129,11 +157,20 @@ class TrackingTimelineWidget extends StatelessWidget {
                 border: Border.all(color: color, width: 2),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                step.icon,
-                color: isCompleted || isActive ? Colors.white : color,
-                size: 5.w,
-              ),
+              child: step.imagePath != null
+                  ? Padding(
+                      padding: EdgeInsets.all(2.w),
+                      child: Image.asset(
+                        step.imagePath!,
+                        color: isCompleted || isActive ? Colors.white : color,
+                        fit: BoxFit.contain,
+                      ),
+                    )
+                  : Icon(
+                      step.icon!,
+                      color: isCompleted || isActive ? Colors.white : color,
+                      size: 5.w,
+                    ),
             ),
             if (!isLast)
               Container(
@@ -200,8 +237,7 @@ class TrackingTimelineWidget extends StatelessWidget {
       children: [
         Divider(color: Colors.grey[300]),
         SizedBox(height: 2.h),
-        Text(
-          'Location History',
+        Text('common.location_history'.tr(),
           style: TextStyle(
             fontSize: 16.sp,
             fontWeight: FontWeight.bold,
@@ -221,7 +257,7 @@ class TrackingTimelineWidget extends StatelessWidget {
                 'View all ${tracking.trackingPoints.length} locations',
                 style: TextStyle(
                   fontSize: 13.sp,
-                  color: Colors.blue,
+                  color: Color(0xFF008080),
                 ),
               ),
             ),
@@ -238,7 +274,7 @@ class TrackingTimelineWidget extends StatelessWidget {
         children: [
           Icon(
             Icons.location_on,
-            color: Colors.blue,
+            color: Color(0xFF008080),
             size: 5.w,
           ),
           SizedBox(width: 3.w),
@@ -283,7 +319,8 @@ class TrackingTimelineWidget extends StatelessWidget {
 class TimelineStep {
   final String title;
   final String subtitle;
-  final IconData icon;
+  final IconData? icon;
+  final String? imagePath;
   final bool isCompleted;
   final bool isActive;
   final DateTime? timestamp;
@@ -291,9 +328,11 @@ class TimelineStep {
   TimelineStep({
     required this.title,
     required this.subtitle,
-    required this.icon,
+    this.icon,
+    this.imagePath,
     required this.isCompleted,
     required this.isActive,
     this.timestamp,
-  });
+  }) : assert(icon != null || imagePath != null,
+            'Either icon or imagePath must be provided');
 }

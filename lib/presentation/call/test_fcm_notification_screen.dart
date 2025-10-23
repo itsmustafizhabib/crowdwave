@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -89,8 +90,8 @@ class _TestFCMNotificationScreenState extends State<TestFCMNotificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Test FCM Notifications'),
-        backgroundColor: const Color(0xFF0046FF),
+        title: Text('notifications.test_fcm_notifications'.tr()),
+        backgroundColor: const Color(0xFF215C5C),
         foregroundColor: Colors.white,
       ),
       body: Padding(
@@ -101,11 +102,10 @@ class _TestFCMNotificationScreenState extends State<TestFCMNotificationScreen> {
             const Icon(
               Icons.notification_important,
               size: 80,
-              color: Color(0xFF0046FF),
+              color: Color(0xFF215C5C),
             ),
             const SizedBox(height: 30),
-            const Text(
-              'Test FCM Notifications',
+            Text('notifications.test_fcm_notifications'.tr(),
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -113,8 +113,7 @@ class _TestFCMNotificationScreenState extends State<TestFCMNotificationScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Test if push notifications work via Cloud Functions',
+            Text('notifications.test_if_push_notifications_work_via_cloud_function'.tr(),
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey,
@@ -139,7 +138,7 @@ class _TestFCMNotificationScreenState extends State<TestFCMNotificationScreen> {
                 style: const TextStyle(fontSize: 18),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0046FF),
+                backgroundColor: const Color(0xFF215C5C),
                 foregroundColor: Colors.white,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 40, vertical: 16),

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/foundation.dart';
 import '../models/notification_model.dart';
@@ -320,7 +321,7 @@ class LocationBasedNotificationService {
 
     _notificationService.createNotification(
       userId: _authService.currentUser!.uid,
-      title: 'New Package Request in Your Area!',
+      title: 'debug.test_package_title'.tr(),
       body:
           'Someone needs to send a package from $fromAddress to $toAddress. Accept this delivery request now!',
       type: NotificationType.general,

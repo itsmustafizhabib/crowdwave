@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import '../../services/location_notification_service.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
@@ -26,15 +27,15 @@ class _NotificationSettingsScreenState
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text(
-          'Notification Settings',
+        title: Text(
+          'settings.notification_settings'.tr(),
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 20,
             color: Colors.white, // Make title text white
           ),
         ),
-        backgroundColor: const Color(0xFF0046FF),
+        backgroundColor: const Color(0xFF215C5C),
         foregroundColor: Colors.white,
         elevation: 0,
         iconTheme:
@@ -45,12 +46,12 @@ class _NotificationSettingsScreenState
         children: [
           // Location-based notifications
           _buildSectionCard(
-            title: 'Location-Based Notifications',
-            subtitle: 'Get notified about opportunities in your area',
+            title: 'settings.location_based_notifications'.tr(),
+            subtitle: 'settings.location_notifications_subtitle'.tr(),
             children: [
               _buildSwitchTile(
-                title: 'Enable Location Notifications',
-                subtitle: 'Receive alerts for nearby trips and packages',
+                title: 'settings.enable_location_notifications'.tr(),
+                subtitle: 'settings.enable_location_subtitle'.tr(),
                 value: _locationNotificationsEnabled,
                 onChanged: (value) async {
                   if (value) {
@@ -74,7 +75,7 @@ class _NotificationSettingsScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Notification Radius: ${_notificationRadius.toInt()} km',
+                        '${'settings.notification_radius'.tr()}: ${_notificationRadius.toInt()} km',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
@@ -83,7 +84,7 @@ class _NotificationSettingsScreenState
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Receive notifications for opportunities within this distance',
+                        'settings.notification_radius_description'.tr(),
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey[600],
@@ -95,7 +96,7 @@ class _NotificationSettingsScreenState
                         min: 5.0,
                         max: 100.0,
                         divisions: 19,
-                        activeColor: const Color(0xFF0046FF),
+                        activeColor: const Color(0xFF215C5C),
                         label: '${_notificationRadius.toInt()} km',
                         onChanged: (value) {
                           setState(() {
@@ -112,8 +113,8 @@ class _NotificationSettingsScreenState
 
                 // Specific alert types
                 _buildSwitchTile(
-                  title: 'New Traveller Alerts',
-                  subtitle: 'When someone posts a new trip in your area',
+                  title: 'settings.new_traveller_alerts'.tr(),
+                  subtitle: 'settings.new_traveller_subtitle'.tr(),
                   value: _newTravellerAlerts,
                   onChanged: (value) {
                     setState(() {
@@ -125,9 +126,8 @@ class _NotificationSettingsScreenState
                 const Divider(height: 1),
 
                 _buildSwitchTile(
-                  title: 'New Package Alerts',
-                  subtitle:
-                      'When someone needs a package delivered in your area',
+                  title: 'settings.new_package_alerts'.tr(),
+                  subtitle: 'settings.new_package_subtitle'.tr(),
                   value: _newPackageAlerts,
                   onChanged: (value) {
                     setState(() {
@@ -139,8 +139,8 @@ class _NotificationSettingsScreenState
                 const Divider(height: 1),
 
                 _buildSwitchTile(
-                  title: 'Opportunity Summary',
-                  subtitle: 'Daily summary of nearby opportunities',
+                  title: 'settings.opportunity_alerts'.tr(),
+                  subtitle: 'settings.opportunity_subtitle'.tr(),
                   value: _opportunityAlerts,
                   onChanged: (value) {
                     setState(() {
@@ -156,32 +156,30 @@ class _NotificationSettingsScreenState
 
           // Manual refresh button
           _buildSectionCard(
-            title: 'Manual Actions',
-            subtitle: 'Check for opportunities manually',
+            title: 'settings.manual_actions'.tr(),
+            subtitle: 'settings.manual_actions_subtitle'.tr(),
             children: [
               ListTile(
                 leading: Container(
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0046FF).withOpacity(0.1),
+                    color: const Color(0xFF215C5C).withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.refresh,
-                    color: Color(0xFF0046FF),
+                    color: Color(0xFF215C5C),
                     size: 20,
                   ),
                 ),
-                title: const Text(
-                  'Check Nearby Opportunities',
+                title: Text('common.check_nearby_opportunities'.tr(),
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 16,
                   ),
                 ),
-                subtitle: const Text(
-                  'Manually scan for trips and packages in your area',
+                subtitle: Text('post_package.manually_scan_for_trips_and_packages_in_your_area'.tr(),
                   style: TextStyle(fontSize: 14),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -196,10 +194,10 @@ class _NotificationSettingsScreenState
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF0046FF).withOpacity(0.05),
+              color: const Color(0xFF215C5C).withOpacity(0.05),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: const Color(0xFF0046FF).withOpacity(0.1),
+                color: const Color(0xFF215C5C).withOpacity(0.1),
               ),
             ),
             child: Column(
@@ -209,16 +207,15 @@ class _NotificationSettingsScreenState
                   children: [
                     Icon(
                       Icons.info_outline,
-                      color: const Color(0xFF0046FF),
+                      color: const Color(0xFF215C5C),
                       size: 20,
                     ),
                     const SizedBox(width: 8),
-                    const Text(
-                      'How it works',
+                    Text('common.how_it_works'.tr(),
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
-                        color: Color(0xFF0046FF),
+                        color: Color(0xFF215C5C),
                       ),
                     ),
                   ],
@@ -318,7 +315,7 @@ class _NotificationSettingsScreenState
         style: const TextStyle(fontSize: 14),
       ),
       value: value,
-      activeThumbColor: const Color(0xFF0046FF),
+      activeThumbColor: const Color(0xFF215C5C),
       onChanged: onChanged,
     );
   }
@@ -328,7 +325,7 @@ class _NotificationSettingsScreenState
     Get.dialog(
       const Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0046FF)),
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF215C5C)),
         ),
       ),
       barrierDismissible: false,
@@ -367,29 +364,25 @@ class _NotificationSettingsScreenState
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text(
-              'Location Permission Required',
+            title: Text(
+              'settings.location_permission_required'.tr(),
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
-            content: const Text(
-              'CrowdWave needs access to your location to:\n\n'
-              '• Find trips and packages near you\n'
-              '• Send notifications about nearby opportunities\n'
-              '• Help you discover earning opportunities in your area\n\n'
-              'Your location is only used for finding relevant opportunities and is not shared with other users.',
+            content: Text(
+              'settings.location_permission_explanation'.tr(),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+                child: Text('settings.not_now'.tr()),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0046FF),
+                  backgroundColor: const Color(0xFF215C5C),
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Allow Location'),
+                child: Text('settings.enable'.tr()),
               ),
             ],
           ),
@@ -404,7 +397,7 @@ class _NotificationSettingsScreenState
       Get.dialog(
         const Center(
           child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0046FF)),
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF215C5C)),
           ),
         ),
         barrierDismissible: false,

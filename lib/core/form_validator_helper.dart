@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../core/validation_messages.dart';
 import '../widgets/enhanced_snackbar.dart';
 
@@ -68,7 +69,7 @@ class FormValidatorHelper {
       case 'fullname':
       case 'name':
         return (value) =>
-            ValidationMessages.validateName(value, fieldName: 'Full name');
+            ValidationMessages.validateName(value, fieldName: 'profile.full_name'.tr());
       case 'phone':
       case 'phonenumber':
         return ValidationMessages.validatePhoneNumber;

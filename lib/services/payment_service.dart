@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:easy_localization/easy_localization.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -344,7 +345,7 @@ class PaymentService {
           billingDetails: stripe.BillingDetails(
             email: customerEmail,
           ),
-          primaryButtonLabel: 'Pay Now',
+          primaryButtonLabel: 'booking.pay_now'.tr(),
           allowsDelayedPaymentMethods: false,
         ),
       );
@@ -661,6 +662,86 @@ class PaymentService {
         return true; // Available on iOS 12.0+
       }
       return false;
+    }
+  }
+
+  /// Release payment to traveler after delivery confirmation
+  /// This moves funds from hold to the traveler's wallet
+  Future<void> releasePayment({
+    required String bookingId,
+    required String travelerId,
+    required double amount,
+    String reason = 'delivery_confirmed',
+  }) async {
+    try {
+      if (kDebugMode) {
+        print('💰 Releasing payment to traveler...');
+        print('  - Booking ID: $bookingId');
+        print('  - Traveler ID: $travelerId');
+        print('  - Amount: \$${amount.toStringAsFixed(2)}');
+        print('  - Reason: $reason');
+      }
+
+      // Call backend function to release payment
+      final callable =
+          FirebaseFunctions.instance.httpsCallable('releasePaymentToTraveler');
+      final result = await callable.call({
+        'bookingId': bookingId,
+        'travelerId': travelerId,
+        'amount': amount,
+        'reason': reason,
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+
+      if (kDebugMode) {
+        print('✅ Payment released successfully: ${result.data}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Failed to release payment: $e');
+      }
+      log('Failed to release payment: $e');
+      rethrow;
+    }
+  }
+
+  /// Refund payment to sender (in case of cancellation or dispute)
+  /// This returns funds from hold back to the sender
+  Future<void> refundPayment({
+    required String bookingId,
+    required String senderId,
+    required double amount,
+    required String reason,
+  }) async {
+    try {
+      if (kDebugMode) {
+        print('💸 Refunding payment to sender...');
+        print('  - Booking ID: $bookingId');
+        print('  - Sender ID: $senderId');
+        print('  - Amount: \$${amount.toStringAsFixed(2)}');
+        print('  - Reason: $reason');
+      }
+
+      // Call backend function to process refund
+      final callable =
+          FirebaseFunctions.instance.httpsCallable('refundPaymentToSender');
+      final result = await callable.call({
+        'bookingId': bookingId,
+        'senderId': senderId,
+        'amount': amount,
+        'reason': reason,
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+
+      if (kDebugMode) {
+        print('✅ Refund processed successfully: ${result.data}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Failed to process refund: $e');
+      }
+      log('Failed to process refund: $e');
+      rethrow;
     }
   }
 

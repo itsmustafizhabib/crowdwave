@@ -130,7 +130,7 @@ class _AnimatedButtonState extends State<AnimatedButton>
                 widget.onPressed?.call();
               },
         style: ElevatedButton.styleFrom(
-          backgroundColor: widget.backgroundColor ?? const Color(0xFF001BB7),
+          backgroundColor: widget.backgroundColor ?? const Color(0xFF2D7A6E),
           foregroundColor: widget.textColor ?? Colors.white,
           elevation: widget.elevation ?? 8,
           shadowColor: Colors.black.withOpacity(0.3),
@@ -151,9 +151,9 @@ class _AnimatedButtonState extends State<AnimatedButton>
       child: OutlinedButton(
         onPressed: widget.isLoading ? null : widget.onPressed,
         style: OutlinedButton.styleFrom(
-          foregroundColor: widget.textColor ?? const Color(0xFF001BB7),
+          foregroundColor: widget.textColor ?? const Color(0xFF2D7A6E),
           side: BorderSide(
-            color: widget.backgroundColor ?? const Color(0xFF001BB7),
+            color: widget.backgroundColor ?? const Color(0xFF2D7A6E),
             width: 2,
           ),
           shape: RoundedRectangleBorder(
@@ -184,8 +184,8 @@ class _AnimatedButtonState extends State<AnimatedButton>
           gradient: widget.gradient ??
               LinearGradient(
                 colors: [
-                  const Color(0xFF001BB7),
-                  const Color(0xFF0046FF),
+                  const Color(0xFF2D7A6E),
+                  const Color(0xFF215C5C),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -388,7 +388,7 @@ class _FloatingActionButtonState extends State<FloatingActionButton>
                         )
                       : null,
                   color: widget.gradientColors == null
-                      ? (widget.backgroundColor ?? const Color(0xFF001BB7))
+                      ? (widget.backgroundColor ?? const Color(0xFF2D7A6E))
                       : null,
                   shape: BoxShape.circle,
                   boxShadow: [

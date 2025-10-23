@@ -3,7 +3,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:typed_data';
@@ -602,7 +603,7 @@ class NotificationService extends GetxController {
         priority: Priority.high,
         showWhen: true,
         icon: '@mipmap/ic_launcher',
-        color: const Color(0xFF0046FF), // Electric blue
+        color: const Color(0xFF215C5C), // Electric blue
         playSound: true,
         enableVibration: true,
         vibrationPattern: Int64List.fromList([0, 300, 100, 300]),
@@ -708,9 +709,48 @@ class NotificationService extends GetxController {
           }
           break;
 
+        case 'deal_accepted':
+          // Navigate to the specific chat conversation for this deal
+          final conversationId = data['conversationId'];
+          final dealId = data['dealId'];
+
+          if (conversationId != null) {
+            if (kDebugMode) {
+              print('🎉 Deal accepted - navigating to chat: $conversationId');
+            }
+            Get.toNamed('/individual-chat', arguments: {
+              'conversationId': conversationId,
+              'dealId': dealId, // Include deal context
+              'shouldRefresh': true, // Ensure chat refreshes
+            });
+          } else {
+            // Fallback to notifications
+            Get.toNamed('/notifications');
+          }
+          break;
+
         case 'offer_received':
+        case 'offer_accepted':
+        case 'offer_rejected':
           // Navigate to notifications screen to see offer details
-          Get.toNamed('/notifications');
+          final packageId = data['packageId'];
+          final tripId = data['tripId'];
+
+          if (packageId != null) {
+            // Navigate to package details with offers tab
+            Get.toNamed('/package-details', arguments: {
+              'packageId': packageId,
+              'initialTab': 'offers',
+            });
+          } else if (tripId != null) {
+            // Navigate to trip details
+            Get.toNamed('/trip-details', arguments: {
+              'tripId': tripId,
+              'initialTab': 'offers',
+            });
+          } else {
+            Get.toNamed('/notifications');
+          }
           break;
 
         case 'voice_call':
@@ -740,6 +780,27 @@ class NotificationService extends GetxController {
               fullscreenDialog: true,
               transition: Transition.downToUp,
             );
+          }
+          break;
+
+        case 'trip_update':
+        case 'package_update':
+          // Navigate to tracking or package details
+          final packageId = data['packageId'];
+          final tripId = data['tripId'];
+
+          if (packageId != null) {
+            Get.toNamed('/package-details', arguments: {
+              'packageId': packageId,
+              'initialTab': 'tracking',
+            });
+          } else if (tripId != null) {
+            Get.toNamed('/trip-details', arguments: {
+              'tripId': tripId,
+              'initialTab': 'tracking',
+            });
+          } else {
+            Get.toNamed('/tracking');
           }
           break;
 
@@ -781,10 +842,26 @@ class NotificationService extends GetxController {
         createdAt: DateTime.now(),
       );
 
+      if (kDebugMode) {
+        print('💾 SAVING NOTIFICATION TO FIRESTORE:');
+        print('  📄 Collection: $_notificationsCollection');
+        print('  🆔 Document ID: $notificationId');
+        print('  👤 User ID: $userId');
+        print('  📧 Title: $title');
+        print('  📝 Body: $body');
+        print('  🏷️ Type: ${type.name}');
+        print('  🔗 Related Entity: $relatedEntityId');
+      }
+
       await _firestore
           .collection(_notificationsCollection)
           .doc(notificationId)
           .set(notification.toMap());
+
+      if (kDebugMode) {
+        print('✅ Notification saved to Firestore successfully!');
+        print('🔔 Path: notifications/$notificationId');
+      }
 
       // Send push notification
       await _sendPushNotification(
@@ -795,11 +872,13 @@ class NotificationService extends GetxController {
       );
 
       if (kDebugMode) {
-        print('Notification created for user $userId: $title');
+        print('📱 Push notification sent to user $userId');
+        print('🎯 Notification complete: $title');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error creating notification: $e');
+        print('❌ Error creating notification: $e');
+        print('Stack trace: ${StackTrace.current}');
       }
     }
   }
@@ -868,6 +947,14 @@ class NotificationService extends GetxController {
         print('📦 Data: $data');
       }
 
+      // ✅ ADD UNIQUE NOTIFICATION ID to prevent duplicates
+      final notificationId = data['notificationId'] ??
+          '${data['type'] ?? 'general'}_${data['conversationId'] ?? data['dealId'] ?? data['packageId'] ?? 'none'}_${DateTime.now().millisecondsSinceEpoch}';
+
+      final enhancedData = Map<String, dynamic>.from(data);
+      enhancedData['notificationId'] = notificationId;
+      enhancedData['clickAction'] = 'FLUTTER_NOTIFICATION_CLICK';
+
       // Use Firebase Cloud Functions for reliable FCM sending
       final functions = FirebaseFunctions.instance;
       final callable = functions.httpsCallable('sendFCMNotification');
@@ -876,7 +963,7 @@ class NotificationService extends GetxController {
         'fcmToken': fcmToken,
         'title': title,
         'body': body,
-        'data': data,
+        'data': enhancedData,
       });
 
       if (kDebugMode) {
@@ -987,7 +1074,7 @@ class NotificationService extends GetxController {
   }) async {
     await createNotification(
       userId: travelerId,
-      title: 'New Offer Received!',
+      title: 'notifications.new_offer'.tr(),
       body:
           '$senderName made an offer of \$${offerAmount.toStringAsFixed(2)} for your trip to $tripTitle',
       type: NotificationType.offerReceived,
@@ -1031,7 +1118,7 @@ class NotificationService extends GetxController {
   }) async {
     await createNotification(
       userId: senderId,
-      title: 'Offer Update',
+      title: 'notifications.offer_update'.tr(),
       body: '$travelerName declined your offer for the trip to $tripTitle',
       type: NotificationType.offerRejected,
       relatedEntityId: tripId,
@@ -1117,7 +1204,7 @@ class NotificationService extends GetxController {
       final notification = NotificationModel(
         id: notificationId,
         userId: receiverId,
-        title: 'Incoming Call',
+        title: 'notifications.incoming_call'.tr(),
         body: '$callerName is calling you...',
         type: NotificationType.voiceCall,
         relatedEntityId: callId,
@@ -1145,46 +1232,6 @@ class NotificationService extends GetxController {
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error sending voice call notification: $e');
-      }
-    }
-  }
-
-  // ✅ TEST FCM NOTIFICATION - For debugging purposes
-  Future<void> testFCMNotification({
-    required String title,
-    required String body,
-    Map<String, dynamic>? data,
-  }) async {
-    try {
-      final currentUserId = _authService.currentUser?.uid;
-      if (currentUserId == null) {
-        if (kDebugMode) {
-          print('❌ No current user for FCM test');
-        }
-        return;
-      }
-
-      if (kDebugMode) {
-        print('🧪 Testing FCM notification...');
-      }
-
-      await _sendPushNotification(
-        userId: currentUserId,
-        title: title,
-        body: body,
-        data: data ??
-            {
-              'type': 'test',
-              'timestamp': DateTime.now().toIso8601String(),
-            },
-      );
-
-      if (kDebugMode) {
-        print('✅ Test FCM notification sent successfully!');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error sending test FCM notification: $e');
       }
     }
   }

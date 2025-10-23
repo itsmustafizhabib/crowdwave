@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
@@ -39,8 +40,7 @@ class NavigationControlsWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(2.w),
                 ),
               ),
-              child: Text(
-                'Skip',
+              child: Text('onboarding.skip'.tr(),
                 style: AppTheme.lightTheme.textTheme.labelLarge?.copyWith(
                   color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,

@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'dart:math' as math;
 import '../../core/app_export.dart';
 import '../../services/auth_state_service.dart';
-// import '../../services/notification_service.dart'; // Removed - bell icon removed from home screen
+import '../../services/notification_service.dart';
 import '../../services/kyc_service.dart';
 import '../../controllers/smart_matching_controller.dart';
 import '../package_detail/package_detail_screen.dart';
 import '../../widgets/liquid_refresh_indicator.dart';
 import '../../widgets/liquid_loading_indicator.dart';
-
-// Removed unused notification screen import
 import '../../widgets/trip_card_widget.dart';
+import '../forum/community_forum_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../chat/individual_chat_screen.dart';
+import '../booking/make_offer_screen.dart';
 
 class UpdatedHomeScreen extends StatefulWidget {
   const UpdatedHomeScreen({Key? key}) : super(key: key);
@@ -33,9 +36,12 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
   late AnimationController _airplaneController;
   final TextEditingController _searchController = TextEditingController();
 
+  // Location filter: 'all', 'local', 'abroad'
+  String _locationFilter = 'all';
+
   // Smart matching controller
   late SmartMatchingController _smartMatchingController;
-  // late NotificationService _notificationService; // Removed - bell icon removed from home screen
+  late NotificationService _notificationService;
 
   // KYC related
   final KycService _kycService = KycService();
@@ -62,8 +68,8 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
     // Initialize smart matching controller
     _smartMatchingController = Get.put(SmartMatchingController());
 
-    // Initialize notification service - REMOVED since bell icon removed from home screen
-    // _notificationService = Get.put(NotificationService());
+    // Initialize notification service
+    _notificationService = Get.put(NotificationService());
 
     // Listen to auth state changes to update UI when user data changes
     _authService.addListener(_onAuthStateChanged);
@@ -86,19 +92,10 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
   }
 
   void _initializeDataStreams() {
-    final currentUserId = _authService.currentUser?.uid ?? '';
-
-    if (_showOnlyMyPackages) {
-      // Get user's own packages and trips
-      _packagesStream = _packageRepository.getPackagesBySender(currentUserId);
-      _tripsStream = _tripRepository.getTripsByTraveler(currentUserId);
-    } else {
-      // Get all recent packages and trips for discovery
-      _packagesStream =
-          _packageRepository.getRecentPackages(limit: 50); // Increased limit
-      _tripsStream =
-          _tripRepository.getRecentTrips(limit: 50); // Increased limit
-    }
+    // Always get all recent packages for discovery (not user's own)
+    _packagesStream =
+        _packageRepository.getRecentPackages(limit: 50); // Increased limit
+    _tripsStream = _tripRepository.getRecentTrips(limit: 50); // Increased limit
 
     // Load initial data for smart matching controller
     _smartMatchingController.loadSuggestedTrips();
@@ -200,9 +197,6 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
 
                 // Role toggle (Sender/Traveler)
 
-                // Filter toggle (All vs My items)
-                _buildFilterToggle(),
-
                 // KYC Alert Banner
                 _buildKYCBanner(),
 
@@ -210,159 +204,404 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                 _buildSwipeableCards(),
 
                 // Additional content area (optional)
-                SizedBox(height: 20), // Reduced padding for FAB
+                SizedBox(height: 20),
               ],
             ),
           ),
         ),
-        floatingActionButton: _buildFloatingActionButton(),
-        floatingActionButtonLocation: _CustomFloatingActionButtonLocation(),
       ),
     );
   }
 
   Widget _buildHeader() {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF0046FF), Color(0xFF001BB7)], // Blue gradient
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(20, 20, 20, 30),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top row with profile and menu
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      children: [
+        // Green header section with background image
+        Container(
+          decoration: BoxDecoration(
+            image: const DecorationImage(
+              image: AssetImage('assets/bg_header.png'),
+              fit: BoxFit.cover,
+              opacity: 0.3,
+            ),
+            gradient: const LinearGradient(
+              colors: [
+                Color(0xFF2D6A5F),
+                Color(0xFF1F4D43)
+              ], // Teal/green gradient
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(30),
+              bottomRight: Radius.circular(30),
+            ),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        _buildUserAvatar(),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                  // Top row with profile and action icons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            _buildUserAvatar(),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _getUserGreeting(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'post_package.find_available_packages'.tr(),
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.9),
+                                      fontSize: 14,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Support Icon
+                          IconButton(
+                            icon: const Icon(
+                              Icons.help_outline,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                            onPressed: _showHelpSupportDialog,
+                            tooltip: 'Help & Support',
+                            padding: const EdgeInsets.all(8),
+                            constraints: const BoxConstraints(
+                              minWidth: 40,
+                              minHeight: 40,
+                            ),
+                          ),
+
+                          // Community Forum Icon
+                          IconButton(
+                            icon: const Icon(
+                              Icons.forum,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const CommunityForumScreen(),
+                                ),
+                              );
+                            },
+                            tooltip: 'Community Forum',
+                            padding: const EdgeInsets.all(8),
+                            constraints: const BoxConstraints(
+                              minWidth: 40,
+                              minHeight: 40,
+                            ),
+                          ),
+
+                          // Notification Bell with Badge
+                          Stack(
                             children: [
-                              Text(
-                                _getUserGreeting(),
-                                style: const TextStyle(
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.notifications_outlined,
                                   color: Colors.white,
-                                  fontSize: 18,
+                                  size: 24,
+                                ),
+                                onPressed: () {
+                                  Navigator.pushNamed(
+                                      context, '/notifications');
+                                },
+                                tooltip: 'Notifications',
+                                padding: const EdgeInsets.all(8),
+                                constraints: const BoxConstraints(
+                                  minWidth: 40,
+                                  minHeight: 40,
+                                ),
+                              ),
+                              // Badge for unread notifications
+                              if (_notificationService.unreadCount > 0)
+                                Positioned(
+                                  right: 4,
+                                  top: 4,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 16,
+                                      minHeight: 16,
+                                    ),
+                                    child: Text(
+                                      _notificationService.unreadCount > 9
+                                          ? '9+'
+                                          : _notificationService.unreadCount
+                                              .toString(),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // Search bar + Local/Abroad buttons
+                  Row(
+                    children: [
+                      // Search bar
+                      Expanded(
+                        flex: 3,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: TextField(
+                            controller: _searchController,
+                            focusNode: _searchFocusNode,
+                            decoration: InputDecoration(
+                              hintText: 'Search packages...',
+                              hintStyle: TextStyle(color: Colors.grey[400]),
+                              border: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                              disabledBorder: InputBorder.none,
+                              icon: Icon(
+                                Icons.search,
+                                color: Colors.grey[400],
+                              ),
+                              suffixIcon: _searchController.text.isNotEmpty
+                                  ? IconButton(
+                                      icon:
+                                          Icon(Icons.clear, color: Colors.grey),
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        setState(() {
+                                          // Trigger rebuild to clear search filter
+                                        });
+                                      },
+                                    )
+                                  : null,
+                              contentPadding:
+                                  EdgeInsets.symmetric(vertical: 15),
+                            ),
+                            cursorColor: const Color(0xFF2D6A5F),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.black87,
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                // Trigger rebuild to apply search filter
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      // Local button
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _locationFilter = 'local';
+                          });
+                        },
+                        child: Container(
+                          width: 70,
+                          height: 54,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: _locationFilter == 'local'
+                                  ? Color(0xFF2D6A5F)
+                                  : Colors.grey[400]!,
+                              width: 2,
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.business,
+                                color: _locationFilter == 'local'
+                                    ? Color(0xFF2D6A5F)
+                                    : Colors.grey[600],
+                                size: 20,
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Local',
+                                style: TextStyle(
+                                  color: _locationFilter == 'local'
+                                      ? Color(0xFF2D6A5F)
+                                      : Colors.grey[600],
+                                  fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                 ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Find available packages',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
-                                  fontSize: 14,
-                                ),
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Notification Bell with Badge - REMOVED per user request
-                      // Users can access notifications through the main menu instead
-
-                      IconButton(
-                        icon: const Icon(
-                          Icons.menu,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                        onPressed: () {
-                          Scaffold.of(context).openDrawer();
+                      ),
+                      SizedBox(width: 8),
+                      // Abroad button
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _locationFilter = 'abroad';
+                          });
                         },
-                        tooltip: 'Menu',
-                        padding: const EdgeInsets.all(8),
-                        constraints: const BoxConstraints(
-                          minWidth: 40,
-                          minHeight: 40,
+                        child: Container(
+                          width: 70,
+                          height: 54,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: _locationFilter == 'abroad'
+                                  ? Color(0xFF2D6A5F)
+                                  : Colors.grey[400]!,
+                              width: 2,
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.public,
+                                color: _locationFilter == 'abroad'
+                                    ? Color(0xFF2D6A5F)
+                                    : Colors.grey[600],
+                                size: 20,
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Abroad',
+                                style: TextStyle(
+                                  color: _locationFilter == 'abroad'
+                                      ? Color(0xFF2D6A5F)
+                                      : Colors.grey[600],
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ],
               ),
+            ),
+          ),
+        ),
 
-              const SizedBox(height: 30),
-
-              // Search bar
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(25),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: TextField(
-                  controller: _searchController,
-                  focusNode: _searchFocusNode,
-                  decoration: InputDecoration(
-                    hintText: 'Search packages',
-                    border: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    errorBorder: InputBorder.none,
-                    disabledBorder: InputBorder.none,
-                    icon: Icon(
-                      Icons.search,
-                      color: Color(0xFF0046FF),
-                    ),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: Icon(Icons.clear, color: Colors.grey),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() {
-                                // Trigger rebuild to clear search filter
-                              });
-                            },
-                          )
-                        : null,
-                    contentPadding: EdgeInsets.symmetric(vertical: 15),
-                  ),
-                  cursorColor: const Color(0xFF0046FF),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.black87,
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      // Trigger rebuild to apply search filter
-                    });
+        // Post Package and Create Trip buttons (outside green header)
+        Padding(
+          padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
+          child: Row(
+            children: [
+              // Post Package button
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, AppRoutes.postPackage);
                   },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF2D6A5F),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'Post Package',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 12),
+              // Create Trip button
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    // Navigate to travel screen
+                    Navigator.pushNamed(context, AppRoutes.travel);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF2D6A5F),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'Create Trip',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 
@@ -470,7 +709,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: Color(0xFF0046FF).withOpacity(0.3),
+                  color: Color(0xFF2D6A5F).withOpacity(0.3), // Teal/green
                   width: 1,
                 ),
               ),
@@ -488,13 +727,13 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                       child: Container(
                         decoration: BoxDecoration(
                           color: !_showOnlyMyPackages
-                              ? Color(0xFF0046FF)
+                              ? Color(0xFF2D6A5F) // Teal/green
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Center(
                           child: Text(
-                            'All Items',
+                            'home.all_items'.tr(),
                             style: TextStyle(
                               color: !_showOnlyMyPackages
                                   ? Colors.white
@@ -518,13 +757,13 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                       child: Container(
                         decoration: BoxDecoration(
                           color: _showOnlyMyPackages
-                              ? Color(0xFF0046FF)
+                              ? Color(0xFF2D6A5F) // Teal/green
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Center(
                           child: Text(
-                            'My Items',
+                            'home.my_items'.tr(),
                             style: TextStyle(
                               color: _showOnlyMyPackages
                                   ? Colors.white
@@ -556,7 +795,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
       margin: const EdgeInsets.fromLTRB(20, 2, 20, 2),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFF8040), // Orange
+        color: const Color(0xFF2D6A5F), // Teal/green
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -567,10 +806,10 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
             size: 24,
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Complete your KYC to start earning',
-              style: TextStyle(
+              'common.complete_your_kyc_to_start_earning'.tr(),
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -586,8 +825,8 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                 _checkKycStatus();
               }
             },
-            child: const Text(
-              'Complete',
+            child: Text(
+              'booking.complete_step'.tr(),
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 14,
@@ -602,11 +841,9 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
     );
   }
 
-// Replace the _buildSwipeableCards() method with:
+// Always show all packages (not user's own)
   Widget _buildSwipeableCards() {
-    return _showOnlyMyPackages
-        ? _buildMyPackagesListView()
-        : _buildPackagesListView();
+    return _buildPackagesListView();
   }
 
   Widget _buildTripsListView() {
@@ -618,14 +855,14 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
           child: Row(
             children: [
               Icon(_showOnlyMyPackages ? Icons.person : Icons.smart_toy,
-                  color: Color(0xFF0046FF), size: 20),
+                  color: Color(0xFF2D6A5F), size: 20), // Teal/green
               SizedBox(width: 8),
               Text(
                 _showOnlyMyPackages ? 'My Trips' : 'Recommended Travelers',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF0046FF),
+                  color: Color(0xFF2D6A5F), // Teal/green
                 ),
               ),
               Spacer(),
@@ -655,7 +892,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                       children: [
                         Icon(Icons.error, color: Colors.red, size: 48),
                         SizedBox(height: 16),
-                        Text('Error loading trips',
+                        Text('home.error_loading_trips'.tr(),
                             style: TextStyle(color: Colors.red)),
                         SizedBox(height: 8),
                         ElevatedButton(
@@ -664,7 +901,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                               _initializeDataStreams(); // Refresh streams
                             });
                           },
-                          child: Text('Retry'),
+                          child: Text('common.retry'.tr()),
                         ),
                       ],
                     ),
@@ -764,7 +1001,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                       children: [
                         Icon(Icons.error, color: Colors.red, size: 48),
                         SizedBox(height: 16),
-                        Text('Error loading packages',
+                        Text('home.error_loading_packages'.tr(),
                             style: TextStyle(color: Colors.red)),
                         SizedBox(height: 8),
                         ElevatedButton(
@@ -773,7 +1010,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                               _initializeDataStreams(); // Refresh streams
                             });
                           },
-                          child: Text('Retry'),
+                          child: Text('common.retry'.tr()),
                         ),
                       ],
                     ),
@@ -784,23 +1021,13 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                 final currentUserId = _authService.currentUser?.uid ?? '';
                 final searchText = _searchController.text.toLowerCase().trim();
 
-                // Apply filtering based on toggle
-                List<PackageRequest> filteredPackages;
-                if (_showOnlyMyPackages) {
-                  // Show only current user's packages
-                  filteredPackages = packages
-                      .where((package) => package.senderId == currentUserId)
-                      .take(10)
-                      .toList();
-                } else {
-                  // Show all packages except current user's own packages and show only pending packages
-                  filteredPackages = packages
-                      .where((package) =>
-                          package.senderId != currentUserId &&
-                          package.status == PackageStatus.pending)
-                      .take(10)
-                      .toList();
-                }
+                // Show all packages except current user's own packages and show only pending packages
+                List<PackageRequest> filteredPackages = packages
+                    .where((package) =>
+                        package.senderId != currentUserId &&
+                        package.status == PackageStatus.pending)
+                    .take(10)
+                    .toList();
 
                 // Apply search filter if search text is provided
                 if (searchText.isNotEmpty) {
@@ -823,6 +1050,33 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                         description.contains(searchText) ||
                         pickupCity.contains(searchText) ||
                         destinationCity.contains(searchText);
+                  }).toList();
+                }
+
+                // Apply location filter (Local/Abroad)
+                if (_locationFilter == 'local') {
+                  filteredPackages = filteredPackages.where((package) {
+                    // Local: same country for pickup and destination
+                    final pickupCountry =
+                        package.pickupLocation.country?.toLowerCase() ?? '';
+                    final destCountry =
+                        package.destinationLocation.country?.toLowerCase() ??
+                            '';
+                    return pickupCountry.isNotEmpty &&
+                        destCountry.isNotEmpty &&
+                        pickupCountry == destCountry;
+                  }).toList();
+                } else if (_locationFilter == 'abroad') {
+                  filteredPackages = filteredPackages.where((package) {
+                    // Abroad: different countries for pickup and destination
+                    final pickupCountry =
+                        package.pickupLocation.country?.toLowerCase() ?? '';
+                    final destCountry =
+                        package.destinationLocation.country?.toLowerCase() ??
+                            '';
+                    return pickupCountry.isNotEmpty &&
+                        destCountry.isNotEmpty &&
+                        pickupCountry != destCountry;
                   }).toList();
                 }
 
@@ -849,8 +1103,6 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
 
   // Modern Package Card with enhanced UI
   Widget _buildSmartPackageCard(PackageRequest package, int index) {
-    final statusInfo = _getSmartPackageStatus(package);
-
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -863,362 +1115,246 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
       child: Container(
         margin: EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white,
-              Color(0xFFFAFAFA),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Color(0xFFE5E5E5), width: 1),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.08),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-              spreadRadius: 0,
-            ),
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 1),
+              blurRadius: 15,
+              offset: const Offset(0, 3),
               spreadRadius: 0,
             ),
           ],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Stack(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Main content
-              Padding(
-                padding: EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header with sender info and status
-                    Row(
+              // Header with package icon, sender info and price
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Package icon
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.inventory_2_outlined,
+                      color: Colors.black87,
+                      size: 28,
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  // Sender info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Package type icon with gradient background
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xFFFF8040),
-                                Color(0xFFFF6020),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0xFFFF8040).withOpacity(0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            _getPackageTypeIcon(package.packageDetails.type),
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                        SizedBox(width: 16),
-                        // Sender info
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
                                 package.senderName,
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF1A1A1A),
-                                  letterSpacing: -0.5,
+                                  color: Colors.black87,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              SizedBox(height: 4),
-                              Text(
-                                package.packageDetails.description.isNotEmpty
-                                    ? package.packageDetails.description
-                                    : 'Package delivery',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF6B7280),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Smart status badge
-                        Container(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: statusInfo['color'].withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: statusInfo['color'].withOpacity(0.2),
-                              width: 1,
                             ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  color: statusInfo['color'],
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              SizedBox(width: 6),
-                              Text(
-                                statusInfo['text'],
-                                style: TextStyle(
-                                  color: statusInfo['color'],
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
+                            SizedBox(width: 4),
+                            Icon(
+                              Icons.verified,
+                              color: Color(0xFF2D6A5F),
+                              size: 18,
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          _formatDate(package.preferredDeliveryDate),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w400,
                           ),
                         ),
                       ],
                     ),
-
-                    SizedBox(height: 20),
-
-                    // Route section with modern design
-                    Container(
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Color(0xFFE2E8F0), width: 1),
+                  ),
+                  // Price badge
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF2D6A5F),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '€${package.compensationOffer.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
                       ),
-                      child: Row(
+                    ),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 20),
+
+              // Route section with FROM/TO
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    // From location
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // From location
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'FROM',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF6B7280),
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                                SizedBox(height: 4),
-                                Text(
-                                  package.pickupLocation.city ??
-                                      package.pickupLocation.address
-                                          .split(',')
-                                          .first,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF1A1A1A),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
+                          Text(
+                            'FROM',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[600],
+                              letterSpacing: 0.5,
                             ),
                           ),
-
-                          // Animated airplane indicator
-                          Container(
-                            margin: EdgeInsets.symmetric(horizontal: 12),
-                            width: 50,
-                            height: 24,
-                            child: Center(
-                              child: AnimatedBuilder(
-                                animation: _airplaneController,
-                                builder: (context, child) {
-                                  final double animationValue =
-                                      _airplaneController.value;
-
-                                  // Subtle vertical floating effect only
-                                  final double verticalOffset =
-                                      math.sin(animationValue * 2 * math.pi) *
-                                          2.0;
-
-                                  return Transform.translate(
-                                    offset: Offset(0, verticalOffset),
-                                    child: Transform.rotate(
-                                      angle: math.pi / 2, // 90 degree rotation
-                                      child: Icon(
-                                        Icons.flight,
-                                        size: 40, // Doubled from 20 to 40
-                                        color: Color(
-                                            0xFF4B5563), // Dark grey color
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
+                          SizedBox(height: 6),
+                          Text(
+                            package.pickupLocation.city ??
+                                package.pickupLocation.address.split(',').first,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black87,
                             ),
-                          ),
-
-                          // To location
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  'TO',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF6B7280),
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                                SizedBox(height: 4),
-                                Text(
-                                  package.destinationLocation.city ??
-                                      package.destinationLocation.address
-                                          .split(',')
-                                          .first,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF1A1A1A),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.end,
-                                ),
-                              ],
-                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
                     ),
 
-                    SizedBox(height: 16),
-
-                    // Bottom row with date and price
-                    Row(
-                      children: [
-                        // Date info
-                        Container(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Color(0xFFF3F4F6),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.calendar_today_rounded,
-                                color: Color(0xFF6B7280),
-                                size: 16,
-                              ),
-                              SizedBox(width: 6),
-                              Text(
-                                _formatDate(package.preferredDeliveryDate),
-                                style: TextStyle(
-                                  color: Color(0xFF374151),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
+                    // Airplane icon
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      child: Transform.rotate(
+                        angle: math.pi / 2,
+                        child: Icon(
+                          Icons.flight,
+                          size: 28,
+                          color: Color(0xFF2D6A5F),
                         ),
+                      ),
+                    ),
 
-                        Spacer(),
-
-                        // Price with enhanced styling
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 10),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xFF0046FF),
-                                Color(0xFF0037CC),
-                              ],
+                    // To location
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            'TO',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[600],
+                              letterSpacing: 0.5,
                             ),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0xFF0046FF).withOpacity(0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '€${package.compensationOffer}',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                              SizedBox(width: 4),
-                              Icon(
-                                Icons.arrow_forward_rounded,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ],
+                          SizedBox(height: 6),
+                          Text(
+                            package.destinationLocation.city ??
+                                package.destinationLocation.address
+                                    .split(',')
+                                    .first,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black87,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.end,
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
 
-              // Subtle accent line at the top
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  height: 3,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Color(0xFFFF8040),
-                        Color(0xFF0046FF),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20),
+              SizedBox(height: 16),
+
+              // Action buttons - Chat and Make Offer
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        // Navigate to chat with the package sender
+                        final currentUserId =
+                            _authService.currentUser?.uid ?? '';
+                        final conversationId = _generateConversationId(
+                            currentUserId, package.senderId);
+
+                        Get.to(() => IndividualChatScreen(
+                              conversationId: conversationId,
+                              otherUserName: package.senderName,
+                              otherUserId: package.senderId,
+                              otherUserAvatar: null,
+                            ));
+                      },
+                      icon: Icon(Icons.chat_bubble_outline, size: 18),
+                      label: Text('Chat'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF2D6A5F),
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
                     ),
                   ),
-                ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        // Navigate to make offer screen
+                        Get.to(() => MakeOfferScreen(
+                              package: package,
+                            ));
+                      },
+                      icon: Icon(Icons.local_offer_outlined, size: 18),
+                      label: Text('Make Offer'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF2D6A5F),
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -1264,12 +1400,12 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                   Container(
                     padding: EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Color(0xFF0046FF).withOpacity(0.1),
+                      color: Color(0xFF2D6A5F).withOpacity(0.1), // Teal/green
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       Icons.local_shipping,
-                      color: Color(0xFF0046FF),
+                      color: Color(0xFF2D6A5F), // Teal/green
                       size: 20,
                     ),
                   ),
@@ -1319,17 +1455,17 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF0046FF),
+                      color: Color(0xFF2D6A5F), // Teal/green
                     ),
                   ),
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: Color(0xFF0046FF),
+                      color: Color(0xFF2D6A5F), // Teal/green
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      'View Details',
+                      'home.view_details'.tr(),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -1356,7 +1492,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
         statusText = 'Active';
         break;
       case TripStatus.full:
-        statusColor = Colors.orange;
+        statusColor = Colors.amber;
         statusText = 'Full';
         break;
       case TripStatus.inProgress:
@@ -1411,7 +1547,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
 
     switch (status) {
       case PackageStatus.pending:
-        statusColor = Colors.orange;
+        statusColor = Colors.amber;
         statusText = 'Pending';
         break;
       case PackageStatus.matched:
@@ -1519,36 +1655,6 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
     );
   }
 
-  Widget _buildFloatingActionButton() {
-    return FloatingActionButton.extended(
-      onPressed: () async {
-        // Always navigate to post package since we're removing traveler role
-        final result =
-            await Navigator.pushNamed(context, AppRoutes.postPackage);
-        if (result != null && mounted) {
-          _forceRefreshStreams();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Package posted!'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 1),
-            ),
-          );
-        }
-      },
-      backgroundColor: Color(0xFF0046FF),
-      foregroundColor: Colors.white,
-      elevation: 6,
-      icon: Icon(Icons.add),
-      label: Text(
-        'Post Package',
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
   Widget _buildUserAvatar() {
     final user = _authService.currentUser;
 
@@ -1565,11 +1671,11 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
             fit: BoxFit.cover,
             placeholder: (context, url) => LiquidLoadingIndicator(
               size: 50,
-              color: Color(0xFF0046FF),
+              color: Color(0xFF2D6A5F), // Teal/green
             ),
             errorWidget: (context, url, error) => const Icon(
               Icons.person,
-              color: Color(0xFF0046FF),
+              color: Color(0xFF2D6A5F), // Teal/green
               size: 30,
             ),
           ),
@@ -1583,7 +1689,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
         child: Text(
           _getUserInitials(),
           style: const TextStyle(
-            color: Color(0xFF0046FF),
+            color: Color(0xFF2D6A5F), // Teal/green
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -1645,6 +1751,13 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
     }
   }
 
+  // Helper method to generate conversation ID
+  String _generateConversationId(String userId1, String userId2) {
+    // Sort user IDs to ensure consistent conversation ID regardless of order
+    final sortedIds = [userId1, userId2]..sort();
+    return '${sortedIds[0]}_${sortedIds[1]}';
+  }
+
   // New method: Shows user's own packages (for Sender + My Items)
   Widget _buildMyPackagesListView() {
     return Column(
@@ -1673,7 +1786,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                       children: [
                         Icon(Icons.error, color: Colors.red, size: 48),
                         SizedBox(height: 16),
-                        Text('Error loading packages',
+                        Text('home.error_loading_packages'.tr(),
                             style: TextStyle(color: Colors.red)),
                         SizedBox(height: 8),
                         ElevatedButton(
@@ -1682,7 +1795,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                               _initializeDataStreams();
                             });
                           },
-                          child: Text('Retry'),
+                          child: Text('common.retry'.tr()),
                         ),
                       ],
                     ),
@@ -1753,14 +1866,15 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Row(
             children: [
-              Icon(Icons.person, color: Color(0xFF0046FF), size: 20),
+              Icon(Icons.person,
+                  color: Color(0xFF2D6A5F), size: 20), // Teal/green
               SizedBox(width: 8),
               Text(
-                'My Trips',
+                'travel.my_trips'.tr(),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF0046FF),
+                  color: Color(0xFF2D6A5F), // Teal/green
                 ),
               ),
             ],
@@ -1787,7 +1901,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                       children: [
                         Icon(Icons.error, color: Colors.red, size: 48),
                         SizedBox(height: 16),
-                        Text('Error loading trips',
+                        Text('home.error_loading_trips'.tr(),
                             style: TextStyle(color: Colors.red)),
                         SizedBox(height: 8),
                         ElevatedButton(
@@ -1796,7 +1910,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                               _initializeDataStreams();
                             });
                           },
-                          child: Text('Retry'),
+                          child: Text('common.retry'.tr()),
                         ),
                       ],
                     ),
@@ -1958,7 +2072,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
       } else if (daysDifference <= 1) {
         return {
           'text': 'Critical',
-          'color': Color(0xFFFF6B35), // Orange-red
+          'color': Color(0xFFFFC107), // Amber
         };
       } else {
         return {
@@ -1977,7 +2091,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
     } else if (daysDifference == 0) {
       return {
         'text': 'Today',
-        'color': Color(0xFFFF6B35), // Orange-red (urgent but not overdue)
+        'color': Color(0xFFFFC107), // Amber (urgent but not overdue)
       };
     } else if (daysDifference <= 2) {
       return {
@@ -2012,19 +2126,185 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
       }
     }
   }
-}
 
-class _CustomFloatingActionButtonLocation extends FloatingActionButtonLocation {
-  @override
-  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
-    // Get the standard centerFloat position
-    final Offset standardOffset =
-        FloatingActionButtonLocation.centerFloat.getOffset(scaffoldGeometry);
+  void _showHelpSupportDialog() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      backgroundColor: const Color(0xFFFFFFFF),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Color(0xFFFFFFFF),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF215C5C),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.headset_mic,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'Support & Help',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            _buildSupportOptionRow(
+              icon: Icons.email_outlined,
+              title: 'account.email_support'.tr(),
+              subtitle: 'info@crowdwave.eu',
+              onTap: () async {
+                Navigator.pop(context);
+                final Uri emailUri = Uri(
+                  scheme: 'mailto',
+                  path: 'info@crowdwave.eu',
+                  query: 'subject=Support Request',
+                );
+                try {
+                  if (await canLaunchUrl(emailUri)) {
+                    await launchUrl(emailUri);
+                  } else {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'Could not open email app. Please email us at info@crowdwave.eu'),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
+                    }
+                  }
+                } catch (e) {
+                  print('Error launching email: $e');
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            'Could not open email app. Please email us at info@crowdwave.eu'),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+            const Divider(height: 24),
+            _buildSupportOptionRow(
+              icon: Icons.chat_bubble_outline,
+              title: 'account.whatsapp'.tr(),
+              subtitle: 'account.whatsapp_desc'.tr(),
+              onTap: () async {
+                Navigator.pop(context);
+                final Uri whatsappUri = Uri.parse('https://wa.me/491782045474');
+                if (await canLaunchUrl(whatsappUri)) {
+                  await launchUrl(whatsappUri,
+                      mode: LaunchMode.externalApplication);
+                }
+              },
+            ),
+            const Divider(height: 24),
+            _buildSupportOptionRow(
+              icon: Icons.help_center_outlined,
+              title: 'account.help_center'.tr(),
+              subtitle: 'account.help_center_desc'.tr(),
+              onTap: () async {
+                Navigator.pop(context);
+                final Uri faqUri = Uri.parse(
+                    'https://crowdwave-website-live.vercel.app/index.html#faq');
+                if (await canLaunchUrl(faqUri)) {
+                  await launchUrl(faqUri, mode: LaunchMode.externalApplication);
+                }
+              },
+            ),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+  }
 
-    // Adjust the Y position to be higher to avoid the bottom navigation bar
-    // Move the FAB up by approximately 100 pixels to clear the bottom navigation bar
-    final double adjustedY = standardOffset.dy - 100;
-
-    return Offset(standardOffset.dx, adjustedY);
+  Widget _buildSupportOptionRow({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5FAF4),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFF215C5C),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                icon,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Colors.grey[400],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
