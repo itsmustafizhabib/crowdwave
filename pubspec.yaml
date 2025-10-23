@@ -2,7 +2,7 @@ name: crowdwave
 description: "CrowdWave - Peer-to-peer delivery marketplace connecting travelers with people who need packages delivered. Safe, convenient, and cost-effective worldwide delivery service."
 publish_to: 'none'
 
-version: 1.0.5+11
+version: 1.0.5+12
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
