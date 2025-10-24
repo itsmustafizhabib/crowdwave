@@ -578,11 +578,11 @@ class _KYCCompletionScreenState extends State<KYCCompletionScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  _buildDocumentUploadButton('kyc.upload_doc_front'.tr()),
+                  _buildDocumentUploadButton('doc_front'),
                   const SizedBox(height: 12),
-                  _buildDocumentUploadButton('kyc.upload_doc_back'.tr()),
+                  _buildDocumentUploadButton('doc_back'),
                   const SizedBox(height: 12),
-                  _buildDocumentUploadButton('kyc.upload_selfie'.tr()),
+                  _buildDocumentUploadButton('selfie'),
                 ],
               ),
 
@@ -1023,16 +1023,28 @@ class _KYCCompletionScreenState extends State<KYCCompletionScreen> {
     );
   }
 
-  Widget _buildDocumentUploadButton(String label) {
+  Widget _buildDocumentUploadButton(String documentType) {
     // Check if this document has been uploaded
     bool isUploaded = false;
-    if (label.contains('Front') && _docFrontFile != null) {
+    if (documentType == 'doc_front' && _docFrontFile != null) {
       isUploaded = true;
-    } else if (label.contains('Back') && _docBackFile != null) {
+    } else if (documentType == 'doc_back' && _docBackFile != null) {
       isUploaded = true;
-    } else if (label.contains('Selfie') && _selfieFile != null) {
+    } else if (documentType == 'selfie' && _selfieFile != null) {
       isUploaded = true;
     }
+
+    // Get the proper translation key
+    String translationKey = '';
+    if (documentType == 'doc_front') {
+      translationKey = 'kyc.upload_doc_front';
+    } else if (documentType == 'doc_back') {
+      translationKey = 'kyc.upload_doc_back';
+    } else if (documentType == 'selfie') {
+      translationKey = 'kyc.upload_selfie';
+    }
+
+    String label = translationKey.tr();
 
     return Container(
       width: double.infinity,
@@ -1054,7 +1066,7 @@ class _KYCCompletionScreenState extends State<KYCCompletionScreen> {
           borderRadius: BorderRadius.circular(12),
           onTap: () {
             // Handle document upload
-            _showDocumentUploadDialog(label);
+            _showDocumentUploadDialog(documentType);
           },
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1113,11 +1125,21 @@ class _KYCCompletionScreenState extends State<KYCCompletionScreen> {
   }
 
   void _showDocumentUploadDialog(String documentType) {
+    // Get the proper display name for the document
+    String displayName = '';
+    if (documentType == 'doc_front') {
+      displayName = 'kyc.upload_doc_front'.tr();
+    } else if (documentType == 'doc_back') {
+      displayName = 'kyc.upload_doc_back'.tr();
+    } else if (documentType == 'selfie') {
+      displayName = 'kyc.upload_selfie'.tr();
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('kyc.upload_document_title'.tr(args: [documentType])),
+          title: Text(displayName),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
