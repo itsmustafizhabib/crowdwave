@@ -1190,7 +1190,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
       // Show success feedback with chat option
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Match request sent to ${widget.trip.travelerName}!'),
+          content: Text('matching.request_sent'.tr(args: [widget.trip.travelerName])),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -1311,7 +1311,7 @@ class _TripDetailScreenState extends State<TripDetailScreen>
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to start chat: ${e.toString()}'),
+          content: Text('chat.start_failed'.tr(args: [e.toString()])),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

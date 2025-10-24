@@ -94,7 +94,7 @@ class _CommentSystemWidgetState extends State<CommentSystemWidget> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to add comment: $e'),
+          content: Text('comments.add_failed'.tr(args: [e.toString()])),
           backgroundColor: Colors.red,
         ),
       );
@@ -128,7 +128,7 @@ class _CommentSystemWidgetState extends State<CommentSystemWidget> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to ${like ? 'like' : 'unlike'} comment: $e'),
+          content: Text(like ? 'comments.like_failed'.tr(args: [e.toString()]) : 'comments.unlike_failed'.tr(args: [e.toString()])),
           backgroundColor: Colors.red,
         ),
       );
@@ -442,7 +442,7 @@ class _CommentSystemWidgetState extends State<CommentSystemWidget> {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Failed to report comment: $e'),
+                  content: Text('comments.report_failed'.tr(args: [e.toString()])),
                   backgroundColor: Colors.red,
                 ),
               );

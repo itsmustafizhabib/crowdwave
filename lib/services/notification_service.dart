@@ -307,8 +307,9 @@ class NotificationService extends GetxController {
 
       // ✅ CRITICAL FIX: Don't show notifications for your own messages!
       final currentUserId = _authService.currentUser?.uid;
-      final messageSenderId =
-          message.data['senderId'] ?? message.data['sender_id'];
+      final messageSenderId = message.data['senderId'] ??
+          message.data['sender_id'] ??
+          message.data['callerId'];
 
       if (kDebugMode) {
         print('🔍 SELF-NOTIFICATION CHECK:');

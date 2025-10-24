@@ -885,7 +885,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       e.toString().replaceFirst('Exception: ', '');
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Error logging out: $errorMessage'),
+                      content: Text('auth.logout_failed'.tr(args: [errorMessage])),
                       backgroundColor: Colors.red,
                     ),
                   );

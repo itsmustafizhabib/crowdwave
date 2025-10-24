@@ -589,7 +589,8 @@
     "update_profile_photo": "პროფილის ფოტოს განახლება",
     "creating_account": "ანგარიშის შექმნა...",
     "create_account": "ანგარიშის შექმნა",
-    "already_have_an_account": "უკვე გაქვთ ანგარიში?"
+    "already_have_an_account": "უკვე გაქვთ ანგარიში?",
+    "photo_remove_failed": "Failed to remove photo: {0}"
   },
   "settings": {
     "title": "პარამეტრები",
@@ -673,7 +674,8 @@
     "invalid_email": "არასწორი ელფოსტის მისამართი",
     "invalid_phone": "არასწორი ტელეფონის ნომერი",
     "password_too_short": "პაროლი უნდა იყოს მინიმუმ 8 სიმბოლო",
-    "passwords_dont_match": "პაროლები არ ემთხვევა"
+    "passwords_dont_match": "პაროლები არ ემთხვევა",
+    "invalid_price": "Please enter a valid price"
   },
   "error_messages": {
     "something_went_wrong": "რაღაც არასწორად წავიდა",
@@ -1064,7 +1066,7 @@
     "gallery": "გალერეა",
     "failed_to_send": "შეტყობინების გაგზავნა ვერ მოხერხდა",
     "failed_to_send_image": "სურათის გაგზავნა ვერ მოხერხდა",
-    "start_failed": "ჩატის დაწყება ვერ მოხერხდა. გთხოვთ, სცადოთ ხელახლა.",
+    "start_failed": "Failed to start chat: {0}",
     "start_failed_error": "ჩატის დაწყება ვერ მოხერხდა: {error}",
     "loading_chats": "ჩატების ჩატვირთვა",
     "counter_offer": "კონტრ შეთავაზება",
@@ -1140,7 +1142,8 @@
     "delivery_fee": "მიწოდების საფასური",
     "update_delivery_status": "მიწოდების სტატუსის განახლება",
     "tracking_not_found": "თრექინგი არ მოიძებნა",
-    "delivery_timeline": "მიწოდების დროის ხაზი"
+    "delivery_timeline": "მიწოდების დროის ხაზი",
+    "updated": "Updated"
   },
   "notifications": {
     "title": "შეტყობინებები",
@@ -1280,26 +1283,27 @@
   },
   "moderation": {
     "other_report_info": "გთხოვთ, მიუთითოთ დამატებითი ინფორმაცია \"სხვა\" მოხსენებებისთვის",
-    "report_failed": "კონტენტის მოხსენება ვერ მოხერხდა",
+    "report_failed": "Failed to report content: {0}",
     "submit_report": "მოხსენების წარდგენა",
-    "review_status": "შეფასების {status}",
-    "update_status_failed": "სტატუსის განახლება ვერ მოხერხდა",
+    "review_status": "Review {0}",
+    "update_status_failed": "Failed to update status: {0}",
     "current_status": "მიმდინარე სტატუსი: ",
     "approve": "დამტკიცება",
     "reject": "უარყოფა"
   },
   "comments": {
     "added_successfully": "კომენტარი წარმატებით დამატებულია!",
-    "add_failed": "კომენტარის დამატება ვერ მოხერხდა",
+    "add_failed": "Failed to add comment: {0}",
     "like_success": "კომენტარი მოწონებულია წარმატებით",
     "unlike_success": "კომენტარის მოწონება გაუქმებულია წარმატებით",
-    "like_failed": "მოწონების სტატუსის განახლება ვერ მოხერხდა",
+    "like_failed": "Failed to like comment: {0}",
     "report": "მოხსენება",
     "reported_successfully": "კომენტარი წარმატებით მოხსენებულია",
-    "report_failed": "კომენტარის მოხსენება ვერ მოხერხდა",
+    "report_failed": "Failed to report comment: {0}",
     "add_comment": "კომენტარის დამატება",
     "report_title": "კომენტარის მოხსენება",
-    "report_prompt": "რატომ აცხადებთ ამ კომენტარს?"
+    "report_prompt": "რატომ აცხადებთ ამ კომენტარს?",
+    "unlike_failed": "Failed to unlike comment: {0}"
   },
   "calls": {
     "call_in_progress": "ზარი პროგრესში",
@@ -1308,7 +1312,10 @@
     "video_coming_soon": "ვიდეო ზარები მალე! ხმის ზარის დაწყება...",
     "voice_call": "ხმის ზარი",
     "video_call": "ვიდეო ზარი",
-    "video_call_failed": "ვიდეო ზარი წარუმატებელია"
+    "video_call_failed": "ვიდეო ზარი წარუმატებელია",
+    "voice_failed": "Voice call failed: {0}",
+    "video_failed": "Video call failed: {0}",
+    "accept_failed": "Failed to accept call: {0}"
   },
   "location": {
     "search_title": "მდებარეობის ძებნა",
@@ -1316,7 +1323,13 @@
     "select_on_map": "რუკაზე არჩევა",
     "select_on_map_subtitle": "მდებარეობის არჩევა რუკაზე შეხებით",
     "use_current": "მიმდინარე მდებარეობის გამოყენება",
-    "enter_address_hint": "შეიყვანეთ მისამართი ან ადგილის სახელი"
+    "enter_address_hint": "შეიყვანეთ მისამართი ან ადგილის სახელი",
+    "get_current_failed": "Failed to get current location: {0}",
+    "select_failed": "Error selecting location: {0}",
+    "send_current": "Send Current Location",
+    "send_current_description": "Share your current location once",
+    "share_live": "Share Live Location",
+    "share_live_description": "Share your location for 15 minutes"
   },
   "matching": {
     "title": "ჭკვიანი შესაბამისობა",
@@ -1351,7 +1364,12 @@
     "accept": "მიღება",
     "reject": "უარყოფა",
     "reset": "გადატვირთვა",
-    "apply": "გამოყენება"
+    "apply": "გამოყენება",
+    "request_sent": "Match request sent to {0}!",
+    "no_package_selected": "No package selected for matching",
+    "no_package_request": "No package request provided",
+    "load_suggestions_failed": "Failed to load suggestions: {0}",
+    "find_matches_failed": "Failed to find matches: {0}"
   },
   "demo": {
     "base64_upload_title": "Base64 სურათის ატვირთვის დემო",
@@ -1396,7 +1414,8 @@
     "username_must_be_at_least_3_characters": "მომხმარებლის სახელი უნდა იყოს მინიმუმ 3 სიმბოლო",
     "username_cannot_exceed_30_characters": "მომხმარებლის სახელი არ უნდა აღემატებოდეს 30 სიმბოლოს",
     "username_can_only_contain_letters_numbers_and_underscores": "მომხმარებლის სახელი შეიძლება შეიცავდეს მხოლოდ ასოებს, რიცხვებს და ქვედა ხაზებს",
-    "this_username_is_already_taken": "ეს მომხმარებლის სახელი უკვე დაკავებულია"
+    "this_username_is_already_taken": "ეს მომხმარებლის სახელი უკვე დაკავებულია",
+    "logout_failed": "Error logging out: {0}"
   },
   "account": {
     "settings_title": "ანგარიშის პარამეტრები",
@@ -1433,11 +1452,32 @@
     "get_help": "დახმარების მიღება",
     "cancel_go_home": "გაუქმება და საწყისზე გადასვლა",
     "failed_init": "გადახდის სერვისის ინიციალიზაცია ვერ მოხერხდა",
-    "method_title": "გადახდის მეთოდი"
+    "method_title": "გადახდის მეთოდი",
+    "init_failed": "Failed to initialize payment service: {0}"
   },
   "offer": {
     "login_required": "გთხოვთ, შეხვიდეთ შეთავაზების გასაკეთებლად.",
     "cannot_offer_own": "თქვენ ვერ გააკეთებთ შეთავაზებას თქვენსავე პაკეტზე.",
-    "sent_success": "შეთავაზება წარმატებით გაგზავნილია!"
+    "sent_success": "შეთავაზება წარმატებით გაგზავნილია!",
+    "submitted": "Submitted"
+  },
+  "error": {
+    "title": "Error",
+    "generic": "Error: {0}",
+    "network": "Network error: {0}"
+  },
+  "image": {
+    "pick_failed": "Failed to pick image: {0}"
+  },
+  "permissions": {
+    "location_required": "Location Permission Required"
+  },
+  "contact": {
+    "title": "Contact",
+    "opening_chat": "Opening chat with {0}"
+  },
+  "details": {
+    "title": "Details",
+    "viewing": "Viewing details for {0}"
   }
 }

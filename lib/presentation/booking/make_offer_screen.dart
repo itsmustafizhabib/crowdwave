@@ -497,7 +497,7 @@ class _MakeOfferScreenState extends State<MakeOfferScreen> {
         }
 
         // Show mobile-appropriate success toast
-        ToastUtils.show('Submitted');
+        ToastUtils.show('offer.submitted'.tr());
       } else if (widget.package != null) {
         // Submit package deal offer using the deal negotiation service
 
@@ -536,7 +536,7 @@ class _MakeOfferScreenState extends State<MakeOfferScreen> {
         }
 
         // Show mobile-appropriate success toast
-        ToastUtils.show('Submitted');
+        ToastUtils.show('offer.submitted'.tr());
 
         // Navigate to chat immediately (removed artificial delay for better UX)
         Get.to(() => IndividualChatScreen(
@@ -553,7 +553,7 @@ class _MakeOfferScreenState extends State<MakeOfferScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       String errorMessage = _getErrorMessage(e.toString());
-      ToastUtils.show('Error: $errorMessage');
+      ToastUtils.show('error.generic'.tr(args: [errorMessage]));
     } finally {
       if (mounted) {
         setState(() {

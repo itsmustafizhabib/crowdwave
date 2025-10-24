@@ -590,7 +590,8 @@
     "update_profile_photo": "Aġġorna r-Ritratt tal-Profil",
     "creating_account": "Qed joħloq Account...",
     "create_account": "Oħloq Account",
-    "already_have_an_account": "Diġà għandek account?"
+    "already_have_an_account": "Diġà għandek account?",
+    "photo_remove_failed": "Failed to remove photo: {0}"
   },
   "settings": {
     "title": "Settings",
@@ -674,7 +675,8 @@
     "invalid_email": "Indirizz email invalidu",
     "invalid_phone": "Numru tat-telefon invalidu",
     "password_too_short": "Il-password trid tkun mill-inqas 8 karattri",
-    "passwords_dont_match": "Il-passwords ma jaqblux"
+    "passwords_dont_match": "Il-passwords ma jaqblux",
+    "invalid_price": "Please enter a valid price"
   },
   "error_messages": {
     "something_went_wrong": "Xi ħaġa marret ħażin",
@@ -1065,7 +1067,7 @@
     "gallery": "Gallerija",
     "failed_to_send": "Falli jibgħat messaġġ",
     "failed_to_send_image": "Falli jibgħat immaġni",
-    "start_failed": "Falli jibda chat. Erġa' pprova.",
+    "start_failed": "Failed to start chat: {0}",
     "start_failed_error": "Falli jibda chat: {error}",
     "loading_chats": "Qed jitgħabba chats",
     "counter_offer": "Kontroferta",
@@ -1141,7 +1143,8 @@
     "delivery_fee": "Tariffa tal-Kunsinna",
     "update_delivery_status": "Aġġorna l-Status tal-Kunsinna",
     "tracking_not_found": "Traċċar Mhux Misjub",
-    "delivery_timeline": "Timeline tal-Kunsinna"
+    "delivery_timeline": "Timeline tal-Kunsinna",
+    "updated": "Updated"
   },
   "notifications": {
     "title": "Notifiki",
@@ -1281,26 +1284,27 @@
   },
   "moderation": {
     "other_report_info": "Ipprovdi informazzjoni addizzjonali għar-rapporti \"Oħra\"",
-    "report_failed": "Falli jirrapporta l-kontenut",
+    "report_failed": "Failed to report content: {0}",
     "submit_report": "Ibgħat Rapport",
-    "review_status": "Reviżjoni {status}",
-    "update_status_failed": "Falli jaġġorna l-istatus",
+    "review_status": "Review {0}",
+    "update_status_failed": "Failed to update status: {0}",
     "current_status": "Status Attwali: ",
     "approve": "Approva",
     "reject": "Rifjuta"
   },
   "comments": {
     "added_successfully": "Kumment miżjud b'suċċess!",
-    "add_failed": "Falli żid kumment",
+    "add_failed": "Failed to add comment: {0}",
     "like_success": "Kumment liked b'suċċess",
     "unlike_success": "Kumment unliked b'suċċess",
-    "like_failed": "Falli jaġġorna l-istatus like",
+    "like_failed": "Failed to like comment: {0}",
     "report": "Irrapporta",
     "reported_successfully": "Kumment irrappurtat b'suċċess",
-    "report_failed": "Falli jirrapporta kumment",
+    "report_failed": "Failed to report comment: {0}",
     "add_comment": "Żid Kumment",
     "report_title": "Irrapporta Kumment",
-    "report_prompt": "Għaliex qed tirrapporta dan il-kumment?"
+    "report_prompt": "Għaliex qed tirrapporta dan il-kumment?",
+    "unlike_failed": "Failed to unlike comment: {0}"
   },
   "calls": {
     "call_in_progress": "Kall fi Progress",
@@ -1309,7 +1313,10 @@
     "video_coming_soon": "Video calls dalwaqt! Qed jibda kall tal-vuċi...",
     "voice_call": "Kall tal-Vuċi",
     "video_call": "Video Call",
-    "video_call_failed": "Video call falli"
+    "video_call_failed": "Video call falli",
+    "voice_failed": "Voice call failed: {0}",
+    "video_failed": "Video call failed: {0}",
+    "accept_failed": "Failed to accept call: {0}"
   },
   "location": {
     "search_title": "Fittex post",
@@ -1317,7 +1324,13 @@
     "select_on_map": "Agħżel fuq il-mappa",
     "select_on_map_subtitle": "Agħżel post billi tocca fuq il-mappa",
     "use_current": "Uża post attwali",
-    "enter_address_hint": "Daħħal indirizz jew isem ta' post"
+    "enter_address_hint": "Daħħal indirizz jew isem ta' post",
+    "get_current_failed": "Failed to get current location: {0}",
+    "select_failed": "Error selecting location: {0}",
+    "send_current": "Send Current Location",
+    "send_current_description": "Share your current location once",
+    "share_live": "Share Live Location",
+    "share_live_description": "Share your location for 15 minutes"
   },
   "matching": {
     "title": "Matching Intelliġenti",
@@ -1352,7 +1365,12 @@
     "accept": "Aċċetta",
     "reject": "Rifjuta",
     "reset": "Irresetja",
-    "apply": "Applika"
+    "apply": "Applika",
+    "request_sent": "Match request sent to {0}!",
+    "no_package_selected": "No package selected for matching",
+    "no_package_request": "No package request provided",
+    "load_suggestions_failed": "Failed to load suggestions: {0}",
+    "find_matches_failed": "Failed to find matches: {0}"
   },
   "demo": {
     "base64_upload_title": "Demo tal-Tella' tal-Immaġni Base64",
@@ -1397,7 +1415,8 @@
     "username_must_be_at_least_3_characters": "L-isem tal-utent irid ikun mill-inqas 3 karattri",
     "username_cannot_exceed_30_characters": "L-isem tal-utent ma jistax jaqbeż 30 karattri",
     "username_can_only_contain_letters_numbers_and_underscores": "L-isem tal-utent jista' jkun fih biss ittri, numri, u underscores",
-    "this_username_is_already_taken": "Dan l-isem tal-utent diġà meħud"
+    "this_username_is_already_taken": "Dan l-isem tal-utent diġà meħud",
+    "logout_failed": "Error logging out: {0}"
   },
   "account": {
     "settings_title": "Settings tal-Account",
@@ -1434,11 +1453,32 @@
     "get_help": "Ikseb Għajnuna",
     "cancel_go_home": "Ikkanċella u Mur għall-Home",
     "failed_init": "Falli jinizjalizza s-servizz tal-ħlas",
-    "method_title": "Metodu tal-Ħlas"
+    "method_title": "Metodu tal-Ħlas",
+    "init_failed": "Failed to initialize payment service: {0}"
   },
   "offer": {
     "login_required": "Loggja biex tagħmel offerta.",
     "cannot_offer_own": "Ma tistax tagħmel offerta fuq il-pakkett tiegħek stess.",
-    "sent_success": "Offerta mibgħuta b'suċċess!"
+    "sent_success": "Offerta mibgħuta b'suċċess!",
+    "submitted": "Submitted"
+  },
+  "error": {
+    "title": "Error",
+    "generic": "Error: {0}",
+    "network": "Network error: {0}"
+  },
+  "image": {
+    "pick_failed": "Failed to pick image: {0}"
+  },
+  "permissions": {
+    "location_required": "Location Permission Required"
+  },
+  "contact": {
+    "title": "Contact",
+    "opening_chat": "Opening chat with {0}"
+  },
+  "details": {
+    "title": "Details",
+    "viewing": "Viewing details for {0}"
   }
 }

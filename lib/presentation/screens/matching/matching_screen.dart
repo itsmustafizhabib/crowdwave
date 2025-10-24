@@ -644,7 +644,7 @@ class MatchingScreen extends StatelessWidget {
     if (packageId != null) {
       controller.findAutoMatches(packageId!);
     } else {
-      Get.snackbar('Error', 'No package selected for matching');
+      Get.snackbar('error.title'.tr(), 'matching.no_package_selected'.tr());
     }
   }
 
@@ -652,7 +652,7 @@ class MatchingScreen extends StatelessWidget {
     if (packageRequest != null) {
       controller.findPotentialTrips(packageRequest!);
     } else {
-      Get.snackbar('Error', 'No package request provided');
+      Get.snackbar('error.title'.tr(), 'matching.no_package_request'.tr());
     }
   }
 
@@ -676,12 +676,12 @@ class MatchingScreen extends StatelessWidget {
 
   void _contactTraveler(TravelTrip trip) {
     // Navigate to chat or contact screen
-    Get.snackbar('Contact', 'Opening chat with ${trip.travelerName}');
+    Get.snackbar('contact.title'.tr(), 'contact.opening_chat'.tr(args: [trip.travelerName]));
   }
 
   void _viewSuggestionDetails(NearbySuggestion suggestion) {
     // Navigate to detailed view
-    Get.snackbar('Details', 'Viewing details for ${suggestion.title}');
+    Get.snackbar('details.title'.tr(), 'details.viewing'.tr(args: [suggestion.title]));
   }
 
   // Dialog methods
@@ -804,7 +804,7 @@ class MatchingScreen extends StatelessWidget {
                 Get.back();
                 controller.acceptMatch(match.id, negotiatedPrice: price);
               } else {
-                Get.snackbar('Error', 'Please enter a valid price');
+                Get.snackbar('error.title'.tr(), 'validation.invalid_price'.tr());
               }
             },
             child: Text('matching.accept_with_price'.tr()),

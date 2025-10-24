@@ -2,7 +2,7 @@ name: crowdwave
 description: "CrowdWave - Peer-to-peer delivery marketplace connecting travelers with people who need packages delivered. Safe, convenient, and cost-effective worldwide delivery service."
 publish_to: 'none'
 
-version: 1.0.5+12
+version: 1.0.5+13
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -66,9 +66,9 @@ dependencies:
   camera: ^0.10.5+5
   image: ^4.1.7
 
-  # Voice Calling - ZegoExpressEngine (Core SDK for custom implementation)
-  zego_express_engine: ^3.14.5
-  permission_handler: ^12.0.1
+  # Voice & Video Calling - Agora (10,000 free minutes/month forever!)
+  agora_rtc_engine: ^6.5.3
+  permission_handler: ^11.0.0
   
   # Chat Enhancement
   emoji_picker_flutter: ^2.0.0
@@ -81,6 +81,7 @@ dependencies:
   uuid: ^4.3.3
   url_launcher: ^6.2.2
   share_plus: ^10.1.1
+  crypto: ^3.0.3
   
   # Localization
   easy_localization: ^3.0.7

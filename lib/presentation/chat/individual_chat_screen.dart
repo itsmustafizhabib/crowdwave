@@ -1057,7 +1057,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
       print('❌ Voice call failed with error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Voice call failed: $e'),
+          content: Text('calls.voice_failed'.tr(args: [e.toString()])),
           backgroundColor: Colors.red,
         ),
       );
@@ -1083,7 +1083,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Video call failed: $e'),
+          content: Text('calls.video_failed'.tr(args: [e.toString()])),
           backgroundColor: Colors.red,
         ),
       );
@@ -1133,8 +1133,8 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                   color: Color(0xFF215C5C),
                 ),
               ),
-              title: const Text('Send Current Location'),
-              subtitle: const Text('Share your current location once'),
+              title: Text('location.send_current'.tr()),
+              subtitle: Text('location.send_current_description'.tr()),
               onTap: () {
                 Get.back();
                 _sendCurrentLocation();
@@ -1154,8 +1154,8 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                   color: Colors.red,
                 ),
               ),
-              title: const Text('Share Live Location'),
-              subtitle: const Text('Share your location for 15 minutes'),
+              title: Text('location.share_live'.tr()),
+              subtitle: Text('location.share_live_description'.tr()),
               onTap: () {
                 Get.back();
                 _sendLiveLocation();
@@ -1230,7 +1230,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Location Permission Required'),
+              title: Text('permissions.location_required'.tr()),
               content: Text(e.message),
               actions: [
                 TextButton(
@@ -1260,7 +1260,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Location Permission Required'),
+              title: Text('permissions.location_required'.tr()),
               content: const Text(
                   'To share your location, please enable location permission in your device settings.'),
               actions: [
@@ -1366,7 +1366,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Location Permission Required'),
+              title: Text('permissions.location_required'.tr()),
               content: Text(e.message),
               actions: [
                 TextButton(
@@ -1395,7 +1395,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Location Permission Required'),
+              title: Text('permissions.location_required'.tr()),
               content: const Text(
                   'To share your live location, please enable location permission in your device settings.'),
               actions: [

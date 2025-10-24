@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart' as geocoding;
+import 'package:easy_localization/easy_localization.dart';
 import '../services/matching_service.dart';
 import '../services/firebase_auth_service.dart';
 import '../core/models/models.dart';
@@ -97,7 +98,8 @@ class SmartMatchingController extends GetxController {
       // Load suggested packages for travelers (people looking for packages to deliver)
       await loadSuggestedPackages();
     } catch (e) {
-      Get.snackbar('Error', 'Failed to load suggestions: $e');
+      Get.snackbar('error.title'.tr(),
+          'matching.load_suggestions_failed'.tr(args: [e.toString()]));
     } finally {
       _isLoading.value = false;
     }
@@ -187,7 +189,8 @@ class SmartMatchingController extends GetxController {
         );
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to find matches: $e');
+      Get.snackbar('error.title'.tr(),
+          'matching.find_matches_failed'.tr(args: [e.toString()]));
     } finally {
       _isLoading.value = false;
     }

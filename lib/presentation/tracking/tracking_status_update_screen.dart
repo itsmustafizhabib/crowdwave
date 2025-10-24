@@ -663,7 +663,7 @@ class _TrackingStatusUpdateScreenState
         // and associate it with the tracking update
       }
 
-      ToastUtils.show('Updated');
+      ToastUtils.show('tracking.updated'.tr());
 
       // Navigate to the package tracking screen
       TrackingRouteHandler.navigateToPackageTracking(

@@ -30,6 +30,14 @@
           }
         },
         {
+          "client_id": "351442774180-r916squcir3bp2e5h2inuj8ptv25c56l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.crowdwave.courier",
+            "certificate_hash": "3284eb48fa251245bc2e25dae06c00babf86e3de"
+          }
+        },
+        {
           "client_id": "351442774180-8h5ngsn5sok47lui3hnpjijv2l18k1km.apps.googleusercontent.com",
           "client_type": 3
         }

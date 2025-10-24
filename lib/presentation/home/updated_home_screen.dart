@@ -551,7 +551,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                     elevation: 0,
                   ),
                   child: Text(
-                    'Post Package',
+                    'home.post_package'.tr(),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -577,7 +577,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                     elevation: 0,
                   ),
                   child: Text(
-                    'Create Trip',
+                    'travel.post_trip'.tr(),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -1307,7 +1307,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                             ));
                       },
                       icon: Icon(Icons.chat_bubble_outline, size: 18),
-                      label: Text('Chat'),
+                      label: Text('nav.chat'.tr()),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF2D6A5F),
                         foregroundColor: Colors.white,
@@ -1329,7 +1329,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                             ));
                       },
                       icon: Icon(Icons.local_offer_outlined, size: 18),
-                      label: Text('Make Offer'),
+                      label: Text('detail.make_offer'.tr()),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF2D6A5F),
                         foregroundColor: Colors.white,
@@ -1595,19 +1595,19 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
 
     if (type == 'package') {
       if (_showOnlyMyPackages) {
-        title = 'No packages yet';
-        subtitle = 'Post a package to get started';
+        title = 'home.no_packages_yet'.tr();
+        subtitle = 'home.post_package_to_start'.tr();
       } else {
-        title = 'No available packages';
-        subtitle = 'Check back later or switch to "My Items" view';
+        title = 'home.no_available_packages'.tr();
+        subtitle = 'home.check_back_later_packages'.tr();
       }
     } else {
       if (_showOnlyMyPackages) {
-        title = 'No trips yet';
-        subtitle = 'Post a trip to get started';
+        title = 'home.no_trips_yet'.tr();
+        subtitle = 'home.post_trip_to_start'.tr();
       } else {
-        title = 'No available trips';
-        subtitle = 'Check back later or switch to "My Items" view';
+        title = 'home.no_available_trips'.tr();
+        subtitle = 'home.check_back_later_trips'.tr();
       }
     }
 

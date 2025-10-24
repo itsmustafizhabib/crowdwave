@@ -590,7 +590,8 @@
     "update_profile_photo": "Atjaunināt Profila Foto",
     "creating_account": "Izveido Kontu...",
     "create_account": "Izveidot Kontu",
-    "already_have_an_account": "Jau ir konts?"
+    "already_have_an_account": "Jau ir konts?",
+    "photo_remove_failed": "Failed to remove photo: {0}"
   },
   "settings": {
     "title": "Iestatījumi",
@@ -674,7 +675,8 @@
     "invalid_email": "Nederīga e-pasta adrese",
     "invalid_phone": "Nederīgs tālruņa numurs",
     "password_too_short": "Parolei jābūt vismaz 8 simboliem",
-    "passwords_dont_match": "Paroles nesakrīt"
+    "passwords_dont_match": "Paroles nesakrīt",
+    "invalid_price": "Please enter a valid price"
   },
   "error_messages": {
     "something_went_wrong": "Kaut kas nogāja greizi",
@@ -1065,7 +1067,7 @@
     "gallery": "Galerija",
     "failed_to_send": "Neizdevās nosūtīt ziņu",
     "failed_to_send_image": "Neizdevās nosūtīt attēlu",
-    "start_failed": "Neizdevās sākt čatu. Mēģiniet vēlreiz.",
+    "start_failed": "Failed to start chat: {0}",
     "start_failed_error": "Neizdevās sākt čatu: {error}",
     "loading_chats": "Ielādē čatus",
     "counter_offer": "Pretpiedāvājums",
@@ -1141,7 +1143,8 @@
     "delivery_fee": "Piegādes Maksa",
     "update_delivery_status": "Atjaunināt Piegādes Statusu",
     "tracking_not_found": "Sekojums Nav Atrasts",
-    "delivery_timeline": "Piegādes Laika Līnija"
+    "delivery_timeline": "Piegādes Laika Līnija",
+    "updated": "Updated"
   },
   "notifications": {
     "title": "Paziņojumi",
@@ -1281,26 +1284,27 @@
   },
   "moderation": {
     "other_report_info": "Lūdzu, sniedziet papildu informāciju \"Citiem\" ziņojumiem",
-    "report_failed": "Neizdevās ziņot par saturu",
+    "report_failed": "Failed to report content: {0}",
     "submit_report": "Iesniegt Ziņojumu",
-    "review_status": "Atsauksme {status}",
-    "update_status_failed": "Neizdevās atjaunināt statusu",
+    "review_status": "Review {0}",
+    "update_status_failed": "Failed to update status: {0}",
     "current_status": "Pašreizējais Statuss: ",
     "approve": "Apstiprināt",
     "reject": "Noraidīt"
   },
   "comments": {
     "added_successfully": "Komentārs pievienots veiksmīgi!",
-    "add_failed": "Neizdevās pievienot komentāru",
+    "add_failed": "Failed to add comment: {0}",
     "like_success": "Komentārs patīk veiksmīgi",
     "unlike_success": "Komentārs nepatīk veiksmīgi",
-    "like_failed": "Neizdevās atjaunināt patīk statusu",
+    "like_failed": "Failed to like comment: {0}",
     "report": "Ziņot",
     "reported_successfully": "Komentārs ziņots veiksmīgi",
-    "report_failed": "Neizdevās ziņot par komentāru",
+    "report_failed": "Failed to report comment: {0}",
     "add_comment": "Pievienot Komentāru",
     "report_title": "Ziņot par Komentāru",
-    "report_prompt": "Kāpēc ziņojat par šo komentāru?"
+    "report_prompt": "Kāpēc ziņojat par šo komentāru?",
+    "unlike_failed": "Failed to unlike comment: {0}"
   },
   "calls": {
     "call_in_progress": "Zvans Procesā",
@@ -1309,7 +1313,10 @@
     "video_coming_soon": "Videozvani drīzumā! Sāk balss zvanu...",
     "voice_call": "Balss Zvans",
     "video_call": "Videozvans",
-    "video_call_failed": "Videozvans neizdevās"
+    "video_call_failed": "Videozvans neizdevās",
+    "voice_failed": "Voice call failed: {0}",
+    "video_failed": "Video call failed: {0}",
+    "accept_failed": "Failed to accept call: {0}"
   },
   "location": {
     "search_title": "Meklēt atrašanās vietu",
@@ -1317,7 +1324,13 @@
     "select_on_map": "Izvēlieties uz kartes",
     "select_on_map_subtitle": "Izvēlieties atrašanās vietu pieskaroties kartei",
     "use_current": "Izmantot pašreizējo atrašanās vietu",
-    "enter_address_hint": "Ievadiet adresi vai vietas nosaukumu"
+    "enter_address_hint": "Ievadiet adresi vai vietas nosaukumu",
+    "get_current_failed": "Failed to get current location: {0}",
+    "select_failed": "Error selecting location: {0}",
+    "send_current": "Send Current Location",
+    "send_current_description": "Share your current location once",
+    "share_live": "Share Live Location",
+    "share_live_description": "Share your location for 15 minutes"
   },
   "matching": {
     "title": "Gudra Saskaņošana",
@@ -1352,7 +1365,12 @@
     "accept": "Pieņemt",
     "reject": "Noraidīt",
     "reset": "Atiestatīt",
-    "apply": "Pielietot"
+    "apply": "Pielietot",
+    "request_sent": "Match request sent to {0}!",
+    "no_package_selected": "No package selected for matching",
+    "no_package_request": "No package request provided",
+    "load_suggestions_failed": "Failed to load suggestions: {0}",
+    "find_matches_failed": "Failed to find matches: {0}"
   },
   "demo": {
     "base64_upload_title": "Base64 Attēla Augšupielādes Demo",
@@ -1397,7 +1415,8 @@
     "username_must_be_at_least_3_characters": "Lietotājvārdam jābūt vismaz 3 simboliem",
     "username_cannot_exceed_30_characters": "Lietotājvārds nedrīkst pārsniegt 30 simbolus",
     "username_can_only_contain_letters_numbers_and_underscores": "Lietotājvārds var saturēt tikai burtus, ciparus un apakšsvītras",
-    "this_username_is_already_taken": "Šis lietotājvārds jau ir aizņemts"
+    "this_username_is_already_taken": "Šis lietotājvārds jau ir aizņemts",
+    "logout_failed": "Error logging out: {0}"
   },
   "account": {
     "settings_title": "Konta Iestatījumi",
@@ -1434,11 +1453,32 @@
     "get_help": "Iegūt Palīdzību",
     "cancel_go_home": "Atcelt & Doties uz Sākumu",
     "failed_init": "Neizdevās inicializēt maksājuma pakalpojumu",
-    "method_title": "Maksājuma Metode"
+    "method_title": "Maksājuma Metode",
+    "init_failed": "Failed to initialize payment service: {0}"
   },
   "offer": {
     "login_required": "Lūdzu, piesakieties, lai veiktu piedāvājumu.",
     "cannot_offer_own": "Jūs nevarat veikt piedāvājumu savai paketei.",
-    "sent_success": "Piedāvājums nosūtīts veiksmīgi!"
+    "sent_success": "Piedāvājums nosūtīts veiksmīgi!",
+    "submitted": "Submitted"
+  },
+  "error": {
+    "title": "Error",
+    "generic": "Error: {0}",
+    "network": "Network error: {0}"
+  },
+  "image": {
+    "pick_failed": "Failed to pick image: {0}"
+  },
+  "permissions": {
+    "location_required": "Location Permission Required"
+  },
+  "contact": {
+    "title": "Contact",
+    "opening_chat": "Opening chat with {0}"
+  },
+  "details": {
+    "title": "Details",
+    "viewing": "Viewing details for {0}"
   }
 }

@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
-import '../../services/zego_voice_call_service.dart';
+import '../../services/agora_voice_call_service.dart';
 import '../../services/zego_call_service.dart';
-import 'package:zego_express_engine/zego_express_engine.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// 🎤 Voice Call Screen - Custom UI Implementation
@@ -31,7 +30,7 @@ class VoiceCallScreen extends StatefulWidget {
 
 class _VoiceCallScreenState extends State<VoiceCallScreen>
     with TickerProviderStateMixin {
-  final ZegoVoiceCallService _callService = ZegoVoiceCallService();
+  final AgoraVoiceCallService _callService = AgoraVoiceCallService();
   final ZegoCallService _zegoCallService = ZegoCallService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -57,11 +56,10 @@ class _VoiceCallScreenState extends State<VoiceCallScreen>
   late Animation<double> _connectionAnimation;
 
   // Stream subscriptions
-  StreamSubscription<ZegoRoomState>? _roomStateSubscription;
-  StreamSubscription<List<String>>? _streamListSubscription;
-  StreamSubscription<List<ZegoUser>>? _userListSubscription;
   StreamSubscription<QuerySnapshot>?
-      _callStatusSubscription; // NEW: Track call status
+      _callStatusSubscription; // Track call status
+  StreamSubscription<DocumentSnapshot>?
+      _channelSubscription; // Track users in channel
 
   @override
   void initState() {
@@ -163,68 +161,50 @@ class _VoiceCallScreenState extends State<VoiceCallScreen>
   Future<void> _setupCallService() async {
     try {
       // Create engine if not already created
-      if (!_callService.isEngineCreated) {
+      if (!_callService.isEngineInitialized) {
         await _callService.createEngine();
       }
 
-      // Setup event listeners
-      _roomStateSubscription = _callService.roomStateStream.listen((state) {
-        if (mounted) {
-          setState(() {
-            _isConnected = state == ZegoRoomState.Connected;
-            _isConnecting = state == ZegoRoomState.Connecting;
-          });
+      // Monitor users joining/leaving the channel via Firestore
+      _channelSubscription = _firestore
+          .collection('active_calls')
+          .doc(widget.roomID)
+          .snapshots()
+          .listen((snapshot) {
+        if (mounted && snapshot.exists) {
+          final data = snapshot.data();
+          if (data != null) {
+            final participants =
+                (data['participants'] as List?)?.cast<String>() ?? [];
 
-          // DON'T start timer just because WE connected to room
-          // Only when someone else joins
-          if (state == ZegoRoomState.Disconnected) {
-            _onCallDisconnected();
+            // Check if there's more than just us in the room
+            final otherUsers = participants
+                .where((userId) => userId != widget.localUserID)
+                .toList();
+
+            if (otherUsers.isNotEmpty && !_callAnswered) {
+              // Someone else joined - call answered!
+              _onCallConnected();
+            } else if (otherUsers.isEmpty && _callAnswered && !_callEnded) {
+              // Other user left - end the call
+              setState(() {
+                _callEnded = true;
+              });
+              _stopCallTimer();
+              _playCallEndBeep();
+              _showError('Other party left the call');
+
+              Future.delayed(const Duration(milliseconds: 500), () {
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              });
+            }
           }
         }
       });
 
-      _streamListSubscription = _callService.streamListStream.listen((streams) {
-        if (mounted && streams.isNotEmpty) {
-          // Remote user joined and is streaming - NOW the call is answered!
-          setState(() {
-            _isConnected = true;
-            _isConnecting = false;
-          });
-          _onCallConnected(); // Start timer only when remote user joins
-        }
-      });
-
-      _userListSubscription = _callService.userListStream.listen((users) {
-        if (mounted) {
-          // Check if there's more than just us in the room
-          final otherUsers =
-              users.where((user) => user.userID != widget.localUserID).toList();
-
-          if (otherUsers.isNotEmpty && !_callAnswered) {
-            // Someone else joined - call answered!
-            _onCallConnected();
-          } else if (otherUsers.isEmpty && _callAnswered && !_callEnded) {
-            // Other user left - end the call
-            setState(() {
-              _callEnded = true;
-            });
-            _stopCallTimer(); // ✅ FIXED: Stop timer when other user leaves
-            _playCallEndBeep();
-            _showError('Other party left the call');
-
-            // ✅ FIXED: Automatically close screen when other user disconnects
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (mounted) {
-                Navigator.of(context).pop();
-              }
-            });
-          }
-
-          print('👥 Users in room: ${users.map((u) => u.userName).join(', ')}');
-        }
-      });
-
-      // NEW: Monitor call status changes (accept/decline/end)
+      // Monitor call status changes (accept/decline/end)
       _callStatusSubscription = _firestore
           .collection('call_notifications')
           .where('callID', isEqualTo: widget.roomID)
@@ -244,15 +224,13 @@ class _VoiceCallScreenState extends State<VoiceCallScreen>
             _showError('Call declined');
             _endCall();
           } else if (status == 'ended' && !_callEnded) {
-            // Someone ended the call - notify and close
             setState(() {
               _callEnded = true;
             });
-            _stopCallTimer(); // ✅ FIXED: Stop timer when call ends
+            _stopCallTimer();
             _playCallEndBeep();
             _showError('Call ended by other party');
 
-            // ✅ FIXED: Immediately dispose screen when other party ends call
             Future.delayed(const Duration(milliseconds: 500), () {
               if (mounted) {
                 Navigator.of(context).pop();
@@ -261,6 +239,7 @@ class _VoiceCallScreenState extends State<VoiceCallScreen>
           } else if (status == 'accepted' && !_callAnswered) {
             setState(() {
               _isRinging = false;
+              _isConnecting = true;
             });
             // Wait for user to actually join the room
           }
@@ -275,38 +254,30 @@ class _VoiceCallScreenState extends State<VoiceCallScreen>
 
   Future<void> _joinCall() async {
     try {
-      final result = await _callService.loginRoom(
-        roomID: widget.roomID,
+      await _callService.joinChannel(
+        channelName: widget.roomID,
         userID: widget.localUserID,
-        userName: widget.localUserName,
       );
 
-      if (result.errorCode != 0) {
-        if (mounted) {
-          String errorMessage;
-          if (result.errorCode == 1002001) {
-            errorMessage =
-                'You are already in another call. Please end it first.';
-          } else {
-            errorMessage = 'Failed to join call: Error ${result.errorCode}';
-          }
-          _showError(errorMessage);
+      // Update Firestore to track we joined
+      await _firestore.collection('active_calls').doc(widget.roomID).set({
+        'participants': FieldValue.arrayUnion([widget.localUserID]),
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
 
-          // Auto-close the screen if failed to join
-          Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) {
-              Navigator.pop(context);
-            }
-          });
-        }
-      } else {
-        // ✅ AUDIO FIX: Ensure proper audio setup after joining
-        await _setupAudioSettings();
+      if (mounted) {
+        setState(() {
+          _isConnected = true;
+          _isConnecting = false;
+        });
       }
+
+      // Setup proper audio settings after joining
+      await _setupAudioSettings();
     } catch (e) {
       if (mounted) {
         String errorMessage;
-        if (e.toString().contains('1002001')) {
+        if (e.toString().contains('already in another call')) {
           errorMessage =
               'You are already in another call. Please end it first.';
         } else {
@@ -365,11 +336,6 @@ class _VoiceCallScreenState extends State<VoiceCallScreen>
     }
   }
 
-  void _onCallDisconnected() {
-    _connectionController.reverse();
-    _stopCallTimer();
-  }
-
   void _startCallTimer() {
     _callTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
@@ -407,22 +373,27 @@ class _VoiceCallScreenState extends State<VoiceCallScreen>
     if (!_callEnded) {
       _playCallEndBeep();
       _zegoCallService.endCall(widget.roomID);
+
+      // Remove ourselves from active_calls
+      _firestore.collection('active_calls').doc(widget.roomID).update({
+        'participants': FieldValue.arrayRemove([widget.localUserID]),
+      }).catchError((e) {
+        print('Error updating active_calls: $e');
+      });
     }
 
     _pulseController.dispose();
     _connectionController.dispose();
     _stopCallTimer();
-    _ringTimer?.cancel(); // Cancel ring timer
-    _roomStateSubscription?.cancel();
-    _streamListSubscription?.cancel();
-    _userListSubscription?.cancel();
-    _callStatusSubscription?.cancel(); // Cancel call status subscription
+    _ringTimer?.cancel();
+    _callStatusSubscription?.cancel();
+    _channelSubscription?.cancel();
 
-    // Leave room when screen is disposed (ensure cleanup)
-    _callService.logoutRoom().then((_) {
-      // Success - room logout completed
+    // Leave channel when screen is disposed
+    _callService.leaveChannel().then((_) {
+      // Success - channel left
     }).catchError((e) {
-      print('Error during room logout in dispose: $e');
+      print('Error leaving channel in dispose: $e');
     });
 
     super.dispose();
@@ -686,8 +657,13 @@ class _VoiceCallScreenState extends State<VoiceCallScreen>
       // Notify other party that call is ending
       await _zegoCallService.endCall(widget.roomID);
 
-      // Leave the room
-      await _callService.logoutRoom();
+      // Remove ourselves from active_calls
+      await _firestore.collection('active_calls').doc(widget.roomID).update({
+        'participants': FieldValue.arrayRemove([widget.localUserID]),
+      });
+
+      // Leave the channel
+      await _callService.leaveChannel();
 
       if (mounted) {
         Navigator.of(context).pop();

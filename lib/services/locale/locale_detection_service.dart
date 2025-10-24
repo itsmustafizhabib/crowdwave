@@ -157,10 +157,11 @@ class LocaleDetectionService {
     return countryNames[countryCode] ?? 'your country';
   }
 
-  /// Update app locale
+  /// Update app locale preference
   Future<void> updateLocale(String languageCode) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keySelectedLanguage, languageCode);
+    // Note: Actual locale change should be done via context.setLocale() in the UI
   }
 
   /// Get saved language

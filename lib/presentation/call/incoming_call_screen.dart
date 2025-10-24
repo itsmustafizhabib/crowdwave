@@ -169,7 +169,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
       print('❌ Error accepting call: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to accept call: $e')),
+          SnackBar(content: Text('calls.accept_failed'.tr(args: [e.toString()]))),
         );
       }
     }

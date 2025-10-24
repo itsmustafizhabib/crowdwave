@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:get/get.dart' hide Trans;
 import '../translations/supported_locales.dart';
 
 /// Language Picker Bottom Sheet
@@ -103,9 +104,19 @@ class LanguagePickerSheet extends StatelessWidget {
                   onTap: () async {
                     // Change language
                     await context.setLocale(Locale(langCode));
+
+                    // Call the callback to save preference
                     onLanguageSelected(langCode);
+
+                    // Pop the bottom sheet
                     if (context.mounted) {
                       Navigator.pop(context);
+
+                      // Force GetX to rebuild by updating the locale
+                      Get.updateLocale(Locale(langCode));
+
+                      // Force a complete app rebuild
+                      await Future.delayed(const Duration(milliseconds: 100));
                     }
                   },
                 );

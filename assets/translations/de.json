@@ -590,7 +590,8 @@
     "update_profile_photo": "Profilfoto aktualisieren",
     "creating_account": "Konto wird erstellt...",
     "create_account": "Konto erstellen",
-    "already_have_an_account": "Haben Sie bereits ein Konto?"
+    "already_have_an_account": "Haben Sie bereits ein Konto?",
+    "photo_remove_failed": "Failed to remove photo: {0}"
   },
   "settings": {
     "title": "Einstellungen",
@@ -674,7 +675,8 @@
     "invalid_email": "Ungültige E-Mail-Adresse",
     "invalid_phone": "Ungültige Telefonnummer",
     "password_too_short": "Passwort muss mindestens 8 Zeichen lang sein",
-    "passwords_dont_match": "Passwörter stimmen nicht überein"
+    "passwords_dont_match": "Passwörter stimmen nicht überein",
+    "invalid_price": "Please enter a valid price"
   },
   "error_messages": {
     "something_went_wrong": "Etwas ist schief gelaufen",
@@ -1065,7 +1067,7 @@
     "gallery": "Galerie",
     "failed_to_send": "Nachricht konnte nicht gesendet werden",
     "failed_to_send_image": "Bild konnte nicht gesendet werden",
-    "start_failed": "Chat konnte nicht gestartet werden. Bitte versuchen Sie es erneut.",
+    "start_failed": "Failed to start chat: {0}",
     "start_failed_error": "Chat konnte nicht gestartet werden: {error}",
     "loading_chats": "Lade Chats",
     "counter_offer": "Gegenangebot",
@@ -1141,7 +1143,8 @@
     "delivery_fee": "Liefergebühr",
     "update_delivery_status": "Lieferstatus aktualisieren",
     "tracking_not_found": "Tracking nicht gefunden",
-    "delivery_timeline": "Lieferzeitachse"
+    "delivery_timeline": "Lieferzeitachse",
+    "updated": "Updated"
   },
   "notifications": {
     "title": "Benachrichtigungen",
@@ -1281,26 +1284,27 @@
   },
   "moderation": {
     "other_report_info": "Bitte geben Sie zusätzliche Informationen für \"Andere\" Meldungen an",
-    "report_failed": "Inhalt konnte nicht gemeldet werden",
+    "report_failed": "Failed to report content: {0}",
     "submit_report": "Meldung abschicken",
-    "review_status": "Überprüfungsstatus {status}",
-    "update_status_failed": "Status konnte nicht aktualisiert werden",
+    "review_status": "Review {0}",
+    "update_status_failed": "Failed to update status: {0}",
     "current_status": "Aktueller Status: ",
     "approve": "Genehmigen",
     "reject": "Ablehnen"
   },
   "comments": {
     "added_successfully": "Kommentar erfolgreich hinzugefügt!",
-    "add_failed": "Kommentar konnte nicht hinzugefügt werden",
+    "add_failed": "Failed to add comment: {0}",
     "like_success": "Kommentar erfolgreich gelikt",
     "unlike_success": "Kommentar erfolgreich entlikt",
-    "like_failed": "Like-Status konnte nicht aktualisiert werden",
+    "like_failed": "Failed to like comment: {0}",
     "report": "Melden",
     "reported_successfully": "Kommentar erfolgreich gemeldet",
-    "report_failed": "Kommentar konnte nicht gemeldet werden",
+    "report_failed": "Failed to report comment: {0}",
     "add_comment": "Kommentar hinzufügen",
     "report_title": "Kommentar melden",
-    "report_prompt": "Warum melden Sie diesen Kommentar?"
+    "report_prompt": "Warum melden Sie diesen Kommentar?",
+    "unlike_failed": "Failed to unlike comment: {0}"
   },
   "calls": {
     "call_in_progress": "Anruf läuft",
@@ -1309,7 +1313,10 @@
     "video_coming_soon": "Videoanrufe kommen bald! Starte Sprachanruf...",
     "voice_call": "Sprachanruf",
     "video_call": "Videoanruf",
-    "video_call_failed": "Videoanruf fehlgeschlagen"
+    "video_call_failed": "Videoanruf fehlgeschlagen",
+    "voice_failed": "Voice call failed: {0}",
+    "video_failed": "Video call failed: {0}",
+    "accept_failed": "Failed to accept call: {0}"
   },
   "location": {
     "search_title": "Nach Standort suchen",
@@ -1317,7 +1324,13 @@
     "select_on_map": "Auf Karte auswählen",
     "select_on_map_subtitle": "Wählen Sie Standort durch Antippen auf der Karte",
     "use_current": "Aktuellen Standort verwenden",
-    "enter_address_hint": "Adresse oder Ortsnamen eingeben"
+    "enter_address_hint": "Adresse oder Ortsnamen eingeben",
+    "get_current_failed": "Failed to get current location: {0}",
+    "select_failed": "Error selecting location: {0}",
+    "send_current": "Send Current Location",
+    "send_current_description": "Share your current location once",
+    "share_live": "Share Live Location",
+    "share_live_description": "Share your location for 15 minutes"
   },
   "matching": {
     "title": "Intelligente Zuordnung",
@@ -1352,7 +1365,12 @@
     "accept": "Akzeptieren",
     "reject": "Ablehnen",
     "reset": "Zurücksetzen",
-    "apply": "Anwenden"
+    "apply": "Anwenden",
+    "request_sent": "Match request sent to {0}!",
+    "no_package_selected": "No package selected for matching",
+    "no_package_request": "No package request provided",
+    "load_suggestions_failed": "Failed to load suggestions: {0}",
+    "find_matches_failed": "Failed to find matches: {0}"
   },
   "demo": {
     "base64_upload_title": "Base64-Bild-Upload-Demo",
@@ -1397,7 +1415,8 @@
     "username_must_be_at_least_3_characters": "Benutzername muss mindestens 3 Zeichen lang sein",
     "username_cannot_exceed_30_characters": "Benutzername darf 30 Zeichen nicht überschreiten",
     "username_can_only_contain_letters_numbers_and_underscores": "Benutzername darf nur Buchstaben, Zahlen und Unterstriche enthalten",
-    "this_username_is_already_taken": "Dieser Benutzername ist bereits vergeben"
+    "this_username_is_already_taken": "Dieser Benutzername ist bereits vergeben",
+    "logout_failed": "Error logging out: {0}"
   },
   "account": {
     "settings_title": "Kontoeinstellungen",
@@ -1434,11 +1453,32 @@
     "get_help": "Hilfe holen",
     "cancel_go_home": "Abbrechen & Zur Startseite",
     "failed_init": "Zahlungsdienst konnte nicht initialisiert werden",
-    "method_title": "Zahlungsmethode"
+    "method_title": "Zahlungsmethode",
+    "init_failed": "Failed to initialize payment service: {0}"
   },
   "offer": {
     "login_required": "Bitte loggen Sie sich ein, um ein Angebot zu machen.",
     "cannot_offer_own": "Sie können kein Angebot auf Ihr eigenes Paket machen.",
-    "sent_success": "Angebot erfolgreich gesendet!"
+    "sent_success": "Angebot erfolgreich gesendet!",
+    "submitted": "Submitted"
+  },
+  "error": {
+    "title": "Error",
+    "generic": "Error: {0}",
+    "network": "Network error: {0}"
+  },
+  "image": {
+    "pick_failed": "Failed to pick image: {0}"
+  },
+  "permissions": {
+    "location_required": "Location Permission Required"
+  },
+  "contact": {
+    "title": "Contact",
+    "opening_chat": "Opening chat with {0}"
+  },
+  "details": {
+    "title": "Details",
+    "viewing": "Viewing details for {0}"
   }
 }

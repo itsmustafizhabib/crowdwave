@@ -590,7 +590,8 @@
     "update_profile_photo": "Atnaujinti Profilio Nuotrauką",
     "creating_account": "Kuriama Paskyra...",
     "create_account": "Sukurti Paskyrą",
-    "already_have_an_account": "Jau turite paskyrą?"
+    "already_have_an_account": "Jau turite paskyrą?",
+    "photo_remove_failed": "Failed to remove photo: {0}"
   },
   "settings": {
     "title": "Nustatymai",
@@ -674,7 +675,8 @@
     "invalid_email": "Negaliojantis el. pašto adresas",
     "invalid_phone": "Negaliojantis telefono numeris",
     "password_too_short": "Slaptažodis turi būti bent 8 simbolių",
-    "passwords_dont_match": "Slaptažodžiai nesutampa"
+    "passwords_dont_match": "Slaptažodžiai nesutampa",
+    "invalid_price": "Please enter a valid price"
   },
   "error_messages": {
     "something_went_wrong": "Kažkas nutiko negerai",
@@ -1065,7 +1067,7 @@
     "gallery": "Galerija",
     "failed_to_send": "Nepavyko siųsti žinutės",
     "failed_to_send_image": "Nepavyko siųsti vaizdo",
-    "start_failed": "Nepavyko pradėti pokalbio. Bandykite dar kartą.",
+    "start_failed": "Failed to start chat: {0}",
     "start_failed_error": "Nepavyko pradėti pokalbio: {error}",
     "loading_chats": "Kraunami pokalbiai",
     "counter_offer": "Kontroferta",
@@ -1141,7 +1143,8 @@
     "delivery_fee": "Pristatymo Mokestis",
     "update_delivery_status": "Atnaujinti Pristatymo Statusą",
     "tracking_not_found": "Sekimas Nerastas",
-    "delivery_timeline": "Pristatymo Laiko Juosta"
+    "delivery_timeline": "Pristatymo Laiko Juosta",
+    "updated": "Updated"
   },
   "notifications": {
     "title": "Pranešimai",
@@ -1281,26 +1284,27 @@
   },
   "moderation": {
     "other_report_info": "Pateikite papildomą informaciją \"Kitiems\" pranešimams",
-    "report_failed": "Nepavyko pranešti turinio",
+    "report_failed": "Failed to report content: {0}",
     "submit_report": "Pateikti Pranešimą",
-    "review_status": "Atsiliepimas {status}",
-    "update_status_failed": "Nepavyko atnaujinti statuso",
+    "review_status": "Review {0}",
+    "update_status_failed": "Failed to update status: {0}",
     "current_status": "Dabartinis Statusas: ",
     "approve": "Patvirtinti",
     "reject": "Atmesti"
   },
   "comments": {
     "added_successfully": "Komentaras pridėtas sėkmingai!",
-    "add_failed": "Nepavyko pridėti komentaro",
+    "add_failed": "Failed to add comment: {0}",
     "like_success": "Komentaras patinka sėkmingai",
     "unlike_success": "Komentaras nepatinka sėkmingai",
-    "like_failed": "Nepavyko atnaujinti patinka statuso",
+    "like_failed": "Failed to like comment: {0}",
     "report": "Pranešti",
     "reported_successfully": "Komentaras praneštas sėkmingai",
-    "report_failed": "Nepavyko pranešti komentaro",
+    "report_failed": "Failed to report comment: {0}",
     "add_comment": "Pridėti Komentarą",
     "report_title": "Pranešti Komentarą",
-    "report_prompt": "Kodėl pranešate šį komentarą?"
+    "report_prompt": "Kodėl pranešate šį komentarą?",
+    "unlike_failed": "Failed to unlike comment: {0}"
   },
   "calls": {
     "call_in_progress": "Skambutis Vyksta",
@@ -1309,7 +1313,10 @@
     "video_coming_soon": "Vaizdo skambučiai greitai! Pradeda balso skambutį...",
     "voice_call": "Balso Skambutis",
     "video_call": "Vaizdo Skambutis",
-    "video_call_failed": "Vaizdo skambutis nepavyko"
+    "video_call_failed": "Vaizdo skambutis nepavyko",
+    "voice_failed": "Voice call failed: {0}",
+    "video_failed": "Video call failed: {0}",
+    "accept_failed": "Failed to accept call: {0}"
   },
   "location": {
     "search_title": "Ieškoti vietovės",
@@ -1317,7 +1324,13 @@
     "select_on_map": "Pasirinkite žemėlapyje",
     "select_on_map_subtitle": "Pasirinkite vietovę paliesdami žemėlapį",
     "use_current": "Naudoti dabartinę vietovę",
-    "enter_address_hint": "Įveskite adresą ar vietos pavadinimą"
+    "enter_address_hint": "Įveskite adresą ar vietos pavadinimą",
+    "get_current_failed": "Failed to get current location: {0}",
+    "select_failed": "Error selecting location: {0}",
+    "send_current": "Send Current Location",
+    "send_current_description": "Share your current location once",
+    "share_live": "Share Live Location",
+    "share_live_description": "Share your location for 15 minutes"
   },
   "matching": {
     "title": "Protingas Suderinimas",
@@ -1352,7 +1365,12 @@
     "accept": "Priimti",
     "reject": "Atmesti",
     "reset": "Atstatyti",
-    "apply": "Taikyti"
+    "apply": "Taikyti",
+    "request_sent": "Match request sent to {0}!",
+    "no_package_selected": "No package selected for matching",
+    "no_package_request": "No package request provided",
+    "load_suggestions_failed": "Failed to load suggestions: {0}",
+    "find_matches_failed": "Failed to find matches: {0}"
   },
   "demo": {
     "base64_upload_title": "Base64 Vaizdo Įkėlimo Demo",
@@ -1397,7 +1415,8 @@
     "username_must_be_at_least_3_characters": "Vartotojo vardas turi būti bent 3 simboliai",
     "username_cannot_exceed_30_characters": "Vartotojo vardas negali viršyti 30 simbolių",
     "username_can_only_contain_letters_numbers_and_underscores": "Vartotojo vardas gali turėti tik raides, skaičius ir pabraukimus",
-    "this_username_is_already_taken": "Šis vartotojo vardas jau užimtas"
+    "this_username_is_already_taken": "Šis vartotojo vardas jau užimtas",
+    "logout_failed": "Error logging out: {0}"
   },
   "account": {
     "settings_title": "Paskyros Nustatymai",
@@ -1434,11 +1453,32 @@
     "get_help": "Gauti Pagalbą",
     "cancel_go_home": "Atšaukti ir Eiti į Pradžią",
     "failed_init": "Nepavyko inicijuoti mokėjimo paslaugos",
-    "method_title": "Mokėjimo Metodas"
+    "method_title": "Mokėjimo Metodas",
+    "init_failed": "Failed to initialize payment service: {0}"
   },
   "offer": {
     "login_required": "Prisijunkite, kad pateiktumėte pasiūlymą.",
     "cannot_offer_own": "Negalite pateikti pasiūlymo savo paketui.",
-    "sent_success": "Pasiūlymas išsiųstas sėkmingai!"
+    "sent_success": "Pasiūlymas išsiųstas sėkmingai!",
+    "submitted": "Submitted"
+  },
+  "error": {
+    "title": "Error",
+    "generic": "Error: {0}",
+    "network": "Network error: {0}"
+  },
+  "image": {
+    "pick_failed": "Failed to pick image: {0}"
+  },
+  "permissions": {
+    "location_required": "Location Permission Required"
+  },
+  "contact": {
+    "title": "Contact",
+    "opening_chat": "Opening chat with {0}"
+  },
+  "details": {
+    "title": "Details",
+    "viewing": "Viewing details for {0}"
   }
 }

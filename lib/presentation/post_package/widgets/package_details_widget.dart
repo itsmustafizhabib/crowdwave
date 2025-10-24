@@ -866,7 +866,7 @@ class _PackageDetailsWidgetState extends State<PackageDetailsWidget>
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to pick image: $e')),
+        SnackBar(content: Text('image.pick_failed'.tr(args: [e.toString()]))),
       );
     }
   }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:sizer/sizer.dart';
 import 'package:lottie/lottie.dart';
@@ -32,7 +31,6 @@ class _OnboardingFlowState extends State<OnboardingFlow>
 
   // Map to store preloaded animations - either from splash screen or loaded here
   late Map<String, LottieComposition?> _preloadedAnimations;
-  bool _isPreloading = false;
 
   // Animation service for background loading
   final AnimationPreloadService _animationService = AnimationPreloadService();
@@ -85,12 +83,10 @@ class _OnboardingFlowState extends State<OnboardingFlow>
     // Use preloaded animations if available, otherwise load them
     if (widget.preloadedAnimations != null) {
       _preloadedAnimations = Map.from(widget.preloadedAnimations!);
-      _isPreloading = false;
       _preloadAdditionalAnimations(); // Load any missing animations in background
     } else {
       _preloadedAnimations = {};
-      _isPreloading = true;
-      // Preload all animations if not provided
+      // Preload all animations in the background without blocking UI
       _preloadAnimations();
     }
   }
@@ -113,7 +109,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
 
     if (mounted) {
       setState(() {
-        _isPreloading = false;
+        // Animations loaded, trigger rebuild
       });
     }
   }
@@ -213,31 +209,9 @@ class _OnboardingFlowState extends State<OnboardingFlow>
         bottom: false,
         child: FadeTransition(
           opacity: _fadeAnimation,
-          child: _isPreloading
-              ? _buildLoadingWidget()
-              : _buildOnboardingPages(), // Always show onboarding pages, no role selection
+          child:
+              _buildOnboardingPages(), // Always show onboarding pages immediately
         ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingWidget() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(
-              AppTheme.lightTheme.colorScheme.primary,
-            ),
-          ),
-          SizedBox(height: 2.h),
-          Text('common.preparing_experience'.tr(),
-            style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
-              color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
       ),
     );
   }

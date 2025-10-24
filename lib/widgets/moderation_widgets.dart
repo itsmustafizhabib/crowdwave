@@ -241,7 +241,7 @@ class _ReportContentDialogState extends State<ReportContentDialog> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to report content: $e'),
+            content: Text('moderation.report_failed'.tr(args: [e.toString()])),
             backgroundColor: Colors.red,
           ),
         );
@@ -668,14 +668,14 @@ class _ModerationPanelWidgetState extends State<ModerationPanelWidget> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Review ${status.toString().split('.').last}'),
+          content: Text('moderation.review_status'.tr(args: [status.toString().split('.').last])),
           backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to update status: $e'),
+          content: Text('moderation.update_status_failed'.tr(args: [e.toString()])),
           backgroundColor: Colors.red,
         ),
       );

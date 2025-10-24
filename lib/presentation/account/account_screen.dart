@@ -61,6 +61,10 @@ class _AccountScreenState extends State<AccountScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Listen to locale changes to trigger rebuilds when language changes
+    // ignore: unused_local_variable
+    final currentLocale = context.locale;
+
     return Scaffold(
       backgroundColor: const Color(0xFFE9E9E9),
       body: SafeArea(
@@ -239,6 +243,18 @@ class _AccountScreenState extends State<AccountScreen> {
                   onLanguageSelected: (String languageCode) async {
                     final localeService = Get.find<LocaleDetectionService>();
                     await localeService.updateLocale(languageCode);
+
+                    // Force a complete rebuild of the entire app
+                    if (mounted) {
+                      // Pop back to root and then rebuild
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+
+                      // Small delay to let the locale change propagate
+                      await Future.delayed(const Duration(milliseconds: 200));
+
+                      // Force setState to trigger rebuild
+                      setState(() {});
+                    }
                   },
                 );
               },
@@ -782,15 +798,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 color: Color(0xFF215C5C),
               ),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'Version 1.0.0',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
-              ),
-            ),
-            SizedBox(height: 16),
+      SizedBox(height: 16),
             Text(
               'Your trusted platform for peer-to-peer package delivery and travel connections.',
               style: TextStyle(
@@ -818,3 +826,4 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 }
+      

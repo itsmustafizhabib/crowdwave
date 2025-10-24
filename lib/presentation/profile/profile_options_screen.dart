@@ -1394,7 +1394,7 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Failed to remove photo: $e'),
+                      content: Text('profile.photo_remove_failed'.tr(args: [e.toString()])),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -1412,7 +1412,7 @@ class _ProfileOptionsScreenState extends State<ProfileOptionsScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: $e'),
+          content: Text('error.generic'.tr(args: [e.toString()])),
           backgroundColor: Colors.red,
         ),
       );

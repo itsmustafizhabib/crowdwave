@@ -6,46 +6,47 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../presentation/call/voice_call_screen.dart';
-import 'zego_voice_call_service.dart';
+import 'agora_voice_call_service.dart';
 
-/// 🚀 UPDATED ZegoCloud Call Service - Using ZegoExpressEngine
-/// ✅ Now using custom implementation with ZegoExpressEngine
+/// 🚀 Agora Call Service - Free 10,000 minutes/month FOREVER!
+/// ✅ Using Agora RTC Engine
 /// ✅ WhatsApp-quality voice calls
-/// ✅ 10,000 free minutes/month
+/// ✅ Lifetime free tier!
 class ZegoCallService {
   static final ZegoCallService _instance = ZegoCallService._internal();
   factory ZegoCallService() => _instance;
   ZegoCallService._internal();
 
-  final ZegoVoiceCallService _voiceCallService = ZegoVoiceCallService();
+  final AgoraVoiceCallService _voiceCallService = AgoraVoiceCallService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Getters
-  bool get isInitialized => _voiceCallService.isEngineCreated;
+  bool get isInitialized => _voiceCallService.isEngineInitialized;
   String? get currentUserId => _auth.currentUser?.uid;
 
-  /// 🚀 Initialize ZegoExpressEngine
+  /// 🚀 Initialize Agora Engine
   Future<void> initializeZego() async {
-    if (_voiceCallService.isEngineCreated) return;
+    if (_voiceCallService.isEngineInitialized) return;
 
     try {
       await _voiceCallService.createEngine();
 
       if (kDebugMode) {
-        print('✅ ZegoCallService Ready - Using ZegoExpressEngine');
+        print('✅ AgoraCallService Ready - Using Agora RTC Engine');
         print('🎯 User: ${_auth.currentUser?.displayName}');
         print('📱 Ready for WhatsApp-quality calls!');
+        print('🆓 Free tier: 10,000 minutes/month forever!');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Failed to initialize ZegoCallService: $e');
+        print('❌ Failed to initialize AgoraCallService: $e');
       }
       rethrow;
     }
   }
 
-  /// 🎤 Start Voice Call - Using Custom Implementation
+  /// 🎤 Start Voice Call - Using Agora
   Future<void> startVoiceCall({
     required BuildContext context,
     required String callID,
@@ -53,9 +54,9 @@ class ZegoCallService {
     required String receiverName,
     String? receiverAvatar,
   }) async {
-    if (!_voiceCallService.isEngineCreated) {
+    if (!_voiceCallService.isEngineInitialized) {
       throw Exception(
-          'ZegoCallService not initialized. Call initializeZego() first.');
+          'AgoraCallService not initialized. Call initializeZego() first.');
     }
 
     final currentUser = _auth.currentUser;
@@ -63,10 +64,11 @@ class ZegoCallService {
       throw Exception('User must be logged in to make calls');
     }
 
-    // ✅ FIX: Check if user is already in a call to prevent 1002001 error
-    if (_voiceCallService.currentRoomID != null) {
+    // ✅ FIX: Check if user is already in a call
+    if (_voiceCallService.currentChannelName != null) {
       if (kDebugMode) {
-        print('⚠️ User already in call: ${_voiceCallService.currentRoomID}');
+        print(
+            '⚠️ User already in call: ${_voiceCallService.currentChannelName}');
       }
 
       // Show dialog to ask user if they want to end current call
@@ -94,7 +96,7 @@ class ZegoCallService {
       }
 
       // End current call first
-      await _voiceCallService.logoutRoom();
+      await _voiceCallService.leaveChannel();
 
       // Small delay to ensure logout is complete
       await Future.delayed(const Duration(milliseconds: 500));
@@ -132,7 +134,7 @@ class ZegoCallService {
         print('❌ Voice call error: $e');
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Voice call failed: $e')),
+        SnackBar(content: Text('calls.voice_failed'.tr(args: [e.toString()]))),
       );
     }
   }
@@ -227,11 +229,12 @@ class ZegoCallService {
   }
 
   /// Accept incoming call
-  Future<void> acceptCall(String notificationId) async {
+  Future<void> acceptCall(String callId) async {
     try {
+      // Use callID as document ID directly
       await _firestore
           .collection('call_notifications')
-          .doc(notificationId)
+          .doc(callId)
           .update({'status': 'accepted'});
     } catch (e) {
       if (kDebugMode) {
@@ -241,11 +244,12 @@ class ZegoCallService {
   }
 
   /// Decline incoming call
-  Future<void> declineCall(String notificationId) async {
+  Future<void> declineCall(String callId) async {
     try {
+      // Use callID as document ID directly
       await _firestore
           .collection('call_notifications')
-          .doc(notificationId)
+          .doc(callId)
           .update({'status': 'declined'});
     } catch (e) {
       if (kDebugMode) {
@@ -257,20 +261,11 @@ class ZegoCallService {
   /// End ongoing call
   Future<void> endCall(String callId) async {
     try {
-      // Find call notification by callID and update status
-      final querySnapshot = await _firestore
+      // Use callID as document ID directly - no need to query
+      await _firestore
           .collection('call_notifications')
-          .where('callID', isEqualTo: callId)
-          .limit(1)
-          .get();
-
-      if (querySnapshot.docs.isNotEmpty) {
-        final docId = querySnapshot.docs.first.id;
-        await _firestore
-            .collection('call_notifications')
-            .doc(docId)
-            .update({'status': 'ended'});
-      }
+          .doc(callId)
+          .update({'status': 'ended'});
     } catch (e) {
       if (kDebugMode) {
         print('❌ Failed to end call: $e');
@@ -280,6 +275,6 @@ class ZegoCallService {
 
   /// Cleanup
   Future<void> dispose() async {
-    await _voiceCallService.destroyEngine();
+    await _voiceCallService.dispose();
   }
 }

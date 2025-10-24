@@ -585,7 +585,7 @@ class _LocationPickerWidgetState extends State<LocationPickerWidget>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to get current location: $e')),
+          SnackBar(content: Text('location.get_current_failed'.tr(args: [e.toString()]))),
         );
       }
     } finally {
@@ -1019,7 +1019,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to get current location: $e'),
+          content: Text('location.get_current_failed'.tr(args: [e.toString()])),
         ),
       );
     }
@@ -1146,7 +1146,7 @@ class _LocationSearchDialogState extends State<LocationSearchDialog> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Network error: ${response.statusCode}'),
+              content: Text('error.network'.tr(args: [response.statusCode.toString()])),
               backgroundColor: Colors.red,
             ),
           );
@@ -1157,7 +1157,7 @@ class _LocationSearchDialogState extends State<LocationSearchDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('error.generic'.tr(args: [e.toString()])),
             backgroundColor: Colors.red,
           ),
         );
@@ -1221,7 +1221,7 @@ class _LocationSearchDialogState extends State<LocationSearchDialog> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error selecting location: $e')),
+        SnackBar(content: Text('location.select_failed'.tr(args: [e.toString()]))),
       );
     } finally {
       setState(() => _isLoading = false);

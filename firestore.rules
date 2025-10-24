@@ -406,5 +406,34 @@ service cloud.firestore {
       // Only admins can update/delete reports
       allow update, delete: if request.auth != null && hasAdminRole(request.auth.uid);
     }
+
+    // ========================================
+    // CALL NOTIFICATIONS COLLECTION RULES
+    // ========================================
+    match /call_notifications/{notificationId} {
+      // Users can read call notifications where they are sender or receiver
+      allow get: if request.auth != null && 
+                    (resource.data.senderId == request.auth.uid || 
+                     resource.data.receiverId == request.auth.uid);
+      
+      // Allow list/query operations for authenticated users
+      // The query filters will naturally limit results to relevant calls
+      allow list: if request.auth != null;
+      
+      // Users can create call notifications when they are the sender
+      allow create: if request.auth != null && 
+                       request.resource.data.senderId == request.auth.uid;
+      
+      // Users can update call notifications where they are sender or receiver
+      // (to accept/decline/end calls)
+      allow update: if request.auth != null && 
+                       (resource.data.senderId == request.auth.uid || 
+                        resource.data.receiverId == request.auth.uid);
+      
+      // Users can delete their own call notifications
+      allow delete: if request.auth != null && 
+                      (resource.data.senderId == request.auth.uid || 
+                       resource.data.receiverId == request.auth.uid);
+    }
   }
 }

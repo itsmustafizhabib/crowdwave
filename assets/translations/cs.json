@@ -590,7 +590,8 @@
     "update_profile_photo": "Aktualizovat profilové foto",
     "creating_account": "Vytváření účtu...",
     "create_account": "Vytvořit účet",
-    "already_have_an_account": "Již máte účet?"
+    "already_have_an_account": "Již máte účet?",
+    "photo_remove_failed": "Failed to remove photo: {0}"
   },
   "settings": {
     "title": "Nastavení",
@@ -674,7 +675,8 @@
     "invalid_email": "Neplatná e-mailová adresa",
     "invalid_phone": "Neplatné telefonní číslo",
     "password_too_short": "Heslo musí mít alespoň 8 znaků",
-    "passwords_dont_match": "Hesla se neshodují"
+    "passwords_dont_match": "Hesla se neshodují",
+    "invalid_price": "Please enter a valid price"
   },
   "error_messages": {
     "something_went_wrong": "Něco se pokazilo",
@@ -1065,7 +1067,7 @@
     "gallery": "Galerie",
     "failed_to_send": "Selhalo odeslání zprávy",
     "failed_to_send_image": "Selhalo odeslání obrázku",
-    "start_failed": "Selhalo zahájení chatu. Zkuste znovu.",
+    "start_failed": "Failed to start chat: {0}",
     "start_failed_error": "Selhalo zahájení chatu: {error}",
     "loading_chats": "Načítání chatů",
     "counter_offer": "Protikladná nabídka",
@@ -1141,7 +1143,8 @@
     "delivery_fee": "Poplatek za doručení",
     "update_delivery_status": "Aktualizovat stav doručení",
     "tracking_not_found": "Sledování nenalezeno",
-    "delivery_timeline": "Časová osa doručení"
+    "delivery_timeline": "Časová osa doručení",
+    "updated": "Updated"
   },
   "notifications": {
     "title": "Upozornění",
@@ -1281,26 +1284,27 @@
   },
   "moderation": {
     "other_report_info": "Prosím uveďte další informace pro \"Jiné\" nahlášení",
-    "report_failed": "Selhalo nahlášení obsahu",
+    "report_failed": "Failed to report content: {0}",
     "submit_report": "Odeslat nahlášení",
-    "review_status": "Stav recenze {status}",
-    "update_status_failed": "Selhalo aktualizace stavu",
+    "review_status": "Review {0}",
+    "update_status_failed": "Failed to update status: {0}",
     "current_status": "Aktuální stav: ",
     "approve": "Schválit",
     "reject": "Odmítnout"
   },
   "comments": {
     "added_successfully": "Komentář úspěšně přidán!",
-    "add_failed": "Selhalo přidání komentáře",
+    "add_failed": "Failed to add comment: {0}",
     "like_success": "Komentář úspěšně označen jako líbí se",
     "unlike_success": "Líbí se u komentáře úspěšně zrušeno",
-    "like_failed": "Selhalo aktualizace stavu líbí se",
+    "like_failed": "Failed to like comment: {0}",
     "report": "Nahlásit",
     "reported_successfully": "Komentář úspěšně nahlášen",
-    "report_failed": "Selhalo nahlášení komentáře",
+    "report_failed": "Failed to report comment: {0}",
     "add_comment": "Přidat komentář",
     "report_title": "Nahlásit komentář",
-    "report_prompt": "Proč nahlášujete tento komentář?"
+    "report_prompt": "Proč nahlášujete tento komentář?",
+    "unlike_failed": "Failed to unlike comment: {0}"
   },
   "calls": {
     "call_in_progress": "Hovor v průběhu",
@@ -1309,7 +1313,10 @@
     "video_coming_soon": "Video hovory brzy! Zahájení hlasového hovoru...",
     "voice_call": "Hlasový hovor",
     "video_call": "Video hovor",
-    "video_call_failed": "Video hovor selhal"
+    "video_call_failed": "Video hovor selhal",
+    "voice_failed": "Voice call failed: {0}",
+    "video_failed": "Video call failed: {0}",
+    "accept_failed": "Failed to accept call: {0}"
   },
   "location": {
     "search_title": "Hledat lokaci",
@@ -1317,7 +1324,13 @@
     "select_on_map": "Vybrat na mapě",
     "select_on_map_subtitle": "Vyberte lokaci klepnutím na mapu",
     "use_current": "Použít aktuální lokaci",
-    "enter_address_hint": "Zadejte adresu nebo název místa"
+    "enter_address_hint": "Zadejte adresu nebo název místa",
+    "get_current_failed": "Failed to get current location: {0}",
+    "select_failed": "Error selecting location: {0}",
+    "send_current": "Send Current Location",
+    "send_current_description": "Share your current location once",
+    "share_live": "Share Live Location",
+    "share_live_description": "Share your location for 15 minutes"
   },
   "matching": {
     "title": "Chytrá shoda",
@@ -1352,7 +1365,12 @@
     "accept": "Přijmout",
     "reject": "Odmítnout",
     "reset": "Resetovat",
-    "apply": "Použít"
+    "apply": "Použít",
+    "request_sent": "Match request sent to {0}!",
+    "no_package_selected": "No package selected for matching",
+    "no_package_request": "No package request provided",
+    "load_suggestions_failed": "Failed to load suggestions: {0}",
+    "find_matches_failed": "Failed to find matches: {0}"
   },
   "demo": {
     "base64_upload_title": "Demo nahrání obrázku v Base64",
@@ -1397,7 +1415,8 @@
     "username_must_be_at_least_3_characters": "Uživatelské jméno musí mít alespoň 3 znaky",
     "username_cannot_exceed_30_characters": "Uživatelské jméno nesmí překročit 30 znaků",
     "username_can_only_contain_letters_numbers_and_underscores": "Uživatelské jméno může obsahovat pouze písmena, číslice a podtržítka",
-    "this_username_is_already_taken": "Toto uživatelské jméno je již obsazené"
+    "this_username_is_already_taken": "Toto uživatelské jméno je již obsazené",
+    "logout_failed": "Error logging out: {0}"
   },
   "account": {
     "settings_title": "Nastavení účtu",
@@ -1434,11 +1453,32 @@
     "get_help": "Získat pomoc",
     "cancel_go_home": "Zrušit a jít domů",
     "failed_init": "Selhalo inicializace platební služby",
-    "method_title": "Platební method"
+    "method_title": "Platební method",
+    "init_failed": "Failed to initialize payment service: {0}"
   },
   "offer": {
     "login_required": "Prosím přihlaste se pro udělání nabídky.",
     "cannot_offer_own": "Nemůžete udělat nabídku na svůj vlastní balíček.",
-    "sent_success": "Nabídka úspěšně odeslána!"
+    "sent_success": "Nabídka úspěšně odeslána!",
+    "submitted": "Submitted"
+  },
+  "error": {
+    "title": "Error",
+    "generic": "Error: {0}",
+    "network": "Network error: {0}"
+  },
+  "image": {
+    "pick_failed": "Failed to pick image: {0}"
+  },
+  "permissions": {
+    "location_required": "Location Permission Required"
+  },
+  "contact": {
+    "title": "Contact",
+    "opening_chat": "Opening chat with {0}"
+  },
+  "details": {
+    "title": "Details",
+    "viewing": "Viewing details for {0}"
   }
 }

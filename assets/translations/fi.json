@@ -590,7 +590,8 @@
     "update_profile_photo": "Uuenda profiilifoto",
     "creating_account": "Konto loomine...",
     "create_account": "Loo konto",
-    "already_have_an_account": "Kas sul on juba konto?"
+    "already_have_an_account": "Kas sul on juba konto?",
+    "photo_remove_failed": "Failed to remove photo: {0}"
   },
   "settings": {
     "title": "Seaded",
@@ -674,7 +675,8 @@
     "invalid_email": "Vigane e-posti aadress",
     "invalid_phone": "Vigane telefoninumber",
     "password_too_short": "Parool peab olema vähemalt 8 tähemärki",
-    "passwords_dont_match": "Paroolid ei sobi"
+    "passwords_dont_match": "Paroolid ei sobi",
+    "invalid_price": "Please enter a valid price"
   },
   "error_messages": {
     "something_went_wrong": "Midagi läks valesti",
@@ -1065,7 +1067,7 @@
     "gallery": "Galerij",
     "failed_to_send": "Fout bij verzenden van bericht",
     "failed_to_send_image": "Fout bij verzenden van afbeelding",
-    "start_failed": "Fout bij starten van chat. Probeer opnieuw.",
+    "start_failed": "Failed to start chat: {0}",
     "start_failed_error": "Fout bij starten van chat: {error}",
     "loading_chats": "Chats laden",
     "counter_offer": "Tegenaanbod",
@@ -1141,7 +1143,8 @@
     "delivery_fee": "Leveringskosten",
     "update_delivery_status": "Leveringsstatus bijwerken",
     "tracking_not_found": "Tracking niet gevonden",
-    "delivery_timeline": "Leveringstijdlijn"
+    "delivery_timeline": "Leveringstijdlijn",
+    "updated": "Updated"
   },
   "notifications": {
     "title": "Meldingen",
@@ -1281,26 +1284,27 @@
   },
   "moderation": {
     "other_report_info": "Palun esita lisateave 'Muude' raportite jaoks",
-    "report_failed": "Sisu raporteerimine ebaõnnestus",
+    "report_failed": "Failed to report content: {0}",
     "submit_report": "Esita raport",
-    "review_status": "Arvustuse staatus {status}",
-    "update_status_failed": "Staatuse uuendamine ebaõnnestus",
+    "review_status": "Review {0}",
+    "update_status_failed": "Failed to update status: {0}",
     "current_status": "Praegune staatus: ",
     "approve": "Kinnita",
     "reject": "Lükka tagasi"
   },
   "comments": {
     "added_successfully": "Kommentaar edukalt lisatud!",
-    "add_failed": "Kommentaari lisamine ebaõnnestus",
+    "add_failed": "Failed to add comment: {0}",
     "like_success": "Kommentaar edukalt meelditud",
     "unlike_success": "Kommentaari meeldimine edukalt tühistatud",
-    "like_failed": "Meeldimise staatuse uuendamine ebaõnnestus",
+    "like_failed": "Failed to like comment: {0}",
     "report": "Raporteeri",
     "reported_successfully": "Kommentaar edukalt raporteeritud",
-    "report_failed": "Kommentaari raporteerimine ebaõnnestus",
+    "report_failed": "Failed to report comment: {0}",
     "add_comment": "Lisa kommentaar",
     "report_title": "Raporteeri kommentaar",
-    "report_prompt": "Miks sa seda kommentaari raporteerid?"
+    "report_prompt": "Miks sa seda kommentaari raporteerid?",
+    "unlike_failed": "Failed to unlike comment: {0}"
   },
   "calls": {
     "call_in_progress": "Kõne käimas",
@@ -1309,7 +1313,10 @@
     "video_coming_soon": "Videokõned varsti! Häälkõne alustamine...",
     "voice_call": "Häälkõne",
     "video_call": "Videokõne",
-    "video_call_failed": "Videokõne ebaõnnestus"
+    "video_call_failed": "Videokõne ebaõnnestus",
+    "voice_failed": "Voice call failed: {0}",
+    "video_failed": "Video call failed: {0}",
+    "accept_failed": "Failed to accept call: {0}"
   },
   "location": {
     "search_title": "Otsi asukohta",
@@ -1317,7 +1324,13 @@
     "select_on_map": "Vali kaardil",
     "select_on_map_subtitle": "Vali asukoht kaardil puudutades",
     "use_current": "Kasuta praegust asukohta",
-    "enter_address_hint": "Sisesta aadress või kohanimi"
+    "enter_address_hint": "Sisesta aadress või kohanimi",
+    "get_current_failed": "Failed to get current location: {0}",
+    "select_failed": "Error selecting location: {0}",
+    "send_current": "Send Current Location",
+    "send_current_description": "Share your current location once",
+    "share_live": "Share Live Location",
+    "share_live_description": "Share your location for 15 minutes"
   },
   "matching": {
     "title": "Nutikas sobitamine",
@@ -1352,7 +1365,12 @@
     "accept": "Aktsepteeri",
     "reject": "Keeldu",
     "reset": "Reseti",
-    "apply": "Rakenda"
+    "apply": "Rakenda",
+    "request_sent": "Match request sent to {0}!",
+    "no_package_selected": "No package selected for matching",
+    "no_package_request": "No package request provided",
+    "load_suggestions_failed": "Failed to load suggestions: {0}",
+    "find_matches_failed": "Failed to find matches: {0}"
   },
   "demo": {
     "base64_upload_title": "Demo pildi üleslaadimine Base64-s",
@@ -1397,7 +1415,8 @@
     "username_must_be_at_least_3_characters": "Kasutajanimi peab olema vähemalt 3 tähemärki",
     "username_cannot_exceed_30_characters": "Kasutajanimi ei tohi ületada 30 tähemärki",
     "username_can_only_contain_letters_numbers_and_underscores": "Kasutajanimi võib sisaldada ainult tähti, numbreid ja alakriipse",
-    "this_username_is_already_taken": "See kasutajanimi on juba võetud"
+    "this_username_is_already_taken": "See kasutajanimi on juba võetud",
+    "logout_failed": "Error logging out: {0}"
   },
   "account": {
     "settings_title": "Konto seaded",
@@ -1434,11 +1453,32 @@
     "get_help": "Saa abi",
     "cancel_go_home": "Tühista & Mine koju",
     "failed_init": "Makse teenuse initsialiseerimine ebaõnnestus",
-    "method_title": "Makseviis"
+    "method_title": "Makseviis",
+    "init_failed": "Failed to initialize payment service: {0}"
   },
   "offer": {
     "login_required": "Logi sisse pakkumise tegemiseks.",
     "cannot_offer_own": "Sa ei saa teha pakkumist oma pakile.",
-    "sent_success": "Pakkumine edukalt saadetud!"
+    "sent_success": "Pakkumine edukalt saadetud!",
+    "submitted": "Submitted"
+  },
+  "error": {
+    "title": "Error",
+    "generic": "Error: {0}",
+    "network": "Network error: {0}"
+  },
+  "image": {
+    "pick_failed": "Failed to pick image: {0}"
+  },
+  "permissions": {
+    "location_required": "Location Permission Required"
+  },
+  "contact": {
+    "title": "Contact",
+    "opening_chat": "Opening chat with {0}"
+  },
+  "details": {
+    "title": "Details",
+    "viewing": "Viewing details for {0}"
   }
 }

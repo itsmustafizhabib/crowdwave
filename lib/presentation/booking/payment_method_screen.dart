@@ -50,7 +50,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to initialize payment service: $e'),
+            content: Text('payment.init_failed'.tr(args: [e.toString()])),
             backgroundColor: Colors.red,
           ),
         );
@@ -358,7 +358,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('error.generic'.tr(args: [e.toString()])),
             backgroundColor: Colors.red,
           ),
         );
