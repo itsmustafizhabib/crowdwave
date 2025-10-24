@@ -1065,6 +1065,40 @@ class ChatController extends GetxController {
     }
   }
 
+  // Send a location message
+  Future<bool> sendLocationMessage({
+    required String conversationId,
+    required double latitude,
+    required double longitude,
+    String? address,
+    bool isLiveLocation = false,
+  }) async {
+    try {
+      // Ensure ChatService is initialized before sending location
+      await _ensureChatServiceInitialized();
+
+      await _chatService.sendMessage(
+        conversationId: conversationId,
+        content: address ?? 'Location',
+        type: MessageType.location,
+        metadata: {
+          'latitude': latitude,
+          'longitude': longitude,
+          'address': address,
+          'isLiveLocation': isLiveLocation,
+          'sharedAt': DateTime.now().toIso8601String(),
+        },
+      );
+      return true;
+    } catch (e) {
+      error.value = e.toString();
+      if (kDebugMode) {
+        print('Send location error: $e');
+      }
+      return false;
+    }
+  }
+
   // Mark messages as read if needed
   void _markMessagesAsReadIfNeeded(
       String conversationId, List<ChatMessage> messages) {

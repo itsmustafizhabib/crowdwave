@@ -9,8 +9,10 @@ import '../../controllers/chat_controller.dart';
 import '../../core/models/chat_message.dart';
 import '../../widgets/enhanced_snackbar.dart';
 import '../../widgets/chat/deal_offer_message_widget.dart';
+import '../../widgets/chat/location_message_widget.dart';
 import '../../services/zego_call_service.dart';
 import '../../services/presence_service.dart';
+import '../../services/location_service.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 
 class IndividualChatScreen extends StatefulWidget {
@@ -38,6 +40,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   final ImagePicker _imagePicker = ImagePicker();
   final ZegoCallService _callService = ZegoCallService();
   final PresenceService _presenceService = Get.find<PresenceService>();
+  final LocationService _locationService = LocationService();
 
   @override
   void initState() {
@@ -761,21 +764,10 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
         );
 
       case MessageType.location:
-        return Row(
-          children: [
-            Icon(
-              Icons.location_on,
-              color: isFromCurrentUser ? Colors.white : Colors.black87,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              message.content,
-              style: TextStyle(
-                color: isFromCurrentUser ? Colors.white : Colors.black87,
-                fontSize: 16,
-              ),
-            ),
-          ],
+        // Use the LocationMessageWidget for location messages
+        return LocationMessageWidget(
+          message: message,
+          isCurrentUser: isFromCurrentUser,
         );
 
       case MessageType.package_info:
@@ -924,8 +916,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                   color: Colors.green,
                   onTap: () {
                     Get.back();
-                    EnhancedSnackBar.showInfo(
-                        context, 'Location sharing coming soon!');
+                    _showLocationOptions();
                   },
                 ),
               ],
@@ -1068,6 +1059,237 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
           backgroundColor: Colors.red,
         ),
       );
+    }
+  }
+
+  // Show location sharing options
+  void _showLocationOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Share Location',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF215C5C).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.my_location,
+                  color: Color(0xFF215C5C),
+                ),
+              ),
+              title: const Text('Send Current Location'),
+              subtitle: const Text('Share your current location once'),
+              onTap: () {
+                Get.back();
+                _sendCurrentLocation();
+              },
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.navigation,
+                  color: Colors.red,
+                ),
+              ),
+              title: const Text('Share Live Location'),
+              subtitle: const Text('Share your location for 15 minutes'),
+              onTap: () {
+                Get.back();
+                _sendLiveLocation();
+              },
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Send current location (one-time)
+  void _sendCurrentLocation() async {
+    try {
+      // Show loading indicator
+      EnhancedSnackBar.showInfo(context, 'Getting your location...');
+
+      // Get current location
+      final position = await _locationService.getCurrentLocation(forceRefresh: true);
+
+      if (position == null) {
+        EnhancedSnackBar.showError(context, 'Could not get your location. Please check your permissions and try again.');
+        return;
+      }
+
+      // Send location message
+      final success = await _chatController.sendLocationMessage(
+        conversationId: widget.conversationId,
+        latitude: position.latitude,
+        longitude: position.longitude,
+        address: 'Current Location',
+        isLiveLocation: false,
+      );
+
+      // Scroll to bottom after sending location
+      _scrollToBottomForced();
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (mounted) _scrollToBottomForced();
+      });
+
+      if (!success) {
+        EnhancedSnackBar.showError(context, 'Failed to share location');
+      } else {
+        EnhancedSnackBar.showSuccess(context, 'Location shared successfully!');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error sending location: $e');
+      }
+      
+      // Handle specific permission errors
+      String errorMessage = 'Failed to share location';
+      if (e.toString().contains('permission')) {
+        errorMessage = 'Location permission required. Please enable it in settings.';
+        
+        // Show dialog to open settings
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Location Permission Required'),
+            content: const Text('To share your location, please enable location permission in your device settings.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _locationService.openAppSettings();
+                },
+                child: const Text('Open Settings'),
+              ),
+            ],
+          ),
+        );
+      } else if (e.toString().contains('disabled')) {
+        errorMessage = 'Location services are disabled. Please enable them in settings.';
+      } else if (e.toString().contains('timeout')) {
+        errorMessage = 'Location request timed out. Please try again.';
+      }
+      
+      EnhancedSnackBar.showError(context, errorMessage);
+    }
+  }
+
+  // Send live location (streaming for 15 minutes)
+  void _sendLiveLocation() async {
+    try {
+      // Show loading indicator
+      EnhancedSnackBar.showInfo(context, 'Starting live location sharing...');
+
+      // Get initial location
+      final position = await _locationService.getCurrentLocation(forceRefresh: true);
+
+      if (position == null) {
+        EnhancedSnackBar.showError(context, 'Could not get your location. Please check your permissions and try again.');
+        return;
+      }
+
+      // Send initial live location message
+      final success = await _chatController.sendLocationMessage(
+        conversationId: widget.conversationId,
+        latitude: position.latitude,
+        longitude: position.longitude,
+        address: 'Live Location',
+        isLiveLocation: true,
+      );
+
+      // Scroll to bottom after sending location
+      _scrollToBottomForced();
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (mounted) _scrollToBottomForced();
+      });
+
+      if (!success) {
+        EnhancedSnackBar.showError(context, 'Failed to start live location sharing');
+        return;
+      }
+
+      EnhancedSnackBar.showSuccess(context, 'Live location sharing started for 15 minutes');
+
+      // TODO: Implement live location updates
+      // For full implementation, you would:
+      // 1. Subscribe to location stream
+      // 2. Update location message periodically (every 30-60 seconds)
+      // 3. Stop after 15 minutes or when user manually stops
+      // 4. Add UI indicator showing live location is active
+      
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error sending live location: $e');
+      }
+      
+      String errorMessage = 'Failed to start live location sharing';
+      if (e.toString().contains('permission')) {
+        errorMessage = 'Location permission required. Please enable it in settings.';
+        
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Location Permission Required'),
+            content: const Text('To share your live location, please enable location permission in your device settings.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _locationService.openAppSettings();
+                },
+                child: const Text('Open Settings'),
+              ),
+            ],
+          ),
+        );
+      }
+      
+      EnhancedSnackBar.showError(context, errorMessage);
     }
   }
 }

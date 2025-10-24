@@ -332,17 +332,17 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                                 // Badge for unread notifications
                                 if (_notificationService.unreadCount > 0)
                                   Positioned(
-                                    right: 4,
-                                    top: 4,
+                                    right: 0,
+                                    top: 0,
                                     child: Container(
-                                      padding: const EdgeInsets.all(4),
+                                      padding: const EdgeInsets.all(2),
                                       decoration: const BoxDecoration(
                                         color: Colors.red,
                                         shape: BoxShape.circle,
                                       ),
                                       constraints: const BoxConstraints(
-                                        minWidth: 16,
-                                        minHeight: 16,
+                                        minWidth: 12,
+                                        minHeight: 12,
                                       ),
                                       child: Text(
                                         _notificationService.unreadCount > 9
@@ -351,7 +351,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                                                 .toString(),
                                         style: const TextStyle(
                                           color: Colors.white,
-                                          fontSize: 10,
+                                          fontSize: 8,
                                           fontWeight: FontWeight.bold,
                                         ),
                                         textAlign: TextAlign.center,

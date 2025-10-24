@@ -319,6 +319,51 @@ class LocationService {
       print('LocationService initialized');
     }
   }
+
+  /// Get Google Maps URL for viewing a location
+  String getGoogleMapsUrl(double latitude, double longitude, {String? label}) {
+    if (label != null && label.isNotEmpty) {
+      final encodedLabel = Uri.encodeComponent(label);
+      return 'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude&query_place_id=$encodedLabel';
+    }
+    return 'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
+  }
+
+  /// Get Google Maps URL for directions from current location to target
+  String getDirectionsUrl(
+    double targetLat,
+    double targetLng, {
+    double? startLat,
+    double? startLng,
+  }) {
+    if (startLat != null && startLng != null) {
+      return 'https://www.google.com/maps/dir/?api=1&origin=$startLat,$startLng&destination=$targetLat,$targetLng&travelmode=driving';
+    }
+    return 'https://www.google.com/maps/dir/?api=1&destination=$targetLat,$targetLng&travelmode=driving';
+  }
+
+  /// Format coordinates for display
+  String formatCoordinates(double latitude, double longitude) {
+    return '${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}';
+  }
+
+  /// Open device app settings
+  Future<bool> openAppSettings() async {
+    return await Geolocator.openAppSettings();
+  }
+
+  /// Get continuous location updates stream (for live location sharing)
+  Stream<Position> getLocationStream({
+    LocationAccuracy accuracy = LocationAccuracy.high,
+    int distanceFilter = 10, // meters
+  }) {
+    const LocationSettings locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 10,
+    );
+
+    return Geolocator.getPositionStream(locationSettings: locationSettings);
+  }
 }
 
 // Custom exceptions for better error handling
