@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'recipient_details.dart';
 
 class PackageRequest {
   final String id;
@@ -22,6 +23,7 @@ class PackageRequest {
   final String? specialInstructions;
   final bool isUrgent;
   final List<String> preferredTransportModes;
+  final RecipientDetails? receiverDetails; // Added receiver details
 
   PackageRequest({
     required this.id,
@@ -45,6 +47,7 @@ class PackageRequest {
     this.specialInstructions,
     this.isUrgent = false,
     this.preferredTransportModes = const [],
+    this.receiverDetails, // Added receiver details parameter
   });
 
   Map<String, dynamic> toJson() {
@@ -69,6 +72,8 @@ class PackageRequest {
       'specialInstructions': specialInstructions,
       'isUrgent': isUrgent,
       'preferredTransportModes': preferredTransportModes,
+      'receiverDetails':
+          receiverDetails?.toMap(), // Added receiver details to JSON
     };
 
     // Only include ID if it's not empty (for updates)
@@ -118,6 +123,9 @@ class PackageRequest {
       isUrgent: json['isUrgent'] ?? false,
       preferredTransportModes:
           List<String>.from(json['preferredTransportModes'] ?? []),
+      receiverDetails: json['receiverDetails'] != null
+          ? RecipientDetails.fromMap(json['receiverDetails'])
+          : null, // Added receiver details parsing
     );
   }
 
@@ -143,6 +151,7 @@ class PackageRequest {
     String? specialInstructions,
     bool? isUrgent,
     List<String>? preferredTransportModes,
+    RecipientDetails? receiverDetails, // Added receiver details parameter
   }) {
     return PackageRequest(
       id: id ?? this.id,
@@ -168,6 +177,8 @@ class PackageRequest {
       isUrgent: isUrgent ?? this.isUrgent,
       preferredTransportModes:
           preferredTransportModes ?? this.preferredTransportModes,
+      receiverDetails: receiverDetails ??
+          this.receiverDetails, // Added receiver details assignment
     );
   }
 }

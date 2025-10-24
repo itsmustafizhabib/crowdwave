@@ -57,7 +57,15 @@ class AppRoutes {
     final Map<String, WidgetBuilder> appRoutes = {
       splash: (context) => const SplashScreen(),
       updatedHome: (context) => const UpdatedHomeScreen(),
-      mainNavigation: (context) => const MainNavigationScreen(),
+      mainNavigation: (context) {
+        // Extract arguments if provided
+        final args =
+            ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+        return MainNavigationScreen(
+          initialIndex: args?['selectedIndex'] as int?,
+          ordersTabIndex: args?['ordersTabIndex'] as int?,
+        );
+      },
       login: (context) => const LoginView(),
       onboardingFlow: (context) => const OnboardingFlow(),
       registration: (context) => const SignUpView(),

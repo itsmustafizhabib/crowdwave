@@ -22,7 +22,14 @@ import '../../widgets/liquid_loading_indicator.dart';
 import '../../widgets/language_picker_sheet.dart';
 
 class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({Key? key}) : super(key: key);
+  final int? initialIndex;
+  final int? ordersTabIndex;
+
+  const MainNavigationScreen({
+    Key? key,
+    this.initialIndex,
+    this.ordersTabIndex,
+  }) : super(key: key);
 
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
@@ -30,6 +37,7 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
+  int? _ordersTabIndex;
   late PageController _pageController;
   final AuthStateService _authService = AuthStateService();
   final LocationBasedNotificationService _locationNotificationService =
@@ -40,18 +48,26 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   StreamSubscription<int>? _offersCountSubscription;
 
   // Based on analysis of the app structure
-  final List<Widget> _screens = [
-    const UpdatedHomeScreen(), // Updated home screen with the new design
-    const ChatScreen(), // Chat functionality
-    const OrdersScreen(), // Order management
-    const WalletScreen(), // Payments & earnings
-    const AccountScreen(), // Account settings and profile
-  ];
+  late List<Widget> _screens;
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
+
+    // Set initial index from widget parameter
+    _selectedIndex = widget.initialIndex ?? 0;
+    _ordersTabIndex = widget.ordersTabIndex;
+
+    _pageController = PageController(initialPage: _selectedIndex);
+
+    // Initialize screens with orders tab index if provided
+    _screens = [
+      const UpdatedHomeScreen(), // Updated home screen with the new design
+      const ChatScreen(), // Chat functionality
+      OrdersScreen(initialTabIndex: _ordersTabIndex), // Order management
+      const WalletScreen(), // Payments & earnings
+      const AccountScreen(), // Account settings and profile
+    ];
 
     // Listen to auth state changes to update drawer UI when user data changes
     _authService.addListener(_onAuthStateChanged);
@@ -610,9 +626,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             ),
 
             // Header
-            Padding (
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text('profile.profile_information'.tr(),
+              child: Text(
+                'profile.profile_information'.tr(),
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
@@ -679,7 +696,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                         ),
                         elevation: 0,
                       ),
-                      child: Text('profile.edit_profile'.tr(),
+                      child: Text(
+                        'profile.edit_profile'.tr(),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -760,7 +778,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        title: Text('profile.coming_soon'.tr(),
+        title: Text(
+          'profile.coming_soon'.tr(),
           style: TextStyle(
             fontWeight: FontWeight.w600,
             color: Colors.black87,
@@ -775,7 +794,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('common.ok'.tr(),
+            child: Text(
+              'common.ok'.tr(),
               style: TextStyle(
                 color: Color(0xFF215C5C),
                 fontWeight: FontWeight.w600,
@@ -806,7 +826,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         ),
       ),
       children: [
-        Text('post_package.crowdwave_connects_senders_and_travelers_for_effic'.tr(),
+        Text(
+          'post_package.crowdwave_connects_senders_and_travelers_for_effic'
+              .tr(),
           style: TextStyle(
             color: Colors.black54,
           ),
@@ -822,13 +844,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        title: Text('drawer.logout'.tr(),
+        title: Text(
+          'drawer.logout'.tr(),
           style: TextStyle(
             fontWeight: FontWeight.w600,
             color: Colors.black87,
           ),
         ),
-        content: Text('common.are_you_sure_you_want_to_logout'.tr(),
+        content: Text(
+          'common.are_you_sure_you_want_to_logout'.tr(),
           style: TextStyle(
             color: Colors.black54,
           ),
@@ -836,7 +860,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('common.cancel'.tr(),
+            child: Text(
+              'common.cancel'.tr(),
               style: TextStyle(
                 color: Colors.grey,
                 fontWeight: FontWeight.w600,
@@ -867,7 +892,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 }
               }
             },
-            child: Text('drawer.logout'.tr(),
+            child: Text(
+              'drawer.logout'.tr(),
               style: TextStyle(
                 color: Colors.red,
                 fontWeight: FontWeight.w600,

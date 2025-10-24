@@ -14,6 +14,7 @@ import '../booking/make_offer_screen.dart';
 // import '../../services/review_service.dart';
 import '../../widgets/enhanced_snackbar.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
+import '../../widgets/custom_image_widget.dart';
 // import '../reviews/review_list_screen.dart';
 // import '../reviews/create_review_screen.dart';
 
@@ -171,12 +172,25 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       width: double.infinity,
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            Color(0xFFCCE8C9).withOpacity(0.3),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: Color(0xFF215C5C).withOpacity(0.08),
+            blurRadius: 20,
+            offset: Offset(0, 4),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 6,
             offset: Offset(0, 2),
           ),
         ],
@@ -186,15 +200,29 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 25,
-                backgroundColor: Color(0xFF215C5C).withOpacity(0.1),
-                backgroundImage: widget.package.senderPhotoUrl.isNotEmpty
-                    ? CachedNetworkImageProvider(widget.package.senderPhotoUrl)
-                    : null,
-                child: widget.package.senderPhotoUrl.isEmpty
-                    ? Icon(Icons.person, color: Color(0xFF215C5C))
-                    : null,
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0xFF215C5C).withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: CircleAvatar(
+                  radius: 28,
+                  backgroundColor: Color(0xFFCCE8C9),
+                  backgroundImage: widget.package.senderPhotoUrl.isNotEmpty
+                      ? CachedNetworkImageProvider(
+                          widget.package.senderPhotoUrl)
+                      : null,
+                  child: widget.package.senderPhotoUrl.isEmpty
+                      ? Icon(Icons.person_rounded,
+                          color: Color(0xFF215C5C), size: 28)
+                      : null,
+                ),
               ),
               SizedBox(width: 16),
               Expanded(
@@ -204,18 +232,27 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                     Text(
                       widget.package.senderName,
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1A1A),
+                        letterSpacing: -0.3,
                       ),
                     ),
                     SizedBox(height: 4),
-                    Text(
-                      'post_package.package_sender'.tr(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                    Row(
+                      children: [
+                        Icon(Icons.account_circle_outlined,
+                            size: 14, color: Colors.grey[600]),
+                        SizedBox(width: 4),
+                        Text(
+                          'post_package.package_sender'.tr(),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -223,25 +260,48 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
               _buildStatusChip(),
             ],
           ),
-          SizedBox(height: 16),
-          Text(
-            'common.description'.tr(),
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
+          SizedBox(height: 20),
+          Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Color(0xFFCCE8C9).withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: Color(0xFF215C5C).withOpacity(0.1), width: 1),
             ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            widget.package.packageDetails.description,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.black87,
-              height: 1.4,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.description_outlined,
+                        size: 18, color: Color(0xFF215C5C)),
+                    SizedBox(width: 8),
+                    Text(
+                      'common.description'.tr(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF215C5C),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12),
+                Text(
+                  widget.package.packageDetails.description,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Color(0xFF2D3748),
+                    height: 1.6,
+                    letterSpacing: -0.1,
+                  ),
+                  maxLines: null,
+                  overflow: TextOverflow.visible,
+                ),
+              ],
             ),
-            maxLines: null,
-            overflow: TextOverflow.visible,
           ),
         ],
       ),
@@ -254,19 +314,19 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
 
     switch (widget.package.status) {
       case PackageStatus.pending:
-        statusColor = Colors.amber;
+        statusColor = Color(0xFF2D7A6E);
         statusText = 'Pending';
         break;
       case PackageStatus.matched:
-        statusColor = Color(0xFF008080);
+        statusColor = Color(0xFF215C5C);
         statusText = 'Matched';
         break;
       case PackageStatus.confirmed:
-        statusColor = Colors.green;
+        statusColor = Color(0xFF2D7A6E);
         statusText = 'Confirmed';
         break;
       case PackageStatus.delivered:
-        statusColor = Colors.green[700]!;
+        statusColor = Color(0xFF215C5C);
         statusText = 'Delivered';
         break;
       case PackageStatus.cancelled:
@@ -301,12 +361,25 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       width: double.infinity,
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            Color(0xFFCCE8C9).withOpacity(0.3),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: Color(0xFF2D7A6E).withOpacity(0.08),
+            blurRadius: 20,
+            offset: Offset(0, 4),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 6,
             offset: Offset(0, 2),
           ),
         ],
@@ -314,37 +387,72 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'detail.route'.tr(),
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF215C5C), Color(0xFF2D7A6E)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0xFF215C5C).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Icon(Icons.route_rounded, color: Colors.white, size: 20),
+              ),
+              SizedBox(width: 12),
+              Text(
+                'detail.route'.tr(),
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A1A),
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: 16),
+          SizedBox(height: 20),
           _buildLocationItem(
-            icon: Icons.location_on,
+            icon: Icons.my_location_rounded,
             label: 'package.pickup'.tr(),
             location: widget.package.pickupLocation,
             color: Color(0xFF215C5C),
+            isStart: true,
           ),
-          SizedBox(height: 16),
-          Container(
-            margin: EdgeInsets.only(left: 12),
-            height: 30,
-            width: 2,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(1),
+          SizedBox(height: 12),
+          Padding(
+            padding: EdgeInsets.only(left: 22),
+            child: Column(
+              children: List.generate(
+                3,
+                (index) => Container(
+                  margin: EdgeInsets.only(bottom: 4),
+                  height: 8,
+                  width: 3,
+                  decoration: BoxDecoration(
+                    color: Color(0xFF2D7A6E).withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
             ),
           ),
-          SizedBox(height: 16),
+          SizedBox(height: 12),
           _buildLocationItem(
-            icon: Icons.flag,
+            icon: Icons.location_on_rounded,
             label: 'package.destination'.tr(),
             location: widget.package.destinationLocation,
-            color: Colors.green,
+            color: Color(0xFF2D7A6E),
+            isStart: false,
           ),
         ],
       ),
@@ -356,53 +464,92 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     required String label,
     required Location location,
     required Color color,
+    bool isStart = true,
   }) {
-    return Row(
-      children: [
-        Container(
-          padding: EdgeInsets.all(8),
-          decoration: BoxDecoration(
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withOpacity(0.2), width: 2),
+        boxShadow: [
+          BoxShadow(
             color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+            blurRadius: 8,
+            offset: Offset(0, 2),
           ),
-          child: Icon(icon, color: color, size: 20),
-        ),
-        SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[600],
-                ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [color, color.withOpacity(0.8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              SizedBox(height: 2),
-              Text(
-                location.address,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
-                ),
-              ),
-              if (location.city != null) ...[
-                SizedBox(height: 2),
-                Text(
-                  '${location.city}, ${location.state}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: Offset(0, 3),
                 ),
               ],
-            ],
+            ),
+            child: Icon(icon, color: Colors.white, size: 24),
           ),
-        ),
-      ],
+          SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                SizedBox(height: 6),
+                Text(
+                  location.address,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1A1A1A),
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                if (location.city != null) ...[
+                  SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.location_city_rounded,
+                          size: 14, color: Colors.grey[500]),
+                      SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          '${location.city}, ${location.state}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -411,12 +558,25 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       width: double.infinity,
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            Color(0xFFCCE8C9).withOpacity(0.3),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: Color(0xFF215C5C).withOpacity(0.08),
+            blurRadius: 20,
+            offset: Offset(0, 4),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 6,
             offset: Offset(0, 2),
           ),
         ],
@@ -424,52 +584,148 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'detail.package_detail_title'.tr(),
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF215C5C), Color(0xFF2D7A6E)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0xFF215C5C).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Icon(Icons.inventory_2_rounded,
+                    color: Colors.white, size: 20),
+              ),
+              SizedBox(width: 12),
+              Text(
+                'detail.package_detail_title'.tr(),
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A1A),
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
+          Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                  color: Color(0xFF215C5C).withOpacity(0.15), width: 1.5),
+            ),
+            child: Column(
+              children: [
+                _buildDetailRow(
+                  'Type',
+                  _getPackageTypeText(widget.package.packageDetails.type),
+                  Icons.category_rounded,
+                  Color(0xFF215C5C),
+                ),
+                Divider(height: 24, color: Colors.grey[200]),
+                _buildDetailRow(
+                  'Size',
+                  _getPackageSizeText(widget.package.packageDetails.size),
+                  Icons.straighten_rounded,
+                  Color(0xFF2D7A6E),
+                ),
+                Divider(height: 24, color: Colors.grey[200]),
+                _buildDetailRow(
+                  'Weight',
+                  '${widget.package.packageDetails.weightKg} kg',
+                  Icons.fitness_center_rounded,
+                  Color(0xFF215C5C),
+                ),
+                if (widget.package.packageDetails.valueUSD != null) ...[
+                  Divider(height: 24, color: Colors.grey[200]),
+                  _buildDetailRow(
+                    'Value',
+                    '€${widget.package.packageDetails.valueUSD!.toStringAsFixed(2)}',
+                    Icons.euro_rounded,
+                    Color(0xFF2D7A6E),
+                  ),
+                ],
+                if (widget.package.packageDetails.brand?.isNotEmpty ==
+                    true) ...[
+                  Divider(height: 24, color: Colors.grey[200]),
+                  _buildDetailRow(
+                    'Brand',
+                    widget.package.packageDetails.brand!,
+                    Icons.local_offer_rounded,
+                    Color(0xFF215C5C),
+                  ),
+                ],
+              ],
             ),
           ),
-          SizedBox(height: 16),
-          _buildDetailRow(
-              'Type', _getPackageTypeText(widget.package.packageDetails.type)),
-          _buildDetailRow(
-              'Size', _getPackageSizeText(widget.package.packageDetails.size)),
-          _buildDetailRow(
-              'Weight', '${widget.package.packageDetails.weightKg} kg'),
-          if (widget.package.packageDetails.valueUSD != null)
-            _buildDetailRow('Value',
-                '€${widget.package.packageDetails.valueUSD!.toStringAsFixed(2)}'),
-          if (widget.package.packageDetails.brand?.isNotEmpty == true)
-            _buildDetailRow('Brand', widget.package.packageDetails.brand!),
           if (widget.package.packageDetails.isFragile ||
               widget.package.packageDetails.isPerishable ||
               widget.package.packageDetails.requiresRefrigeration) ...[
-            SizedBox(height: 12),
-            Text(
-              'common.special_requirements'.tr(),
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
+            SizedBox(height: 20),
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xFFCCE8C9).withOpacity(0.5),
+                    Color(0xFFCCE8C9).withOpacity(0.3)
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                    color: Color(0xFF2D7A6E).withOpacity(0.3), width: 1.5),
               ),
-            ),
-            SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                if (widget.package.packageDetails.isFragile)
-                  _buildRequirementChip('Fragile', Icons.warning, Colors.amber),
-                if (widget.package.packageDetails.isPerishable)
-                  _buildRequirementChip(
-                      'Perishable', Icons.schedule, Colors.red),
-                if (widget.package.packageDetails.requiresRefrigeration)
-                  _buildRequirementChip(
-                      'Refrigeration', Icons.ac_unit, Color(0xFF008080)),
-              ],
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.warning_rounded,
+                          color: Color(0xFF215C5C), size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'common.special_requirements'.tr(),
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF215C5C),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      if (widget.package.packageDetails.isFragile)
+                        _buildRequirementChip('Fragile',
+                            Icons.bubble_chart_rounded, Color(0xFF215C5C)),
+                      if (widget.package.packageDetails.isPerishable)
+                        _buildRequirementChip('Perishable',
+                            Icons.schedule_rounded, Color(0xFF2D7A6E)),
+                      if (widget.package.packageDetails.requiresRefrigeration)
+                        _buildRequirementChip('Refrigeration',
+                            Icons.ac_unit_rounded, Color(0xFF215C5C)),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ],
@@ -477,54 +733,84 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
+  Widget _buildDetailRow(String label, String value,
+      [IconData? icon, Color? iconColor]) {
+    return Row(
+      children: [
+        if (icon != null) ...[
+          Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: (iconColor ?? Color(0xFF4A90E2)).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
             ),
+            child: Icon(icon, size: 18, color: iconColor ?? Color(0xFF4A90E2)),
           ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.black87,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          SizedBox(width: 12),
         ],
-      ),
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Flexible(
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Color(0xFF1A1A1A),
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.2,
+                  ),
+                  textAlign: TextAlign.right,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildRequirementChip(String label, IconData icon, Color color) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3)),
+        gradient: LinearGradient(
+          colors: [color.withOpacity(0.15), color.withOpacity(0.08)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.4), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.2),
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
-          SizedBox(width: 4),
+          Icon(icon, size: 16, color: color),
+          SizedBox(width: 6),
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
               color: color,
+              letterSpacing: 0.2,
             ),
           ),
         ],
@@ -539,12 +825,25 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       width: double.infinity,
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            Color(0xFFCCE8C9).withOpacity(0.3),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: Color(0xFF2D7A6E).withOpacity(0.08),
+            blurRadius: 20,
+            offset: Offset(0, 4),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 6,
             offset: Offset(0, 2),
           ),
         ],
@@ -552,49 +851,120 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'post_package.step_preferences'.tr(),
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF215C5C), Color(0xFF2D7A6E)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0xFF215C5C).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Icon(Icons.event_available_rounded,
+                    color: Colors.white, size: 20),
+              ),
+              SizedBox(width: 12),
+              Text(
+                'post_package.step_preferences'.tr(),
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A1A),
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
+          Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                  color: Color(0xFF2D7A6E).withOpacity(0.15), width: 1.5),
+            ),
+            child: Column(
+              children: [
+                _buildDetailRow(
+                  'Preferred Date',
+                  formatter.format(widget.package.preferredDeliveryDate),
+                  Icons.calendar_today_rounded,
+                  Color(0xFF215C5C),
+                ),
+                if (widget.package.flexibleDateStart != null &&
+                    widget.package.flexibleDateEnd != null) ...[
+                  Divider(height: 24, color: Colors.grey[200]),
+                  _buildDetailRow(
+                    'Flexible Range',
+                    '${formatter.format(widget.package.flexibleDateStart!)} - ${formatter.format(widget.package.flexibleDateEnd!)}',
+                    Icons.date_range_rounded,
+                    Color(0xFF2D7A6E),
+                  ),
+                ],
+              ],
             ),
           ),
-          SizedBox(height: 16),
-          _buildDetailRow('Preferred Date',
-              formatter.format(widget.package.preferredDeliveryDate)),
-          if (widget.package.flexibleDateStart != null &&
-              widget.package.flexibleDateEnd != null) ...[
-            _buildDetailRow(
-              'Flexible Range',
-              '${formatter.format(widget.package.flexibleDateStart!)} - ${formatter.format(widget.package.flexibleDateEnd!)}',
-            ),
-          ],
-          if (widget.package.isUrgent)
+          if (widget.package.isUrgent) ...[
+            SizedBox(height: 16),
             Container(
-              margin: EdgeInsets.only(top: 8),
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.red.withOpacity(0.3)),
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xFFCCE8C9).withOpacity(0.6),
+                    Color(0xFFCCE8C9).withOpacity(0.4)
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                    color: Color(0xFF215C5C).withOpacity(0.4), width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0xFF215C5C).withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: Offset(0, 3),
+                  ),
+                ],
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.priority_high, size: 14, color: Colors.red),
-                  SizedBox(width: 4),
+                  Container(
+                    padding: EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF215C5C),
+                      shape: BoxShape.circle,
+                    ),
+                    child:
+                        Icon(Icons.bolt_rounded, size: 16, color: Colors.white),
+                  ),
+                  SizedBox(width: 10),
                   Text(
                     'post_package.urgent_delivery'.tr(),
                     style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.red,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF215C5C),
+                      letterSpacing: 0.3,
                     ),
                   ),
                 ],
               ),
             ),
+          ],
         ],
       ),
     );
@@ -605,12 +975,25 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       width: double.infinity,
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFFCCE8C9).withOpacity(0.4),
+            Color(0xFFCCE8C9).withOpacity(0.2),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: Color(0xFF2D7A6E).withOpacity(0.15),
+            blurRadius: 20,
+            offset: Offset(0, 4),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 6,
             offset: Offset(0, 2),
           ),
         ],
@@ -618,71 +1001,177 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'detail.compensation'.tr(),
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
-          ),
-          SizedBox(height: 16),
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Color(0xFF215C5C).withOpacity(0.1),
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF215C5C), Color(0xFF2D7A6E)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0xFF215C5C).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
                 ),
-                child: Icon(
-                  Icons.attach_money,
-                  color: Color(0xFF215C5C),
-                  size: 24,
-                ),
+                child:
+                    Icon(Icons.payments_rounded, color: Colors.white, size: 20),
               ),
-              SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '€${widget.package.compensationOffer.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF215C5C),
-                    ),
-                  ),
-                  Text(
-                    'tracking.offered_for_delivery'.tr(),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
+              SizedBox(width: 12),
+              Text(
+                'detail.compensation'.tr(),
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A1A),
+                  letterSpacing: -0.3,
+                ),
               ),
             ],
+          ),
+          SizedBox(height: 20),
+          Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                  color: Color(0xFF2D7A6E).withOpacity(0.2), width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0xFF2D7A6E).withOpacity(0.1),
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF215C5C), Color(0xFF2D7A6E)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0xFF215C5C).withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.euro_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+                SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'tracking.offered_for_delivery'.tr(),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[700],
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        '€${widget.package.compensationOffer.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF2D7A6E),
+                          letterSpacing: -1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           if (widget.package.insuranceRequired) ...[
             SizedBox(height: 16),
             Container(
-              padding: EdgeInsets.all(12),
+              padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.green.withOpacity(0.3)),
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xFFCCE8C9).withOpacity(0.6),
+                    Color(0xFFCCE8C9).withOpacity(0.4)
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                    color: Color(0xFF215C5C).withOpacity(0.3), width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0xFF215C5C).withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: Offset(0, 3),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
-                  Icon(Icons.security, color: Colors.green, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    'Insured for \$${widget.package.insuranceValue?.toStringAsFixed(2) ?? 'TBD'}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.green[700],
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF215C5C),
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0xFF215C5C).withOpacity(0.3),
+                          blurRadius: 6,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Icon(Icons.verified_user_rounded,
+                        color: Colors.white, size: 22),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Insurance Protected',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF215C5C),
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Coverage: \$${widget.package.insuranceValue?.toStringAsFixed(2) ?? 'TBD'}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF424242),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -699,12 +1188,25 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       width: double.infinity,
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            Color(0xFFCCE8C9).withOpacity(0.3),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: Color(0xFF215C5C).withOpacity(0.08),
+            blurRadius: 20,
+            offset: Offset(0, 4),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 6,
             offset: Offset(0, 2),
           ),
         ],
@@ -712,40 +1214,88 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'post_package.package_photos'.tr(),
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF215C5C), Color(0xFF2D7A6E)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0xFF215C5C).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Icon(Icons.photo_library_rounded,
+                    color: Colors.white, size: 20),
+              ),
+              SizedBox(width: 12),
+              Text(
+                'post_package.package_photos'.tr(),
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A1A),
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ],
           ),
           SizedBox(height: 16),
           SizedBox(
-            height: 100,
+            height: 120,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: widget.package.photoUrls.length,
               itemBuilder: (context, index) {
                 return Container(
-                  margin: EdgeInsets.only(right: 12),
-                  width: 100,
+                  margin: EdgeInsets.only(right: 16),
+                  width: 120,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0xFF215C5C).withOpacity(0.15),
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: CachedNetworkImage(
-                      imageUrl: widget.package.photoUrls[index],
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: Colors.grey[200],
-                        child: Icon(Icons.image, color: Colors.grey),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: Colors.grey[200],
-                        child: Icon(Icons.broken_image, color: Colors.grey),
-                      ),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Stack(
+                      children: [
+                        CustomImageWidget(
+                          imageUrl: widget.package.photoUrls[index],
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.cover,
+                          errorWidget: Container(
+                            color: Color(0xFFCCE8C9).withOpacity(0.3),
+                            child: Icon(Icons.broken_image_rounded,
+                                color: Color(0xFF2D7A6E), size: 32),
+                          ),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Color(0xFF215C5C).withOpacity(0.3),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -762,12 +1312,25 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       width: double.infinity,
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            Color(0xFFCCE8C9).withOpacity(0.3),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: Color(0xFF2D7A6E).withOpacity(0.08),
+            blurRadius: 20,
+            offset: Offset(0, 4),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 6,
             offset: Offset(0, 2),
           ),
         ],
@@ -775,21 +1338,73 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'detail.special_instructions'.tr(),
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF215C5C), Color(0xFF2D7A6E)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0xFF215C5C).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Icon(Icons.info_rounded, color: Colors.white, size: 20),
+              ),
+              SizedBox(width: 12),
+              Text(
+                'detail.special_instructions'.tr(),
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A1A),
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ],
           ),
           SizedBox(height: 16),
-          Text(
-            widget.package.specialInstructions!,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.black87,
-              height: 1.4,
+          Container(
+            padding: EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                  color: Color(0xFF2D7A6E).withOpacity(0.2), width: 1.5),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Color(0xFFCCE8C9).withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.notes_rounded,
+                      color: Color(0xFF215C5C), size: 20),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    widget.package.specialInstructions!,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Color(0xFF2D3748),
+                      height: 1.6,
+                      letterSpacing: -0.1,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

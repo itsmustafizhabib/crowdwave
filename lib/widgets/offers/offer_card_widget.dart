@@ -164,7 +164,8 @@ class _OfferCardWidgetState extends State<OfferCardWidget> {
                 color: Colors.red.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Text('status.expired'.tr(),
+              child: Text(
+                'status.expired'.tr(),
                 style: TextStyle(
                   color: Colors.red,
                   fontSize: 11,
@@ -303,7 +304,8 @@ class _OfferCardWidgetState extends State<OfferCardWidget> {
             children: [
               Icon(Icons.inventory_2, size: 18, color: Colors.grey[700]),
               const SizedBox(width: 6),
-              Text('detail.package_detail_title'.tr(),
+              Text(
+                'detail.package_detail_title'.tr(),
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -366,7 +368,8 @@ class _OfferCardWidgetState extends State<OfferCardWidget> {
                 ),
               ),
               icon: const Icon(Icons.close, size: 18),
-              label: Text('common.decline'.tr(),
+              label: Text(
+                'common.decline'.tr(),
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
@@ -394,7 +397,8 @@ class _OfferCardWidgetState extends State<OfferCardWidget> {
                       ),
                     )
                   : const Icon(Icons.check, size: 18),
-              label: Text('matching.accept'.tr(),
+              label: Text(
+                'matching.accept'.tr(),
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
@@ -483,26 +487,26 @@ class _OfferCardWidgetState extends State<OfferCardWidget> {
     switch (status) {
       case DealStatus.pending:
         return LinearGradient(
-          colors: [Color(0xFF008080), Colors.white],
+          colors: [Colors.white, Colors.white],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         );
       case DealStatus.accepted:
         return LinearGradient(
-          colors: [Colors.green[50]!, Colors.white],
+          colors: [Colors.white, Colors.white],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         );
       case DealStatus.rejected:
       case DealStatus.expired:
         return LinearGradient(
-          colors: [Colors.red[50]!, Colors.white],
+          colors: [Colors.white, Colors.white],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         );
       case DealStatus.cancelled:
         return LinearGradient(
-          colors: [Colors.grey[200]!, Colors.grey[100]!],
+          colors: [Colors.white, Colors.white],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         );

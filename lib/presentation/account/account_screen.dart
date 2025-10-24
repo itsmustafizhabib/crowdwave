@@ -253,7 +253,7 @@ class _AccountScreenState extends State<AccountScreen> {
           title: 'account.support'.tr(),
           children: [
             _buildAccountOption(
-              icon: Icons.help_outline,
+              icon: Icons.headset_mic,
               title: 'drawer.help_support'.tr(),
               onTap: _showHelpSupportDialog,
             ),
@@ -562,59 +562,77 @@ class _AccountScreenState extends State<AccountScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       backgroundColor: const Color(0xFFFFFFFF),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Color(0xFFFFFFFF),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom +
+              MediaQuery.of(context).padding.bottom +
+              20,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF215C5C),
-                    borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: const BoxDecoration(
+            color: Color(0xFFFFFFFF),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF215C5C),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.headset_mic,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.headset_mic,
-                    color: Colors.white,
-                    size: 28,
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Support & Help',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'Support & Help',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            _buildSupportOptionRow(
-              icon: Icons.email_outlined,
-              title: 'account.email_support'.tr(),
-              subtitle: 'info@crowdwave.eu',
-              onTap: () async {
-                Navigator.pop(context);
-                final Uri emailUri = Uri(
-                  scheme: 'mailto',
-                  path: 'info@crowdwave.eu',
-                  query: 'subject=Support Request',
-                );
-                try {
-                  if (await canLaunchUrl(emailUri)) {
-                    await launchUrl(emailUri);
-                  } else {
+                ],
+              ),
+              const SizedBox(height: 20),
+              _buildSupportOptionRow(
+                icon: Icons.email_outlined,
+                title: 'account.email_support'.tr(),
+                subtitle: 'info@crowdwave.eu',
+                onTap: () async {
+                  Navigator.pop(context);
+                  final Uri emailUri = Uri(
+                    scheme: 'mailto',
+                    path: 'info@crowdwave.eu',
+                    query: 'subject=Support Request',
+                  );
+                  try {
+                    if (await canLaunchUrl(emailUri)) {
+                      await launchUrl(emailUri);
+                    } else {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Could not open email app. Please email us at info@crowdwave.eu'),
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                      }
+                    }
+                  } catch (e) {
+                    print('Error launching email: $e');
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
+                        SnackBar(
                           content: Text(
                               'Could not open email app. Please email us at info@crowdwave.eu'),
                           duration: Duration(seconds: 3),
@@ -622,50 +640,41 @@ class _AccountScreenState extends State<AccountScreen> {
                       );
                     }
                   }
-                } catch (e) {
-                  print('Error launching email: $e');
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                            'Could not open email app. Please email us at info@crowdwave.eu'),
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
+                },
+              ),
+              const Divider(height: 24),
+              _buildSupportOptionRow(
+                icon: Icons.chat_bubble_outline,
+                title: 'account.whatsapp'.tr(),
+                subtitle: 'account.whatsapp_desc'.tr(),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final Uri whatsappUri =
+                      Uri.parse('https://wa.me/491782045474');
+                  if (await canLaunchUrl(whatsappUri)) {
+                    await launchUrl(whatsappUri,
+                        mode: LaunchMode.externalApplication);
                   }
-                }
-              },
-            ),
-            const Divider(height: 24),
-            _buildSupportOptionRow(
-              icon: Icons.chat_bubble_outline,
-              title: 'account.whatsapp'.tr(),
-              subtitle: 'account.whatsapp_desc'.tr(),
-              onTap: () async {
-                Navigator.pop(context);
-                final Uri whatsappUri = Uri.parse('https://wa.me/491782045474');
-                if (await canLaunchUrl(whatsappUri)) {
-                  await launchUrl(whatsappUri,
-                      mode: LaunchMode.externalApplication);
-                }
-              },
-            ),
-            const Divider(height: 24),
-            _buildSupportOptionRow(
-              icon: Icons.help_center_outlined,
-              title: 'account.help_center'.tr(),
-              subtitle: 'account.help_center_desc'.tr(),
-              onTap: () async {
-                Navigator.pop(context);
-                final Uri faqUri = Uri.parse(
-                    'https://crowdwave-website-live.vercel.app/index.html#faq');
-                if (await canLaunchUrl(faqUri)) {
-                  await launchUrl(faqUri, mode: LaunchMode.externalApplication);
-                }
-              },
-            ),
-            const SizedBox(height: 10),
-          ],
+                },
+              ),
+              const Divider(height: 24),
+              _buildSupportOptionRow(
+                icon: Icons.help_center_outlined,
+                title: 'account.help_center'.tr(),
+                subtitle: 'account.help_center_desc'.tr(),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final Uri faqUri = Uri.parse(
+                      'https://crowdwave-website-live.vercel.app/index.html#faq');
+                  if (await canLaunchUrl(faqUri)) {
+                    await launchUrl(faqUri,
+                        mode: LaunchMode.externalApplication);
+                  }
+                },
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
         ),
       ),
     );

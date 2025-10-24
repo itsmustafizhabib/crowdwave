@@ -9,6 +9,7 @@ export 'deal_offer.dart';
 export 'delivery_tracking.dart';
 export 'matching_models.dart';
 export '../../models/notification_model.dart';
+export 'recipient_details.dart';
 
 // Booking & Payment Models
 export 'booking.dart';

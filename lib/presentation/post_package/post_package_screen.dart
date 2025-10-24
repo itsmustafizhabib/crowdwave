@@ -12,6 +12,7 @@ import '../../services/image_storage_service.dart';
 import './widgets/location_picker_widget.dart';
 import './widgets/package_details_widget.dart';
 import './widgets/compensation_widget.dart';
+import './widgets/receiver_details_widget.dart';
 import '../../core/validation_messages.dart';
 import '../../core/error_recovery_helper.dart';
 
@@ -35,13 +36,17 @@ class _PostPackageScreenState extends State<PostPackageScreen>
 
   // Form Data
   int _currentStep = 0;
-  final int _totalSteps = 4;
+  final int _totalSteps =
+      5; // Increased from 4 to 5 to include receiver details
 
   // Step 1: Locations
   Location? _pickupLocation;
   Location? _destinationLocation;
 
-  // Step 2: Package Details
+  // Step 2: Receiver Details
+  RecipientDetails? _receiverDetails;
+
+  // Step 3: Package Details
   final TextEditingController _descriptionController = TextEditingController();
   PackageSize? _selectedSize;
   double _weightKg = 0.1;
@@ -138,6 +143,7 @@ class _PostPackageScreenState extends State<PostPackageScreen>
                 physics: NeverScrollableScrollPhysics(),
                 children: [
                   _buildLocationStep(),
+                  _buildReceiverDetailsStep(),
                   _buildPackageDetailsStep(),
                   _buildDeliveryPreferencesStep(),
                   _buildCompensationStep(),
@@ -224,10 +230,12 @@ class _PostPackageScreenState extends State<PostPackageScreen>
       case 0:
         return 'post_package.step_locations'.tr();
       case 1:
-        return 'post_package.step_details'.tr();
+        return 'post_package.step_receiver_details'.tr();
       case 2:
-        return 'post_package.step_preferences'.tr();
+        return 'post_package.step_details'.tr();
       case 3:
+        return 'post_package.step_preferences'.tr();
+      case 4:
         return 'post_package.step_compensation'.tr();
       default:
         return '';
@@ -239,10 +247,12 @@ class _PostPackageScreenState extends State<PostPackageScreen>
       case 0:
         return 'post_package.subtitle_locations'.tr();
       case 1:
-        return 'post_package.subtitle_details'.tr();
+        return 'post_package.subtitle_receiver_details'.tr();
       case 2:
-        return 'post_package.subtitle_preferences'.tr();
+        return 'post_package.subtitle_details'.tr();
       case 3:
+        return 'post_package.subtitle_preferences'.tr();
+      case 4:
         return 'post_package.subtitle_compensation'.tr();
       default:
         return '';
@@ -311,6 +321,20 @@ class _PostPackageScreenState extends State<PostPackageScreen>
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildReceiverDetailsStep() {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(4.w),
+      child: ReceiverDetailsWidget(
+        receiverDetails: _receiverDetails,
+        onReceiverDetailsChanged: (details) {
+          setState(() {
+            _receiverDetails = details;
+          });
+        },
       ),
     );
   }
@@ -428,7 +452,8 @@ class _PostPackageScreenState extends State<PostPackageScreen>
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  subtitle: Text('post_package.flexible_hint'.tr(),
+                  subtitle: Text(
+                    'post_package.flexible_hint'.tr(),
                     style: TextStyle(fontSize: 10.sp),
                   ),
                   controlAffinity: ListTileControlAffinity.leading,
@@ -739,6 +764,21 @@ class _PostPackageScreenState extends State<PostPackageScreen>
         }
         return true;
       case 1:
+        // Receiver Details validation
+        if (_receiverDetails == null) {
+          _showErrorSnackBar('post_package.validation_receiver_required'.tr());
+          return false;
+        }
+        if (_receiverDetails!.name.trim().isEmpty) {
+          _showErrorSnackBar('post_package.receiver_name_required'.tr());
+          return false;
+        }
+        if (_receiverDetails!.phone.trim().isEmpty) {
+          _showErrorSnackBar('post_package.receiver_phone_required'.tr());
+          return false;
+        }
+        return true;
+      case 2:
         String? descriptionError =
             ValidationMessages.validatePackageDescription(
                 _descriptionController.text);
@@ -759,9 +799,9 @@ class _PostPackageScreenState extends State<PostPackageScreen>
           return false;
         }
         return true;
-      case 2:
-        return true; // All fields are optional or have defaults
       case 3:
+        return true; // All fields are optional or have defaults
+      case 4:
         String? compensationError =
             ValidationMessages.validateCompensation(_compensationOffer);
         if (compensationError != null) {
@@ -896,6 +936,7 @@ class _PostPackageScreenState extends State<PostPackageScreen>
                 : null,
         isUrgent: _isUrgent,
         preferredTransportModes: _preferredTransportModes,
+        receiverDetails: _receiverDetails, // Added receiver details
       );
 
       final packageId =

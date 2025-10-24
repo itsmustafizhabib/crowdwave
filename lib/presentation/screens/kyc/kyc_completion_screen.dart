@@ -346,7 +346,8 @@ class _KYCCompletionScreenState extends State<KYCCompletionScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: Text('common.got_it'.tr(),
+                  child: Text(
+                    'common.got_it'.tr(),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -365,7 +366,8 @@ class _KYCCompletionScreenState extends State<KYCCompletionScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: Text('kyc.complete_title'.tr(),
+        title: Text(
+          'kyc.complete_title'.tr(),
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -589,7 +591,7 @@ class _KYCCompletionScreenState extends State<KYCCompletionScreen> {
               // Submit Button
               _buildSubmitButton(),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 80),
             ],
           ),
         ),
@@ -601,7 +603,8 @@ class _KYCCompletionScreenState extends State<KYCCompletionScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('kyc.kyc_verification_progress'.tr(),
+        Text(
+          'kyc.kyc_verification_progress'.tr(),
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,

@@ -95,10 +95,13 @@ class _OffersTabScreenState extends State<OffersTabScreen>
             unselectedLabelColor: Colors.white70,
             indicatorColor: Colors.white,
             indicatorWeight: 3,
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            labelPadding: const EdgeInsets.symmetric(horizontal: 16.0),
             tabs: [
               Tab(text: 'offers.new_offers'.tr()),
               Tab(text: 'offers.accepted'.tr()),
-              Tab(text: 'offers.rejected'.tr()),
+              Tab(text: 'Declined/Expired'),
             ],
           ),
         ),
@@ -143,13 +146,14 @@ class _OffersTabScreenState extends State<OffersTabScreen>
         builder: (context) {
           // Show loading state
           if (_isLoading) {
-            return Center (
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   LiquidLoadingIndicator(),
                   SizedBox(height: 16),
-                  Text('common.loading_offers'.tr(),
+                  Text(
+                    'common.loading_offers'.tr(),
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 16,

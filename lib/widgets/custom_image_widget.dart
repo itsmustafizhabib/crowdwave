@@ -29,7 +29,7 @@ class CustomImageWidget extends StatelessWidget {
       return _buildFallbackWidget();
     }
 
-    // Check if the image is Base64 encoded (starts with data:image/)
+    // Check if the image is Base64 encoded (starts with data:image/ OR looks like raw base64)
     if (imageUrl!.startsWith('data:image/')) {
       try {
         // Extract Base64 data from the data URL
@@ -48,6 +48,27 @@ class CustomImageWidget extends StatelessWidget {
       } catch (e) {
         // If Base64 decoding fails, show fallback
         return _buildFallbackWidget();
+      }
+    }
+
+    // Check if it's a raw base64 string (no http/https prefix and long string)
+    if (!imageUrl!.startsWith('http') && imageUrl!.length > 100) {
+      try {
+        // Try to decode as raw base64
+        final bytes = base64Decode(imageUrl!);
+
+        return Image.memory(
+          bytes,
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: (context, error, stackTrace) {
+            return _buildFallbackWidget();
+          },
+        );
+      } catch (e) {
+        // If Base64 decoding fails, treat as network URL
+        print('Failed to decode as base64, treating as network URL: $e');
       }
     }
 

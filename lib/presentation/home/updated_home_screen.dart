@@ -280,101 +280,88 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                           ],
                         ),
                       ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Support Icon
-                          IconButton(
-                            icon: const Icon(
-                              Icons.help_outline,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                            onPressed: _showHelpSupportDialog,
-                            tooltip: 'Help & Support',
-                            padding: const EdgeInsets.all(8),
-                            constraints: const BoxConstraints(
-                              minWidth: 40,
-                              minHeight: 40,
-                            ),
-                          ),
-
-                          // Community Forum Icon
-                          IconButton(
-                            icon: const Icon(
-                              Icons.forum,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const CommunityForumScreen(),
-                                ),
-                              );
-                            },
-                            tooltip: 'Community Forum',
-                            padding: const EdgeInsets.all(8),
-                            constraints: const BoxConstraints(
-                              minWidth: 40,
-                              minHeight: 40,
-                            ),
-                          ),
-
-                          // Notification Bell with Badge
-                          Stack(
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.notifications_outlined,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                                onPressed: () {
-                                  Navigator.pushNamed(
-                                      context, '/notifications');
-                                },
-                                tooltip: 'Notifications',
-                                padding: const EdgeInsets.all(8),
-                                constraints: const BoxConstraints(
-                                  minWidth: 40,
-                                  minHeight: 40,
-                                ),
+                      Container(
+                        padding: EdgeInsets.zero,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Support Icon
+                            InkWell(
+                              onTap: _showHelpSupportDialog,
+                              child: const Icon(
+                                Icons.headset_mic,
+                                color: Colors.white,
+                                size: 18,
                               ),
-                              // Badge for unread notifications
-                              if (_notificationService.unreadCount > 0)
-                                Positioned(
-                                  right: 4,
-                                  top: 4,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: const BoxDecoration(
-                                      color: Colors.red,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    constraints: const BoxConstraints(
-                                      minWidth: 16,
-                                      minHeight: 16,
-                                    ),
-                                    child: Text(
-                                      _notificationService.unreadCount > 9
-                                          ? '9+'
-                                          : _notificationService.unreadCount
-                                              .toString(),
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
+                            ),
+                            const SizedBox(width: 16),
+
+                            // Community Forum Icon
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const CommunityForumScreen(),
+                                  ),
+                                );
+                              },
+                              child: const Icon(
+                                Icons.people,
+                                color: Colors.white,
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+
+                            // Notification Bell with Badge
+                            Stack(
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    Navigator.pushNamed(
+                                        context, '/notifications');
+                                  },
+                                  child: const Icon(
+                                    Icons.notifications_outlined,
+                                    color: Colors.white,
+                                    size: 22,
                                   ),
                                 ),
-                            ],
-                          ),
-                        ],
+                                // Badge for unread notifications
+                                if (_notificationService.unreadCount > 0)
+                                  Positioned(
+                                    right: 4,
+                                    top: 4,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 16,
+                                        minHeight: 16,
+                                      ),
+                                      child: Text(
+                                        _notificationService.unreadCount > 9
+                                            ? '9+'
+                                            : _notificationService.unreadCount
+                                                .toString(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -2134,56 +2121,74 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       backgroundColor: const Color(0xFFFFFFFF),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Color(0xFFFFFFFF),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom +
+              MediaQuery.of(context).padding.bottom +
+              20,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF215C5C),
-                    borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: const BoxDecoration(
+            color: Color(0xFFFFFFFF),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF215C5C),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.headset_mic,
+                      color: Colors.white,
+                      size: 23,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.headset_mic,
-                    color: Colors.white,
-                    size: 28,
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Support & Help',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'Support & Help',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            _buildSupportOptionRow(
-              icon: Icons.email_outlined,
-              title: 'account.email_support'.tr(),
-              subtitle: 'info@crowdwave.eu',
-              onTap: () async {
-                Navigator.pop(context);
-                final Uri emailUri = Uri(
-                  scheme: 'mailto',
-                  path: 'info@crowdwave.eu',
-                  query: 'subject=Support Request',
-                );
-                try {
-                  if (await canLaunchUrl(emailUri)) {
-                    await launchUrl(emailUri);
-                  } else {
+                ],
+              ),
+              const SizedBox(height: 20),
+              _buildSupportOptionRow(
+                icon: Icons.email_outlined,
+                title: 'account.email_support'.tr(),
+                subtitle: 'info@crowdwave.eu',
+                onTap: () async {
+                  Navigator.pop(context);
+                  final Uri emailUri = Uri(
+                    scheme: 'mailto',
+                    path: 'info@crowdwave.eu',
+                    query: 'subject=Support Request',
+                  );
+                  try {
+                    if (await canLaunchUrl(emailUri)) {
+                      await launchUrl(emailUri);
+                    } else {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Could not open email app. Please email us at info@crowdwave.eu'),
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                      }
+                    }
+                  } catch (e) {
+                    print('Error launching email: $e');
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -2194,50 +2199,41 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                       );
                     }
                   }
-                } catch (e) {
-                  print('Error launching email: $e');
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                            'Could not open email app. Please email us at info@crowdwave.eu'),
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
+                },
+              ),
+              const Divider(height: 24),
+              _buildSupportOptionRow(
+                icon: Icons.chat_bubble_outline,
+                title: 'account.whatsapp'.tr(),
+                subtitle: 'account.whatsapp_desc'.tr(),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final Uri whatsappUri =
+                      Uri.parse('https://wa.me/491782045474');
+                  if (await canLaunchUrl(whatsappUri)) {
+                    await launchUrl(whatsappUri,
+                        mode: LaunchMode.externalApplication);
                   }
-                }
-              },
-            ),
-            const Divider(height: 24),
-            _buildSupportOptionRow(
-              icon: Icons.chat_bubble_outline,
-              title: 'account.whatsapp'.tr(),
-              subtitle: 'account.whatsapp_desc'.tr(),
-              onTap: () async {
-                Navigator.pop(context);
-                final Uri whatsappUri = Uri.parse('https://wa.me/491782045474');
-                if (await canLaunchUrl(whatsappUri)) {
-                  await launchUrl(whatsappUri,
-                      mode: LaunchMode.externalApplication);
-                }
-              },
-            ),
-            const Divider(height: 24),
-            _buildSupportOptionRow(
-              icon: Icons.help_center_outlined,
-              title: 'account.help_center'.tr(),
-              subtitle: 'account.help_center_desc'.tr(),
-              onTap: () async {
-                Navigator.pop(context);
-                final Uri faqUri = Uri.parse(
-                    'https://crowdwave-website-live.vercel.app/index.html#faq');
-                if (await canLaunchUrl(faqUri)) {
-                  await launchUrl(faqUri, mode: LaunchMode.externalApplication);
-                }
-              },
-            ),
-            const SizedBox(height: 10),
-          ],
+                },
+              ),
+              const Divider(height: 24),
+              _buildSupportOptionRow(
+                icon: Icons.help_center_outlined,
+                title: 'account.help_center'.tr(),
+                subtitle: 'account.help_center_desc'.tr(),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final Uri faqUri = Uri.parse(
+                      'https://crowdwave-website-live.vercel.app/index.html#faq');
+                  if (await canLaunchUrl(faqUri)) {
+                    await launchUrl(faqUri,
+                        mode: LaunchMode.externalApplication);
+                  }
+                },
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
         ),
       ),
     );

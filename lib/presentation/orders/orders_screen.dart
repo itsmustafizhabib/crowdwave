@@ -23,7 +23,12 @@ import '../trip_detail/trip_detail_screen.dart';
 import '../offers/offers_tab_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
-  const OrdersScreen({Key? key}) : super(key: key);
+  final int? initialTabIndex;
+
+  const OrdersScreen({
+    Key? key,
+    this.initialTabIndex,
+  }) : super(key: key);
 
   @override
   State<OrdersScreen> createState() => _OrdersScreenState();
@@ -50,9 +55,11 @@ class _OrdersScreenState extends State<OrdersScreen>
   void initState() {
     super.initState();
     _tabController = TabController(
-        length: 6,
-        vsync:
-            this); // 6 tabs: Active, Offers, Delivered, Pending, Payment Due, My Orders
+      length: 6,
+      vsync: this,
+      initialIndex: widget.initialTabIndex ??
+          0, // Use provided initial index or default to 0
+    ); // 6 tabs: Active, Offers, Delivered, Pending, Payment Due, My Orders
     _initializeServices().then((_) {
       if (mounted) {
         _setupRealTimeStreams();

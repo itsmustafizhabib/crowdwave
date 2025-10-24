@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:easy_localization/easy_localization.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/notification_model.dart';
 import '../../services/notification_service.dart';
-import '../../services/auth_state_service.dart';
 import '../../core/repositories/trip_repository.dart';
 import '../../core/repositories/package_repository.dart';
 import '../trip_detail/trip_detail_screen.dart';
 import '../package_detail/package_detail_screen.dart';
-import '../chat/individual_chat_screen.dart';
 import '../../widgets/liquid_refresh_indicator.dart';
 
 class NotificationScreen extends StatelessWidget {
@@ -22,7 +19,8 @@ class NotificationScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: Text('notifications.title'.tr(),
+        title: Text(
+          'notifications.title'.tr(),
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 20,
@@ -40,7 +38,8 @@ class NotificationScreen extends StatelessWidget {
             return hasUnread
                 ? TextButton(
                     onPressed: () => notificationService.markAllAsRead(),
-                    child: Text('common.mark_all_read'.tr(),
+                    child: Text(
+                      'common.mark_all_read'.tr(),
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 14,
@@ -96,7 +95,8 @@ class NotificationScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          Text('notifications.no_notifications'.tr(),
+          Text(
+            'notifications.no_notifications'.tr(),
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
@@ -228,7 +228,8 @@ class NotificationScreen extends StatelessWidget {
                                 color: const Color(0xFF215C5C).withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              child: Text('common.tap_to_view_offer'.tr(),
+                              child: Text(
+                                'common.tap_to_view_offer'.tr(),
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: Color(0xFF215C5C),
@@ -357,8 +358,8 @@ class NotificationScreen extends StatelessWidget {
         case NotificationType.offerReceived:
         case NotificationType.offerAccepted:
         case NotificationType.offerRejected:
-          // Navigate to chat where the offer is located
-          await _navigateToOfferChat(context, notification);
+          // Navigate to Orders screen with Offers tab selected
+          _navigateToOffersTab(context);
           break;
         case NotificationType.tripUpdate:
           // Navigate to trip detail
@@ -383,110 +384,17 @@ class NotificationScreen extends StatelessWidget {
     }
   }
 
-  /// Navigate to chat screen where the offer can be accepted/rejected
-  Future<void> _navigateToOfferChat(
-      BuildContext context, NotificationModel notification) async {
-    try {
-      final authService = AuthStateService();
-      final currentUserId = authService.currentUser?.uid;
+  /// Navigate to Orders screen with Offers tab selected
+  void _navigateToOffersTab(BuildContext context) {
+    // Navigate back to main navigation screen
+    // The MainNavigationScreen manages the bottom nav, Orders is at index 2
+    Navigator.of(context).popUntil((route) => route.isFirst);
 
-      if (currentUserId == null) {
-        Get.snackbar(
-          'Error',
-          'Please log in to view offers',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        return;
-      }
-
-      // Get data from notification
-      final packageId = notification.data?['packageId'];
-      final dealId = notification.data?['dealId'];
-
-      if (packageId == null) {
-        Get.snackbar(
-          'Error',
-          'Package information not found',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        return;
-      }
-
-      // Get package data to find conversation
-      final packageDoc = await FirebaseFirestore.instance
-          .collection('packageRequests')
-          .doc(packageId)
-          .get();
-
-      if (!packageDoc.exists) {
-        Get.snackbar(
-          'Error',
-          'Package not found',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        return;
-      }
-
-      final packageData = packageDoc.data()!;
-      final senderId = packageData['senderId'];
-
-      // Get deal to find the traveler and conversation
-      if (dealId != null) {
-        final dealDoc = await FirebaseFirestore.instance
-            .collection('deals')
-            .doc(dealId)
-            .get();
-
-        if (dealDoc.exists) {
-          final dealData = dealDoc.data()!;
-          final conversationId = dealData['conversationId'];
-          final travelerId = dealData['travelerId'];
-
-          // Determine the other user (who to chat with)
-          final otherUserId = currentUserId == senderId ? travelerId : senderId;
-
-          // Get other user's data
-          final otherUserDoc = await FirebaseFirestore.instance
-              .collection('users')
-              .doc(otherUserId)
-              .get();
-
-          final otherUserName = otherUserDoc.exists
-              ? (otherUserDoc.data()?['displayName'] ?? 'User')
-              : 'User';
-          final otherUserAvatar = otherUserDoc.data()?['photoURL'] as String?;
-
-          // Navigate to chat
-          Get.to(() => IndividualChatScreen(
-                conversationId: conversationId,
-                otherUserName: otherUserName,
-                otherUserId: otherUserId,
-                otherUserAvatar: otherUserAvatar,
-              ));
-
-          // Show guidance snackbar
-          Future.delayed(const Duration(milliseconds: 500), () {
-            Get.snackbar(
-              'Offer in Chat',
-              'You can accept or decline the offer in the chat conversation',
-              backgroundColor: const Color(0xFF215C5C),
-              colorText: Colors.white,
-              duration: const Duration(seconds: 3),
-            );
-          });
-        }
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to open chat: $e',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    }
+    // Use Get to navigate and pass the tab index
+    Get.offAllNamed('/main-navigation', arguments: {
+      'selectedIndex': 2, // Orders tab in bottom navigation
+      'ordersTabIndex': 1, // Offers tab within Orders screen
+    });
   }
 
   /// Navigate to trip detail page
