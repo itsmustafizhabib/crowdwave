@@ -708,26 +708,31 @@ class ChatController extends GetxController {
         }
       }
 
-      // ✅ FIX: If messages haven't loaded yet, force load them now
-      if (!_conversationsWithData.contains(conversationId)) {
+      // ✅ CRITICAL FIX: Always force load if messagesMap doesn't have the key or is empty
+      // This handles cases where the stream exists but hasn't emitted data yet,
+      // or when messages were cleared but the subscription is still active
+      final hasMessages = messagesMap.containsKey(conversationId) &&
+          (messagesMap[conversationId]?.isNotEmpty ?? false);
+
+      if (!hasMessages || !_conversationsWithData.contains(conversationId)) {
         if (kDebugMode) {
           print(
               '⚡ Messages not loaded yet, forcing immediate load for: $conversationId');
         }
-        
+
         try {
           // Force load messages immediately using a one-time fetch
           final messages = await _chatService.getMessagesOnce(conversationId);
-          
+
           // Update messages map
           messagesMap[conversationId] = messages;
           _conversationsWithData.add(conversationId);
-          
+
           if (kDebugMode) {
             print(
                 '✅ Force loaded ${messages.length} messages for: $conversationId');
           }
-          
+
           // Mark messages as read
           if (messages.isNotEmpty) {
             _markMessagesAsReadIfNeeded(conversationId, messages);
@@ -751,6 +756,31 @@ class ChatController extends GetxController {
     // If not already monitored globally, start individual monitoring
     if (kDebugMode) {
       print('🔄 Starting individual message monitoring for: $conversationId');
+    }
+
+    // ✅ CRITICAL FIX: Force load messages BEFORE setting up stream listener
+    // This ensures we have immediate data even if the stream doesn't emit right away
+    if (!messagesMap.containsKey(conversationId) ||
+        (messagesMap[conversationId]?.isEmpty ?? true)) {
+      if (kDebugMode) {
+        print(
+            '⚡ Pre-loading messages before stream setup for: $conversationId');
+      }
+
+      try {
+        final messages = await _chatService.getMessagesOnce(conversationId);
+        messagesMap[conversationId] = messages;
+        _conversationsWithData.add(conversationId);
+
+        if (kDebugMode) {
+          print(
+              '✅ Pre-loaded ${messages.length} messages for: $conversationId');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('⚠️ Error pre-loading messages (will wait for stream): $e');
+        }
+      }
     }
 
     // ✅ CRITICAL FIX: DO NOT initialize empty array here
@@ -1155,7 +1185,10 @@ class ChatController extends GetxController {
 
   // ✅ NEW: Check if conversation has received its first Firestore data
   bool hasReceivedMessages(String conversationId) {
-    return _conversationsWithData.contains(conversationId);
+    // Check both the data flag AND whether messagesMap actually has the key
+    // This ensures UI shows loading only when truly no data has arrived
+    return _conversationsWithData.contains(conversationId) ||
+        messagesMap.containsKey(conversationId);
   }
 
   // Get unread count for a conversation

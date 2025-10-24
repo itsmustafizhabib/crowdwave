@@ -37,12 +37,10 @@ class LocationService {
       // Prevent multiple simultaneous location requests
       if (_isUpdatingLocation) {
         if (kDebugMode) {
-          print('Location update already in progress, waiting...');
+          print(
+              'Location update already in progress, returning cached location...');
         }
-        // Wait for ongoing request to complete and return cached result
-        while (_isUpdatingLocation) {
-          await Future.delayed(const Duration(milliseconds: 100));
-        }
+        // Return cached location immediately if available
         return _cachedPosition;
       }
 
@@ -52,13 +50,23 @@ class LocationService {
       final hasPermission = await _checkLocationPermission();
       if (!hasPermission) {
         _isUpdatingLocation = false;
-        throw LocationPermissionException('Location permission not granted');
+
+        if (kDebugMode) {
+          print('Location permission not granted, requesting...');
+        }
+
+        // Try to request permission
+        final granted = await requestLocationPermission();
+        if (!granted) {
+          throw LocationPermissionException('Location permission not granted');
+        }
       }
 
-      // Get fresh location
+      // Get fresh location with longer timeout
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: accuracy,
-        timeLimit: const Duration(seconds: 10), // Timeout after 10 seconds
+        timeLimit:
+            const Duration(seconds: 30), // Increased timeout to 30 seconds
       );
 
       // Cache the new location
@@ -132,6 +140,25 @@ class LocationService {
     return await getCurrentLocation(
       accuracy: LocationAccuracy.low,
       forceRefresh: false, // Cached location is fine for notifications
+    );
+  }
+
+  /// Get location for chat/messaging (high accuracy, always fresh)
+  Future<Position?> getLocationForChat() async {
+    if (kDebugMode) {
+      print('Getting high-accuracy location for chat');
+    }
+
+    // First ensure we have permission
+    final hasPermission = await requestLocationPermission();
+    if (!hasPermission) {
+      throw LocationPermissionException(
+          'Location permission required to share location');
+    }
+
+    return await getCurrentLocation(
+      accuracy: LocationAccuracy.high,
+      forceRefresh: true, // Always get fresh location for sharing
     );
   }
 

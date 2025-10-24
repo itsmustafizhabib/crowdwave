@@ -73,6 +73,34 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
 
   Future<void> _initializeChat() async {
     try {
+      // ✅ CRITICAL FIX: Check if messages are already loaded, if not force load them first
+      // This handles the case where ChatController was recreated but ChatService has the stream
+      final hasMessages =
+          _chatController.messagesMap.containsKey(widget.conversationId) &&
+              (_chatController.messagesMap[widget.conversationId]?.isNotEmpty ??
+                  false);
+
+      if (!hasMessages) {
+        if (kDebugMode) {
+          print(
+              '⚡ CHAT INIT: Messages not in memory, force loading for: ${widget.conversationId}');
+        }
+
+        try {
+          final messages = await _chatController.chatService
+              .getMessagesOnce(widget.conversationId);
+          _chatController.messagesMap[widget.conversationId] = messages;
+
+          if (kDebugMode) {
+            print('✅ CHAT INIT: Force loaded ${messages.length} messages');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('⚠️ CHAT INIT: Error force loading messages: $e');
+          }
+        }
+      }
+
       // ✅ IMMEDIATE: Start listening to the provided conversation ID right away
       // This ensures we show messages immediately without waiting for creation
       await _chatController.startListeningToMessages(widget.conversationId);
@@ -1146,12 +1174,24 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
       // Show loading indicator
       EnhancedSnackBar.showInfo(context, 'Getting your location...');
 
-      // Get current location
-      final position = await _locationService.getCurrentLocation(forceRefresh: true);
+      if (kDebugMode) {
+        print('🗺️ Starting to get current location for chat...');
+      }
+
+      // Get current location with proper error handling
+      final position = await _locationService.getLocationForChat();
 
       if (position == null) {
-        EnhancedSnackBar.showError(context, 'Could not get your location. Please check your permissions and try again.');
+        if (kDebugMode) {
+          print('❌ Location returned null');
+        }
+        EnhancedSnackBar.showError(context,
+            'Could not get your location. Please check your permissions and try again.');
         return;
+      }
+
+      if (kDebugMode) {
+        print('✅ Got location: ${position.latitude}, ${position.longitude}');
       }
 
       // Send location message
@@ -1176,42 +1216,82 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error sending location: $e');
+        print('❌ Error sending location: $e');
       }
-      
+
       // Handle specific permission errors
       String errorMessage = 'Failed to share location';
-      if (e.toString().contains('permission')) {
-        errorMessage = 'Location permission required. Please enable it in settings.';
-        
+
+      if (e is LocationPermissionException) {
+        errorMessage = e.message;
+
         // Show dialog to open settings
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Location Permission Required'),
-            content: const Text('To share your location, please enable location permission in your device settings.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _locationService.openAppSettings();
-                },
-                child: const Text('Open Settings'),
-              ),
-            ],
-          ),
-        );
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Location Permission Required'),
+              content: Text(e.message),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _locationService.openAppSettings();
+                  },
+                  child: const Text('Open Settings'),
+                ),
+              ],
+            ),
+          );
+        }
+        return;
+      } else if (e is LocationServiceException) {
+        errorMessage = e.message;
+      } else if (e.toString().contains('permission')) {
+        errorMessage =
+            'Location permission denied. Please enable it in settings.';
+
+        // Show dialog to open settings
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Location Permission Required'),
+              content: const Text(
+                  'To share your location, please enable location permission in your device settings.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _locationService.openAppSettings();
+                  },
+                  child: const Text('Open Settings'),
+                ),
+              ],
+            ),
+          );
+        }
+        return;
       } else if (e.toString().contains('disabled')) {
-        errorMessage = 'Location services are disabled. Please enable them in settings.';
-      } else if (e.toString().contains('timeout')) {
-        errorMessage = 'Location request timed out. Please try again.';
+        errorMessage =
+            'Location services are disabled. Please enable them in device settings.';
+      } else if (e.toString().contains('timeout') ||
+          e.toString().contains('TimeoutException')) {
+        errorMessage =
+            'Location request timed out. Please make sure location services are enabled and try again.';
       }
-      
-      EnhancedSnackBar.showError(context, errorMessage);
+
+      if (mounted) {
+        EnhancedSnackBar.showError(context, errorMessage);
+      }
     }
   }
 
@@ -1221,12 +1301,25 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
       // Show loading indicator
       EnhancedSnackBar.showInfo(context, 'Starting live location sharing...');
 
-      // Get initial location
-      final position = await _locationService.getCurrentLocation(forceRefresh: true);
+      if (kDebugMode) {
+        print('🗺️ Starting to get live location for chat...');
+      }
+
+      // Get initial location with proper error handling
+      final position = await _locationService.getLocationForChat();
 
       if (position == null) {
-        EnhancedSnackBar.showError(context, 'Could not get your location. Please check your permissions and try again.');
+        if (kDebugMode) {
+          print('❌ Live location returned null');
+        }
+        EnhancedSnackBar.showError(context,
+            'Could not get your location. Please check your permissions and try again.');
         return;
+      }
+
+      if (kDebugMode) {
+        print(
+            '✅ Got live location: ${position.latitude}, ${position.longitude}');
       }
 
       // Send initial live location message
@@ -1245,11 +1338,13 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
       });
 
       if (!success) {
-        EnhancedSnackBar.showError(context, 'Failed to start live location sharing');
+        EnhancedSnackBar.showError(
+            context, 'Failed to start live location sharing');
         return;
       }
 
-      EnhancedSnackBar.showSuccess(context, 'Live location sharing started for 15 minutes');
+      EnhancedSnackBar.showSuccess(
+          context, 'Live location sharing started for 15 minutes');
 
       // TODO: Implement live location updates
       // For full implementation, you would:
@@ -1257,39 +1352,78 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
       // 2. Update location message periodically (every 30-60 seconds)
       // 3. Stop after 15 minutes or when user manually stops
       // 4. Add UI indicator showing live location is active
-      
     } catch (e) {
       if (kDebugMode) {
-        print('Error sending live location: $e');
+        print('❌ Error sending live location: $e');
       }
-      
+
       String errorMessage = 'Failed to start live location sharing';
-      if (e.toString().contains('permission')) {
-        errorMessage = 'Location permission required. Please enable it in settings.';
-        
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Location Permission Required'),
-            content: const Text('To share your live location, please enable location permission in your device settings.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _locationService.openAppSettings();
-                },
-                child: const Text('Open Settings'),
-              ),
-            ],
-          ),
-        );
+
+      if (e is LocationPermissionException) {
+        errorMessage = e.message;
+
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Location Permission Required'),
+              content: Text(e.message),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _locationService.openAppSettings();
+                  },
+                  child: const Text('Open Settings'),
+                ),
+              ],
+            ),
+          );
+        }
+        return;
+      } else if (e is LocationServiceException) {
+        errorMessage = e.message;
+      } else if (e.toString().contains('permission')) {
+        errorMessage =
+            'Location permission denied. Please enable it in settings.';
+
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Location Permission Required'),
+              content: const Text(
+                  'To share your live location, please enable location permission in your device settings.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _locationService.openAppSettings();
+                  },
+                  child: const Text('Open Settings'),
+                ),
+              ],
+            ),
+          );
+        }
+        return;
+      } else if (e.toString().contains('timeout') ||
+          e.toString().contains('TimeoutException')) {
+        errorMessage =
+            'Location request timed out. Please make sure location services are enabled and try again.';
       }
-      
-      EnhancedSnackBar.showError(context, errorMessage);
+
+      if (mounted) {
+        EnhancedSnackBar.showError(context, errorMessage);
+      }
     }
   }
 }

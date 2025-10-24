@@ -18,7 +18,8 @@ class LocationMessageWidget extends StatelessWidget {
     final latitude = message.metadata?['latitude'] as double?;
     final longitude = message.metadata?['longitude'] as double?;
     final address = message.metadata?['address'] as String?;
-    final isLiveLocation = message.metadata?['isLiveLocation'] as bool? ?? false;
+    final isLiveLocation =
+        message.metadata?['isLiveLocation'] as bool? ?? false;
 
     if (latitude == null || longitude == null) {
       return _buildErrorWidget();
@@ -154,7 +155,9 @@ class LocationMessageWidget extends StatelessWidget {
                     Icon(
                       Icons.location_on,
                       size: 16,
-                      color: isCurrentUser ? Colors.white : const Color(0xFF215C5C),
+                      color: isCurrentUser
+                          ? Colors.white
+                          : const Color(0xFF215C5C),
                     ),
                     const SizedBox(width: 4),
                     Expanded(
@@ -185,22 +188,29 @@ class LocationMessageWidget extends StatelessWidget {
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () => _openInGoogleMaps(latitude, longitude, address),
+                        onPressed: () =>
+                            _openInGoogleMaps(latitude, longitude, address),
                         icon: Icon(
                           Icons.map,
                           size: 16,
-                          color: isCurrentUser ? Colors.white : const Color(0xFF215C5C),
+                          color: isCurrentUser
+                              ? Colors.white
+                              : const Color(0xFF215C5C),
                         ),
                         label: Text(
                           'Open',
                           style: TextStyle(
-                            color: isCurrentUser ? Colors.white : const Color(0xFF215C5C),
+                            color: isCurrentUser
+                                ? Colors.white
+                                : const Color(0xFF215C5C),
                             fontSize: 12,
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(
-                            color: isCurrentUser ? Colors.white : const Color(0xFF215C5C),
+                            color: isCurrentUser
+                                ? Colors.white
+                                : const Color(0xFF215C5C),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 8),
                         ),
@@ -213,18 +223,24 @@ class LocationMessageWidget extends StatelessWidget {
                         icon: Icon(
                           Icons.directions,
                           size: 16,
-                          color: isCurrentUser ? Colors.white : const Color(0xFF215C5C),
+                          color: isCurrentUser
+                              ? Colors.white
+                              : const Color(0xFF215C5C),
                         ),
                         label: Text(
                           'Directions',
                           style: TextStyle(
-                            color: isCurrentUser ? Colors.white : const Color(0xFF215C5C),
+                            color: isCurrentUser
+                                ? Colors.white
+                                : const Color(0xFF215C5C),
                             fontSize: 12,
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(
-                            color: isCurrentUser ? Colors.white : const Color(0xFF215C5C),
+                            color: isCurrentUser
+                                ? Colors.white
+                                : const Color(0xFF215C5C),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 8),
                         ),
@@ -271,22 +287,24 @@ class LocationMessageWidget extends StatelessWidget {
     final zoom = 15;
     final size = '600x300';
     final marker = 'color:red%7C$latitude,$longitude';
-    
+
     return 'https://maps.googleapis.com/maps/api/staticmap?'
         'center=$latitude,$longitude&'
         'zoom=$zoom&'
         'size=$size&'
         'markers=$marker&'
         'key=YOUR_API_KEY'; // Replace with actual API key or use alternative
-    
+
     // Alternative: OpenStreetMap static map (no API key needed)
     // return 'https://www.openstreetmap.org/export/embed.html?bbox=${longitude - 0.01},${latitude - 0.01},${longitude + 0.01},${latitude + 0.01}&layer=mapnik&marker=$latitude,$longitude';
   }
 
-  Future<void> _openInGoogleMaps(double latitude, double longitude, String? address) async {
-    final url = LocationService().getGoogleMapsUrl(latitude, longitude, label: address);
+  Future<void> _openInGoogleMaps(
+      double latitude, double longitude, String? address) async {
+    final url =
+        LocationService().getGoogleMapsUrl(latitude, longitude, label: address);
     final uri = Uri.parse(url);
-    
+
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
@@ -295,7 +313,7 @@ class LocationMessageWidget extends StatelessWidget {
   Future<void> _getDirections(double latitude, double longitude) async {
     final url = LocationService().getDirectionsUrl(latitude, longitude);
     final uri = Uri.parse(url);
-    
+
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
