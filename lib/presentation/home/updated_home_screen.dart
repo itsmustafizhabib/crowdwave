@@ -77,7 +77,18 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
     // Initialize data streams
     _initializeDataStreams();
 
-    // Check KYC status on initialization
+    // Initialize KYC state with cached value if available (synchronous)
+    final currentUser = _authService.currentUser;
+    if (currentUser != null) {
+      final cachedStatus = _kycService.getCachedKycStatus(currentUser.uid);
+      if (cachedStatus != null) {
+        _hasSubmittedKyc = cachedStatus;
+        _isKycCheckLoading = false;
+        print('✅ Initialized KYC state with cached value: $cachedStatus');
+      }
+    }
+
+    // Check KYC status on initialization (will use cache if available)
     _checkKycStatus();
   }
 
@@ -126,31 +137,55 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
   Future<void> _checkKycStatus() async {
     final currentUser = _authService.currentUser;
     if (currentUser == null) {
-      setState(() {
-        _hasSubmittedKyc = false;
-        _isKycCheckLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _hasSubmittedKyc = false;
+          _isKycCheckLoading = false;
+        });
+      }
       return;
     }
 
     try {
-      setState(() {
-        _isKycCheckLoading = true;
-      });
+      // First check if we have a valid cached status
+      final cachedStatus = _kycService.getCachedKycStatus(currentUser.uid);
 
-      // Check if user has submitted KYC
+      if (cachedStatus != null) {
+        // We have a valid cache, use it immediately without showing loading
+        if (mounted) {
+          setState(() {
+            _hasSubmittedKyc = cachedStatus;
+            _isKycCheckLoading = false;
+          });
+        }
+        print('✨ Using cached KYC status: $cachedStatus (no loading shown)');
+        return;
+      }
+
+      // No cache available, fetch from Firestore
+      // Only show loading state for genuine first-time checks
+      if (mounted) {
+        setState(() {
+          _isKycCheckLoading = true;
+        });
+      }
+
       final hasSubmitted = await _kycService.hasSubmittedKyc(currentUser.uid);
 
-      setState(() {
-        _hasSubmittedKyc = hasSubmitted;
-        _isKycCheckLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _hasSubmittedKyc = hasSubmitted;
+          _isKycCheckLoading = false;
+        });
+      }
     } catch (e) {
       print('Error checking KYC status: $e');
-      setState(() {
-        _hasSubmittedKyc = false;
-        _isKycCheckLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _hasSubmittedKyc = false;
+          _isKycCheckLoading = false;
+        });
+      }
     }
   }
 
@@ -310,7 +345,7 @@ class _UpdatedHomeScreenState extends State<UpdatedHomeScreen>
                               child: const Icon(
                                 Icons.people,
                                 color: Colors.white,
-                                size: 22,
+                                size: 24,
                               ),
                             ),
                             const SizedBox(width: 16),

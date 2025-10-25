@@ -28,6 +28,11 @@ exports.sendDeliveryUpdateEmail = emailFunctions.sendDeliveryUpdateEmail;
 exports.testEmailConfig = emailFunctions.testEmailConfig;
 exports.sendOTPEmail = emailFunctions.sendOTPEmail;
 
+// Import Agora token functions
+const agoraFunctions = require('./agora_functions');
+exports.generateAgoraToken = agoraFunctions.generateAgoraToken;
+exports.renewAgoraToken = agoraFunctions.renewAgoraToken;
+
 /**
  * Test Authentication
  * Simple test function to verify auth is working

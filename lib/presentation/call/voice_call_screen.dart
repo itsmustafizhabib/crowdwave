@@ -298,10 +298,10 @@ class _VoiceCallScreenState extends State<VoiceCallScreen>
   // ✅ NEW: Setup proper audio settings for both caller and receiver
   Future<void> _setupAudioSettings() async {
     try {
-      // Enable microphone (ensure it's not muted by default)
-      await _callService.muteMicrophone(false);
+      // Wait longer for channel to be fully established and audio configured
+      await Future.delayed(const Duration(milliseconds: 1500));
 
-      // Set speaker on by default for better audio quality
+      // Just set speaker on - everything else is handled by the service
       await _callService.enableSpeaker(true);
 
       if (mounted) {
@@ -311,9 +311,13 @@ class _VoiceCallScreenState extends State<VoiceCallScreen>
         });
       }
 
-      print('✅ Audio settings configured: Mic ON, Speaker ON');
+      if (kDebugMode) {
+        print('✅ UI audio settings configured: Speaker ON');
+      }
     } catch (e) {
-      print('⚠️ Warning: Failed to setup audio settings: $e');
+      if (kDebugMode) {
+        print('⚠️ Warning: Failed to setup UI audio settings: $e');
+      }
     }
   }
 

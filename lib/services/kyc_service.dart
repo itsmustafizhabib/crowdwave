@@ -351,6 +351,15 @@ class KycService {
     }
   }
 
+  // Check if we have a cached KYC status (synchronous, no loading needed)
+  bool? getCachedKycStatus(String userId) {
+    final cached = _kycStatusCache[userId];
+    if (cached != null && !cached.isExpired) {
+      return cached.isApproved;
+    }
+    return null; // No valid cache available
+  }
+
   // Get KYC status (pending, approved, rejected, or null if not submitted)
   Future<String?> getKycStatus(String userId) async {
     try {
